@@ -128,5 +128,10 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  .prose h2,
+  .prose h3 {
+    scroll-margin-top: 5rem;
   }
 }

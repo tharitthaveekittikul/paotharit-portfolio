@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
+import remarkGfm from 'remark-gfm'
 import { getAllSlugs, getContent } from '@/lib/content'
 import { mdxComponents } from '@/components/mdx'
 import { Badge } from '@/components/ui/badge'
@@ -36,13 +37,13 @@ export default async function BlogPostPage({
 }) {
   const { locale, slug } = await params
 
-  let frontmatter: ReturnType<typeof getContent>['frontmatter']
-  let content: string
+  let result: ReturnType<typeof getContent>
   try {
-    ;({ frontmatter, content } = getContent('blog', locale, slug))
+    result = getContent('blog', locale, slug)
   } catch {
     notFound()
   }
+  const { frontmatter, content } = result!
 
   return (
     <article className="mx-auto max-w-3xl px-6 py-16">
@@ -68,7 +69,11 @@ export default async function BlogPostPage({
         </div>
       </header>
       <div className="prose prose-zinc max-w-none dark:prose-invert">
-        <MDXRemote source={content} components={mdxComponents} />
+        <MDXRemote
+          source={content}
+          components={mdxComponents}
+          options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+        />
       </div>
     </article>
   )

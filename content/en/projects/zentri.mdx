@@ -1,12 +1,12 @@
 ---
 title: "Zentri: AI-Powered Financial OS"
-description: "An open-source, privacy-first financial OS that aggregates assets and uses LLMs to deliver institutional-grade analysis — running locally via Docker."
+description: "An open-source, privacy-first financial OS that aggregates assets across Thai stocks, US equities, crypto, mutual funds, and gold — then uses LLMs to deliver institutional-grade analysis running locally via Docker."
 date: 2026-04-22
 type: project
 status: published
 featured: true
 tags: [ai, llm, trading, finance, python, nextjs]
-techStack: [nextjs, python, fastapi, postgresql, redis, docker, ollama]
+techStack: [nextjs, python, fastapi, postgresql, timescaledb, redis, chromadb, docker, ollama]
 role: "Solo Developer"
 duration: "Ongoing"
 projectStatus: "In Progress"
@@ -14,13 +14,32 @@ metrics:
   - { label: "Asset Classes", value: "5" }
   - { label: "LLM Providers", value: "4" }
   - { label: "Analysis Latency", value: "< 3s" }
+  - { label: "Docker Services", value: "8" }
 ---
+
+[View Documentation →](/en/docs/zentri/architecture)
 
 ## The Problem
 
 Managing a portfolio across Thai stocks, US equities, crypto, mutual funds, and gold requires
 jumping between five different apps — none of which talk to each other, and none of which give
 you a plain-language answer to: *what should I do right now?*
+
+Zentri is a self-hosted financial OS that aggregates everything in one place and answers that
+question using LLMs. It runs entirely on your machine via Docker — your data never leaves your system.
+
+## Features
+
+- **Multi-asset tracking** — Thai stocks (SET), US equities, crypto, mutual funds, gold
+- **AI analysis** — per-asset buy/sell/hold verdicts with reasoning via Claude, GPT-4, Gemini, or local Ollama
+- **Two-tier LLM routing** — fast local model for quick scans, cloud model for deep analysis
+- **Document RAG** — upload fund fact sheets and annual reports; LLM cites them in analysis
+- **Conversational chat** — ask questions about your portfolio in natural language
+- **Net worth timeline** — daily snapshots of total wealth across all asset classes
+- **Watchlist with AI thesis** — track assets you don't own yet with AI-generated entry theses
+- **IPO calendar** — upcoming IPOs with AI analysis
+- **Dividend calendar** — track upcoming and received dividends
+- **CSV import** — auto-maps broker CSV formats using LLM column detection
 
 ## System Architecture
 
@@ -29,9 +48,11 @@ graph TD
   UI[Next.js Frontend] --> API[FastAPI Backend]
   API --> Redis[Redis Queue]
   Redis --> Worker[ARQ Worker]
-  Worker --> PG[(PostgreSQL)]
+  Worker --> PG[(PostgreSQL + TimescaleDB)]
   Worker --> Chroma[(ChromaDB)]
   Worker --> LLM[LLM Provider]
+  LLM --> Ollama[Ollama local]
+  LLM --> Cloud[OpenAI / Claude / Gemini]
 `} />
 
 ## Key Technical Decisions
@@ -41,9 +62,51 @@ graph TD
 | Job queue | Redis + ARQ | Celery | Simpler, no separate broker |
 | Vector store | ChromaDB | Pinecone | Local-first, zero cost |
 | LLM routing | Two-tier | Single model | Cost vs quality trade-off |
+| Time-series | TimescaleDB | InfluxDB | Stays in PostgreSQL ecosystem |
+| Auth | JWT + bcrypt | OAuth | Self-hosted, single-user |
+
+## Screenshots
+
+<div className="not-prose grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <figure>
+    <img src="/projects/zentri/overview-page.png" alt="Overview dashboard" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">Overview Dashboard</figcaption>
+  </figure>
+  <figure>
+    <img src="/projects/zentri/portfolio-page.png" alt="Portfolio breakdown" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">Portfolio Breakdown</figcaption>
+  </figure>
+  <figure>
+    <img src="/projects/zentri/chat-page.png" alt="AI chat interface" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">AI Chat</figcaption>
+  </figure>
+  <figure>
+    <img src="/projects/zentri/net-worth-page.png" alt="Net worth timeline" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">Net Worth Timeline</figcaption>
+  </figure>
+  <figure>
+    <img src="/projects/zentri/watchlist-page.png" alt="Watchlist with AI thesis" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">Watchlist</figcaption>
+  </figure>
+  <figure>
+    <img src="/projects/zentri/pipeline-page.png" alt="Background job pipeline" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">Background Pipeline</figcaption>
+  </figure>
+  <figure>
+    <img src="/projects/zentri/research-page.png" alt="Research and document analysis" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">Document Research</figcaption>
+  </figure>
+  <figure>
+    <img src="/projects/zentri/document-page.png" alt="Document ingestion" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">Document Ingestion</figcaption>
+  </figure>
+</div>
 
 ## What I'd Do Differently
 
 Start with the data pipeline before the UI. I spent two weeks building a beautiful dashboard
 before realising the data ingestion was unreliable — polish means nothing without trustworthy
 data underneath.
+
+I'd also add end-to-end integration tests from day one. The LLM pipeline has several moving
+parts (queue → worker → LLM → DB), and unit tests don't catch the integration failures.
