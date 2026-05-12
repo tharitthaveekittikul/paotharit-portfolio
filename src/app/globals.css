@@ -135,3 +135,18 @@
     scroll-margin-top: 5rem;
   }
 }
+
+::view-transition-old(root) {
+  animation: none;
+}
+
+::view-transition-new(root) {
+  clip-path: circle(0 at var(--vt-x) var(--vt-y));
+  animation: vt-reveal 0.5s ease-in-out forwards;
+}
+
+@keyframes vt-reveal {
+  to {
+    clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y));
+  }
+}
