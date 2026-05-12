@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "home": "หน้าแรก",
+    "blog": "บล็อก",
+    "projects": "โปรเจกต์",
+    "about": "เกี่ยวกับ"
+  },
+  "blog": {
+    "title": "บล็อก",
+    "readMore": "อ่านต่อ",
+    "publishedOn": "เผยแพร่เมื่อ",
+    "updatedOn": "อัปเดตเมื่อ"
+  },
+  "projects": {
+    "title": "โปรเจกต์",
+    "viewProject": "ดูโปรเจกต์",
+    "status": {
+      "inProgress": "กำลังพัฒนา",
+      "completed": "เสร็จสมบูรณ์",
+      "archived": "เก็บถาวร"
+    }
+  },
+  "common": {
+    "backToBlog": "กลับไปบล็อก",
+    "backToProjects": "กลับไปโปรเจกต์",
+    "archived": "เก็บถาวร"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "home": "Home",
+    "blog": "Blog",
+    "projects": "Projects",
+    "about": "About"
+  },
+  "blog": {
+    "title": "Blog",
+    "readMore": "Read more",
+    "publishedOn": "Published on",
+    "updatedOn": "Updated on"
+  },
+  "projects": {
+    "title": "Projects",
+    "viewProject": "View project",
+    "status": {
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "archived": "Archived"
+    }
+  },
+  "common": {
+    "backToBlog": "Back to Blog",
+    "backToProjects": "Back to Projects",
+    "archived": "Archived"
+  }
+}

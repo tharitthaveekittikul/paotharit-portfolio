@@ -1,0 +1,49 @@
+---
+title: "Zentri: AI-Powered Financial OS"
+description: "An open-source, privacy-first financial OS that aggregates assets and uses LLMs to deliver institutional-grade analysis — running locally via Docker."
+date: 2026-04-22
+type: project
+status: published
+featured: true
+tags: [ai, llm, trading, finance, python, nextjs]
+techStack: [nextjs, python, fastapi, postgresql, redis, docker, ollama]
+role: "Solo Developer"
+duration: "Ongoing"
+projectStatus: "In Progress"
+metrics:
+  - { label: "Asset Classes", value: "5" }
+  - { label: "LLM Providers", value: "4" }
+  - { label: "Analysis Latency", value: "< 3s" }
+---
+
+## The Problem
+
+Managing a portfolio across Thai stocks, US equities, crypto, mutual funds, and gold requires
+jumping between five different apps — none of which talk to each other, and none of which give
+you a plain-language answer to: *what should I do right now?*
+
+## System Architecture
+
+<Mermaid chart={`
+graph TD
+  UI[Next.js Frontend] --> API[FastAPI Backend]
+  API --> Redis[Redis Queue]
+  Redis --> Worker[ARQ Worker]
+  Worker --> PG[(PostgreSQL)]
+  Worker --> Chroma[(ChromaDB)]
+  Worker --> LLM[LLM Provider]
+`} />
+
+## Key Technical Decisions
+
+| Decision | Chosen | Rejected | Why |
+|----------|--------|----------|-----|
+| Job queue | Redis + ARQ | Celery | Simpler, no separate broker |
+| Vector store | ChromaDB | Pinecone | Local-first, zero cost |
+| LLM routing | Two-tier | Single model | Cost vs quality trade-off |
+
+## What I'd Do Differently
+
+Start with the data pipeline before the UI. I spent two weeks building a beautiful dashboard
+before realising the data ingestion was unreliable — polish means nothing without trustworthy
+data underneath.
