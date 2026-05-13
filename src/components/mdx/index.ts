@@ -4,13 +4,15 @@ import { Callout } from './Callout'
 import { CodeBlock } from './CodeBlock'
 import { Mermaid } from './Mermaid'
 import { TradingChart } from './TradingChart'
+import { ZoomableImage } from './ZoomableImage'
 
-export { Callout, CodeBlock, Mermaid, TradingChart }
+export { Callout, CodeBlock, Mermaid, TradingChart, ZoomableImage }
 
 export const mdxComponents: MDXComponents = {
   Callout,
   Mermaid,
   TradingChart,
+  img: ZoomableImage as MDXComponents['img'],
   pre: (props) => {
     // Mermaid blocks are pre-marked by rehypeExtractMermaid before rehype-pretty-code runs
     if ((props as Record<string, unknown>)['data-mermaid']) {
