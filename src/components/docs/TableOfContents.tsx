@@ -34,6 +34,10 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
           <li key={h.id} style={{ paddingLeft: h.level === 3 ? '0.75rem' : '0' }}>
             <a
               href={`#${h.id}`}
+              onClick={e => {
+                e.preventDefault()
+                document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
               className={`block text-sm transition-colors ${
                 activeId === h.id
                   ? 'font-medium text-zinc-900 dark:text-zinc-50'

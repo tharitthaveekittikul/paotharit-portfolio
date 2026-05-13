@@ -93,7 +93,7 @@ export function createDocsUtils(docsRoot: string) {
     const entries = readdirSync(dir, { withFileTypes: true })
     for (const entry of entries) {
       const baseName = entry.isDirectory() ? entry.name : entry.name.replace(/\.mdx$/, '')
-      if (toSlugPart(baseName) !== target) continue
+      if (toSlugPart(baseName) !== target.toLowerCase()) continue
       if (entry.isDirectory() && depth < slugParts.length - 1) {
         return findFilePath(join(dir, entry.name), slugParts, depth + 1)
       }

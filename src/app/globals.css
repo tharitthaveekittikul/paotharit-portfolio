@@ -128,12 +128,101 @@
   }
   html {
     @apply font-sans;
-    scroll-behavior: smooth;
   }
   .prose h2,
   .prose h3 {
     scroll-margin-top: 5rem;
   }
+}
+
+/* ── Syntax highlighting (rehype-pretty-code + Shiki dual theme) ── */
+
+/* Inline code — remove Tailwind typography backtick quotes */
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+  content: none;
+}
+.prose :not(pre) > code {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  border-radius: 0.3rem;
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+}
+
+/* Code block container — reset Tailwind prose background */
+.prose pre {
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+/* rehype-pretty-code block styling */
+[data-rehype-pretty-code-figure] {
+  margin: 1.5rem 0;
+}
+
+[data-rehype-pretty-code-figure] pre {
+  border-radius: 0.5rem !important;
+  border: none !important;
+  padding: 1.25rem 1.5rem !important;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.75;
+}
+
+/* File / language title bar */
+[data-rehype-pretty-code-title] {
+  border-radius: 0.5rem 0.5rem 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background-color: var(--muted);
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--muted-foreground);
+}
+[data-rehype-pretty-code-title] + pre {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Dual theme — light tokens */
+.prose code[data-theme*=' '] {
+  color: var(--shiki-light);
+  background-color: oklch(0.96 0 0);
+}
+.prose code[data-theme*=' '] span {
+  color: var(--shiki-light);
+}
+
+/* Light mode: give the pre the same bg so padding areas aren't white */
+[data-rehype-pretty-code-figure] pre {
+  background-color: oklch(0.96 0 0) !important;
+}
+
+/* Dual theme — dark tokens */
+.dark .prose code[data-theme*=' '] {
+  color: var(--shiki-dark);
+  background-color: #24292e !important;
+}
+.dark .prose code[data-theme*=' '] span {
+  color: var(--shiki-dark) !important;
+}
+
+/* Dark mode code block: ensure pre container also has dark bg */
+.dark [data-rehype-pretty-code-figure] pre {
+  background-color: #24292e !important;
+}
+
+/* Highlighted lines */
+[data-highlighted-line] {
+  background-color: oklch(0.5 0 0 / 8%);
+  border-left: 2px solid oklch(0.6 0.15 250);
+  padding-left: calc(1.25rem - 2px);
+  margin-left: -1.25rem;
+  padding-right: 1.25rem;
+  margin-right: -1.25rem;
 }
 
 ::view-transition-old(root) {
@@ -142,7 +231,7 @@
 
 ::view-transition-new(root) {
   clip-path: circle(0 at var(--vt-x) var(--vt-y));
-  animation: vt-reveal 0.5s ease-in-out forwards;
+  animation: vt-reveal 0.3s ease-out forwards;
 }
 
 @keyframes vt-reveal {
