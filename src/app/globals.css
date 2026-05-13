@@ -137,6 +137,15 @@
 
 /* ── Syntax highlighting (rehype-pretty-code + Shiki dual theme) ── */
 
+/* prose-zinc defaults --tw-prose-pre-code to zinc-200 (near-white), which is
+   invisible against the near-white code block background. Override for both modes. */
+.prose-zinc {
+  --tw-prose-pre-code: #24292e;
+}
+.dark .prose-zinc {
+  --tw-prose-pre-code: #e1e4e8;
+}
+
 /* Inline code — remove Tailwind typography backtick quotes */
 .prose :not(pre) > code::before,
 .prose :not(pre) > code::after {
@@ -189,11 +198,11 @@
 
 /* Dual theme — light tokens */
 .prose code[data-theme*=' '] {
-  color: var(--shiki-light);
+  color: var(--shiki-light, #24292e);
   background-color: oklch(0.96 0 0);
 }
 .prose code[data-theme*=' '] span {
-  color: var(--shiki-light);
+  color: var(--shiki-light, #24292e);
 }
 
 /* Light mode: give the pre the same bg so padding areas aren't white */
@@ -203,11 +212,11 @@
 
 /* Dual theme — dark tokens */
 .dark .prose code[data-theme*=' '] {
-  color: var(--shiki-dark);
+  color: var(--shiki-dark, #e1e4e8);
   background-color: #24292e !important;
 }
 .dark .prose code[data-theme*=' '] span {
-  color: var(--shiki-dark) !important;
+  color: var(--shiki-dark, #e1e4e8) !important;
 }
 
 /* Dark mode code block: ensure pre container also has dark bg */
