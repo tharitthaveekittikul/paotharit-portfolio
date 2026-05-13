@@ -33,11 +33,11 @@ export function ZoomableImage({ src, alt = '', ...props }: ZoomableImageProps) {
       />
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-8 backdrop-blur-sm"
+          className="cursor-pointer fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-8 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         >
           <button
-            className="absolute right-5 top-5 rounded-full p-1 text-white/80 transition-colors hover:text-white"
+            className="cursor-pointer absolute right-5 top-5 rounded-full p-1 text-white/80 transition-colors hover:text-white"
             onClick={() => setIsOpen(false)}
             aria-label="Close"
           >

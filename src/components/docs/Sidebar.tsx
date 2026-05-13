@@ -22,7 +22,7 @@ function GroupNode({ group, depth }: { group: DocGroup; depth: number }) {
     <li>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400"
+        className="cursor-pointer flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400"
       >
         {group.label}
         <span>{open ? '−' : '+'}</span>

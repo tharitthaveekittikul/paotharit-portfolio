@@ -64,7 +64,7 @@ export async function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50"
+                className="cursor-pointer p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50"
               >
                 <SocialIcon path={icon.path} label={label} />
               </a>

@@ -83,7 +83,7 @@ export function CopyMarkdownButton({ content, filename }: { content: string; fil
   }
 
   const btnBase =
-    'flex w-full items-center gap-2.5 px-3 py-2 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50'
+    'cursor-pointer flex w-full items-center gap-2.5 px-3 py-2 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50'
 
   return (
     <div className="relative" ref={wrapRef}>
@@ -91,7 +91,7 @@ export function CopyMarkdownButton({ content, filename }: { content: string; fil
       <div className="flex items-center rounded-md border border-zinc-200 dark:border-zinc-700 overflow-hidden">
         <button
           onClick={handleCopy}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+          className="cursor-pointer flex items-center gap-2 px-3 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
         >
           {copied ? <IconCheck /> : <IconCopy />}
           {copied ? 'Copied!' : 'Copy page'}
@@ -99,7 +99,7 @@ export function CopyMarkdownButton({ content, filename }: { content: string; fil
         <div className="h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
         <button
           onClick={() => setOpen(o => !o)}
-          className="px-2 py-1.5 text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+          className="cursor-pointer px-2 py-1.5 text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
           aria-label="More options"
         >
           <IconChevron />

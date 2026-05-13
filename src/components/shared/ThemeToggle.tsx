@@ -47,7 +47,7 @@ export function ThemeToggle() {
       aria-checked={isDark}
       aria-label="Toggle theme"
       onClick={handleClick}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-300 ${
+      className={`cursor-pointer relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-300 ${
         isDark ? "bg-zinc-700" : "bg-zinc-200"
       }`}
     >

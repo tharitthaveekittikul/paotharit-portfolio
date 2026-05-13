@@ -17,7 +17,7 @@ export default async function HomePage({
     <div className="mx-auto max-w-3xl px-6 py-24">
       <section className="mb-20">
         <h1 className="mb-4 text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Paotharit Thaveekittikul
+          Tharit Thaveekittikul
         </h1>
         <p className="max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
           Software engineer building AI systems, trading tools, and developer infrastructure.

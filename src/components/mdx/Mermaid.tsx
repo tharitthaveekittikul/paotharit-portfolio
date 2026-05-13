@@ -27,17 +27,18 @@ async function renderChart(el: HTMLDivElement, chart: string, dark: boolean) {
   if (svgEl) el.replaceChildren(document.adoptNode(svgEl))
 }
 
-function scaleSvgToFill(el: HTMLDivElement) {
+function scaleSvgToFit(el: HTMLDivElement) {
   const svg = el.querySelector('svg')
   if (!svg) return
-  // Preserve natural dimensions as viewBox so SVG scales properly
-  const w = svg.getAttribute('width') ?? svg.viewBox?.baseVal?.width
-  const h = svg.getAttribute('height') ?? svg.viewBox?.baseVal?.height
+  const w = parseFloat(svg.getAttribute('width') ?? '') || svg.viewBox?.baseVal?.width
+  const h = parseFloat(svg.getAttribute('height') ?? '') || svg.viewBox?.baseVal?.height
   if (w && h && !svg.getAttribute('viewBox')) {
     svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
   }
-  svg.setAttribute('width', '100%')
+  svg.removeAttribute('width')
   svg.removeAttribute('height')
+  svg.style.width = '100%'
+  svg.style.height = '100%'
   svg.style.display = 'block'
 }
 
@@ -47,7 +48,7 @@ function MermaidModal({ chart, onClose }: { chart: string; onClose: () => void }
   useEffect(() => {
     if (ref.current) {
       renderChart(ref.current, chart, getDarkMode()).then(() => {
-        if (ref.current) scaleSvgToFill(ref.current)
+        if (ref.current) scaleSvgToFit(ref.current)
       })
     }
   }, [chart])
@@ -60,11 +61,11 @@ function MermaidModal({ chart, onClose }: { chart: string; onClose: () => void }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-8 backdrop-blur-sm"
+      className="cursor-pointer fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-8 backdrop-blur-sm"
       onClick={onClose}
     >
       <button
-        className="absolute right-5 top-5 rounded-full bg-black/40 p-1.5 text-white/80 transition-colors hover:text-white"
+        className="cursor-pointer absolute right-5 top-5 rounded-full bg-black/40 p-1.5 text-white/80 transition-colors hover:text-white"
         onClick={onClose}
         aria-label="Close"
       >
@@ -73,10 +74,11 @@ function MermaidModal({ chart, onClose }: { chart: string; onClose: () => void }
         </svg>
       </button>
       <div
-        ref={ref}
-        className="w-[88vw] max-h-[88vh] overflow-auto rounded-xl bg-white p-8 shadow-2xl dark:bg-zinc-900"
+        className="flex h-[88vh] w-[88vw] flex-col rounded-xl bg-white p-8 shadow-2xl dark:bg-zinc-900"
         onClick={e => e.stopPropagation()}
-      />
+      >
+        <div ref={ref} className="min-h-0 flex-1" />
+      </div>
     </div>
   )
 }

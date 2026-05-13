@@ -38,7 +38,7 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
                 e.preventDefault()
                 document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
               }}
-              className={`block text-sm transition-colors ${
+              className={`cursor-pointer block text-sm transition-colors ${
                 activeId === h.id
                   ? 'font-medium text-zinc-900 dark:text-zinc-50'
                   : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
