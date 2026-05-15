@@ -55,6 +55,12 @@ export default async function ProjectPage({
           {frontmatter.description}
         </p>
         <div className="mb-6 flex flex-wrap gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+          <time dateTime={new Date(frontmatter.date).toISOString().slice(0, 10)}>
+            {new Date(frontmatter.date).toLocaleDateString(
+              locale === 'th' ? 'th-TH' : 'en-US',
+              { year: 'numeric' }
+            )}
+          </time>
           {frontmatter.role && <span>{frontmatter.role}</span>}
           {frontmatter.duration && <span>{frontmatter.duration}</span>}
           {frontmatter.projectStatus && (

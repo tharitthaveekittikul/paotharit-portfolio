@@ -35,6 +35,15 @@ export default async function ProjectsPage({
               href={`/${locale}/projects/${project.slug}`}
               className="group block rounded-lg border border-zinc-200 p-6 transition-colors hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
             >
+              <time
+                dateTime={new Date(project.date).toISOString().slice(0, 10)}
+                className="mb-1 block text-sm text-zinc-500 dark:text-zinc-400"
+              >
+                {new Date(project.date).toLocaleDateString(
+                  locale === 'th' ? 'th-TH' : 'en-US',
+                  { year: 'numeric' }
+                )}
+              </time>
               <div className="mb-2 flex items-start justify-between gap-4">
                 <h2 className="text-xl font-semibold text-zinc-900 group-hover:text-black dark:text-zinc-50 dark:group-hover:text-white">
                   {project.title}
