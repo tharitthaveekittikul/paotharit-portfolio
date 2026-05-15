@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { ThemeProvider } from 'next-themes'
-import { Analytics } from '@vercel/analytics/react'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { Header } from '@/components/shared/Header'
 import { Footer } from '@/components/shared/Footer'
 import { CommandPaletteProvider } from "@/components/shared/CommandPaletteProvider"
@@ -43,7 +43,7 @@ export default async function LocaleLayout({
           <CommandPalette />
         </CommandPaletteProvider>
       </ThemeProvider>
-      <Analytics />
+      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
     </NextIntlClientProvider>
   )
 }
