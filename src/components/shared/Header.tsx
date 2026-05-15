@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { ThemeToggle } from './ThemeToggle'
 import { LocaleSwitcher } from './LocaleSwitcher'
+import { SearchButton } from "./SearchButton"
 import { siGithub, siInstagram, siFacebook } from 'simple-icons'
 
 // LinkedIn icon (not available in simple-icons)
@@ -70,6 +71,7 @@ export async function Header() {
               </a>
             ))}
           </div>
+          <SearchButton />
           <LocaleSwitcher />
           <ThemeToggle />
         </div>

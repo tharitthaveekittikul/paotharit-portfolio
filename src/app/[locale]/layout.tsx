@@ -5,6 +5,8 @@ import { ThemeProvider } from 'next-themes'
 import { Analytics } from '@vercel/analytics/react'
 import { Header } from '@/components/shared/Header'
 import { Footer } from '@/components/shared/Footer'
+import { CommandPaletteProvider } from "@/components/shared/CommandPaletteProvider"
+import { CommandPalette } from "@/components/shared/CommandPalette"
 import '../globals.css'
 
 export const metadata: Metadata = {
@@ -34,9 +36,12 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <CommandPaletteProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <CommandPalette />
+        </CommandPaletteProvider>
       </ThemeProvider>
       <Analytics />
     </NextIntlClientProvider>

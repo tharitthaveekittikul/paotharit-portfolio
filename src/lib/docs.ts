@@ -1,7 +1,6 @@
 import { readFileSync, readdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import matter from 'gray-matter'
-import GithubSlugger from 'github-slugger'
 
 export interface DocFrontmatter {
   title: string
@@ -31,7 +30,6 @@ export interface Heading {
 }
 
 export function extractHeadings(content: string): Heading[] {
-  const slugger = new GithubSlugger()
   return content
     .split('\n')
     .flatMap(line => {
@@ -39,7 +37,10 @@ export function extractHeadings(content: string): Heading[] {
       if (!match) return []
       const level = match[1].length
       const text = match[2].trim()
-      const id = slugger.slug(text)
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
       return [{ text, id, level }]
     })
 }
