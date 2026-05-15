@@ -11,6 +11,13 @@ import { mdxComponents } from '@/components/mdx'
 import { TableOfContents, CopyMarkdownButton, MobileTableOfContents } from '@/components/docs'
 import { MobileDocsSidebar } from '@/components/docs/MobileDocsSidebar'
 
+function remarkRemoveFirstH1() {
+  return (tree: { children: Array<{ type: string; depth?: number }> }) => {
+    const idx = tree.children.findIndex(n => n.type === 'heading' && n.depth === 1)
+    if (idx !== -1) tree.children.splice(idx, 1)
+  }
+}
+
 // Marks mermaid code blocks before rehype-pretty-code processes them.
 // Sets data-mermaid="true" on <pre> and strips the language class from <code>
 // so rehype-pretty-code leaves the block alone.
@@ -95,7 +102,7 @@ export default async function DocPage({
               components={mdxComponents}
               options={{
                 mdxOptions: {
-                  remarkPlugins: [remarkGfm],
+                  remarkPlugins: [remarkGfm, remarkRemoveFirstH1],
                   rehypePlugins: [
                     rehypeSlug,
                     rehypeExtractMermaid,

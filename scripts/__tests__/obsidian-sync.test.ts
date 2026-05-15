@@ -18,6 +18,27 @@ describe('convertWikiLinks', () => {
     const input = '[link](https://example.com)'
     expect(convertWikiLinks(input)).toBe(input)
   })
+
+  it('resolves wiki-links to URLs when resolver is provided', () => {
+    const resolver = (name: string) => name === 'API - GET Sessions' ? '/en/docs/zentri/02-api/01-sessions/01-get' : null
+    expect(convertWikiLinks('See [[API - GET Sessions]].', resolver)).toBe(
+      'See [API - GET Sessions](/en/docs/zentri/02-api/01-sessions/01-get).'
+    )
+  })
+
+  it('falls back to page title when resolver returns null', () => {
+    const resolver = (_name: string) => null
+    expect(convertWikiLinks('See [[Unknown Page]].', resolver)).toBe(
+      'See [Unknown Page](Unknown Page).'
+    )
+  })
+
+  it('resolves aliased wiki-links with resolver', () => {
+    const resolver = (name: string) => name === 'API - GET Sessions' ? '/en/docs/zentri/02-api/01-sessions/01-get' : null
+    expect(convertWikiLinks('See [[API - GET Sessions|the sessions API]].', resolver)).toBe(
+      'See [the sessions API](/en/docs/zentri/02-api/01-sessions/01-get).'
+    )
+  })
 })
 
 describe('convertCallouts', () => {

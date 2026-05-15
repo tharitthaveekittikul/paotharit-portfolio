@@ -3,11 +3,17 @@ import { join, basename, extname, resolve } from 'path'
 import matter from 'gray-matter'
 import { stringify } from 'yaml'
 
-export function convertWikiLinks(content: string): string {
-  // [[Page|Alias]] → [Alias](Page)
-  content = content.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '[$2]($1)')
-  // [[Page]] → [Page](Page)
-  content = content.replace(/\[\[([^\]]+)\]\]/g, '[$1]($1)')
+export function convertWikiLinks(content: string, resolver?: (name: string) => string | null): string {
+  // [[Page|Alias]] → [Alias](resolved-url-or-Page)
+  content = content.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (_match, page, alias) => {
+    const href = resolver?.(page.trim()) ?? page.trim()
+    return `[${alias}](${href})`
+  })
+  // [[Page]] → [Page](resolved-url-or-Page)
+  content = content.replace(/\[\[([^\]]+)\]\]/g, (_match, page) => {
+    const href = resolver?.(page.trim()) ?? page.trim()
+    return `[${page}](${href})`
+  })
   return content
 }
 
@@ -60,13 +66,46 @@ function numericPrefix(index: number): string {
   return String(index + 1).padStart(2, '0')
 }
 
-function processDocFile(srcPath: string, destPath: string): void {
+function deriveUrlBase(outputBase: string): string {
+  const idx = outputBase.indexOf('/content/')
+  return idx === -1 ? '' : outputBase.slice(idx + '/content'.length)
+}
+
+function buildDocUrlMap(obsidianBase: string, projectKey: string, outputBase: string): Map<string, string> {
+  const map = new Map<string, string>()
+  const urlBase = deriveUrlBase(outputBase)
+  const endpointsBase = join(obsidianBase, 'Docs', 'Backend', 'Endpoints')
+  if (!existsSync(endpointsBase)) return map
+
+  const domains = readdirSync(endpointsBase, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  domains.forEach((domain, di) => {
+    const domainSlug = `${numericPrefix(di)}-${domain.name.toLowerCase()}`
+    const files = readdirSync(join(endpointsBase, domain.name))
+      .filter(f => f.endsWith('.md'))
+      .sort()
+
+    files.forEach((file, fi) => {
+      const noteTitle = basename(file, '.md')
+      const outSlug = `${numericPrefix(fi)}-${noteTitle.toLowerCase().replace(/[\s_]+/g, '-')}`
+      map.set(noteTitle, `${urlBase}/${projectKey}/02-api/${domainSlug}/${outSlug}`)
+    })
+  })
+
+  return map
+}
+
+function processDocFile(srcPath: string, destPath: string, resolver?: (name: string) => string | null): void {
   const raw = readFileSync(srcPath, 'utf-8')
   const { data: obsidianFm, content } = matter(raw)
   let body = stripSections(content, DOC_STRIP_HEADINGS)
-  body = convertWikiLinks(body)
+  body = convertWikiLinks(body, resolver)
   body = convertCallouts(body)
   const newFm = buildDocFrontmatter(obsidianFm as Record<string, unknown>, body)
+  // Strip the H1 heading — the page renders it from frontmatter.title
+  body = body.replace(/^# [^\n]+\n?/m, '').trimStart()
   const fmStr = stringify(newFm).trim()
   writeFileSync(destPath, `---\n${fmStr}\n---\n\n${body.trim()}\n`)
   console.log(`doc: ${basename(destPath)}`)
@@ -76,11 +115,14 @@ export function syncDocs(obsidianBase: string, projectKey: string, outputBase: s
   const outDir = join(outputBase, projectKey)
   mkdirSync(outDir, { recursive: true })
 
+  const urlMap = buildDocUrlMap(obsidianBase, projectKey, outputBase)
+  const resolver = (name: string) => urlMap.get(name) ?? null
+
   // Top-level docs
   const topLevel = [{ src: join(obsidianBase, 'Architecture.md'), out: '01-architecture.mdx' }]
   for (const { src, out } of topLevel) {
     if (!existsSync(src)) { console.warn(`Not found: ${src}`); continue }
-    processDocFile(src, join(outDir, out))
+    processDocFile(src, join(outDir, out), resolver)
   }
 
   // API endpoint docs from Docs/Backend/Endpoints/
@@ -103,7 +145,7 @@ export function syncDocs(obsidianBase: string, projectKey: string, outputBase: s
 
     files.forEach((file, fi) => {
       const outSlug = `${numericPrefix(fi)}-${basename(file, '.md').toLowerCase().replace(/[\s_]+/g, '-')}`
-      processDocFile(join(endpointsBase, domain.name, file), join(domainOut, `${outSlug}.mdx`))
+      processDocFile(join(endpointsBase, domain.name, file), join(domainOut, `${outSlug}.mdx`), resolver)
     })
   })
 }
