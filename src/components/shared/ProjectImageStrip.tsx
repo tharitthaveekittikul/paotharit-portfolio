@@ -10,11 +10,11 @@ export function ProjectImageStrip({ images }: ProjectImageStripProps) {
   const overflowCount = images.length - 3
 
   return (
-    <div className="flex h-24 border-t border-zinc-200 dark:border-zinc-800">
+    <div className="flex gap-1.5 px-3 pb-3">
       {tiles.map((src, i) => {
         const isOverflowTile = showOverlay && i === 3
         return (
-          <div key={src} className="relative flex-1 overflow-hidden">
+          <div key={src} className="relative flex-1 overflow-hidden rounded-md" style={{ height: '80px' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={src} alt="" className="h-full w-full object-cover" />
             {isOverflowTile && (
