@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs'
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync, existsSync, readdirSync, rmSync } from 'fs'
 import { join, basename, extname, resolve } from 'path'
 import matter from 'gray-matter'
 import { stringify } from 'yaml'
@@ -66,6 +66,10 @@ function numericPrefix(index: number): string {
   return String(index + 1).padStart(2, '0')
 }
 
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+}
+
 function deriveUrlBase(outputBase: string): string {
   const idx = outputBase.indexOf('/content/')
   return idx === -1 ? '' : outputBase.slice(idx + '/content'.length)
@@ -74,25 +78,61 @@ function deriveUrlBase(outputBase: string): string {
 function buildDocUrlMap(obsidianBase: string, projectKey: string, outputBase: string): Map<string, string> {
   const map = new Map<string, string>()
   const urlBase = deriveUrlBase(outputBase)
+  const base = `${urlBase}/${projectKey}`
+
+  // api/<domain>/<file> — numeric prefixes stripped to match findFilePath behaviour
   const endpointsBase = join(obsidianBase, 'Docs', 'Backend', 'Endpoints')
-  if (!existsSync(endpointsBase)) return map
+  if (existsSync(endpointsBase)) {
+    readdirSync(endpointsBase, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach(domain => {
+        const domainSlug = toSlug(domain.name)
+        readdirSync(join(endpointsBase, domain.name))
+          .filter(f => f.endsWith('.md'))
+          .sort()
+          .forEach(file => {
+            const noteTitle = basename(file, '.md')
+            map.set(noteTitle, `${base}/api/${domainSlug}/${toSlug(noteTitle)}`)
+          })
+      })
+  }
 
-  const domains = readdirSync(endpointsBase, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .sort((a, b) => a.name.localeCompare(b.name))
-
-  domains.forEach((domain, di) => {
-    const domainSlug = `${numericPrefix(di)}-${domain.name.toLowerCase()}`
-    const files = readdirSync(join(endpointsBase, domain.name))
-      .filter(f => f.endsWith('.md'))
-      .sort()
-
-    files.forEach((file, fi) => {
+  // database/<file>
+  const dbBase = join(obsidianBase, 'Docs', 'Database')
+  if (existsSync(dbBase)) {
+    readdirSync(dbBase).filter(f => f.endsWith('.md')).sort().forEach(file => {
       const noteTitle = basename(file, '.md')
-      const outSlug = `${numericPrefix(fi)}-${noteTitle.toLowerCase().replace(/[\s_]+/g, '-')}`
-      map.set(noteTitle, `${urlBase}/${projectKey}/02-api/${domainSlug}/${outSlug}`)
+      map.set(noteTitle, `${base}/database/${toSlug(noteTitle)}`)
     })
-  })
+  }
+
+  // frontend/pages/<file>
+  const frontendPagesBase = join(obsidianBase, 'Docs', 'Frontend', 'Pages')
+  if (existsSync(frontendPagesBase)) {
+    readdirSync(frontendPagesBase).filter(f => f.endsWith('.md')).sort().forEach(file => {
+      const noteTitle = basename(file, '.md')
+      map.set(noteTitle, `${base}/frontend/pages/${toSlug(noteTitle)}`)
+    })
+  }
+
+  // frontend/stores/<file>
+  const frontendStoresBase = join(obsidianBase, 'Docs', 'Frontend', 'Stores')
+  if (existsSync(frontendStoresBase)) {
+    readdirSync(frontendStoresBase).filter(f => f.endsWith('.md')).sort().forEach(file => {
+      const noteTitle = basename(file, '.md')
+      map.set(noteTitle, `${base}/frontend/stores/${toSlug(noteTitle)}`)
+    })
+  }
+
+  // devops/<file>
+  const docsRoot = join(obsidianBase, 'Docs')
+  if (existsSync(docsRoot)) {
+    readdirSync(docsRoot).filter(f => f.startsWith('DevOps') && f.endsWith('.md')).sort().forEach(file => {
+      const noteTitle = basename(file, '.md')
+      map.set(noteTitle, `${base}/devops/${toSlug(noteTitle)}`)
+    })
+  }
 
   return map
 }
@@ -113,41 +153,87 @@ function processDocFile(srcPath: string, destPath: string, resolver?: (name: str
 
 export function syncDocs(obsidianBase: string, projectKey: string, outputBase: string): void {
   const outDir = join(outputBase, projectKey)
+  rmSync(outDir, { recursive: true, force: true })
   mkdirSync(outDir, { recursive: true })
 
   const urlMap = buildDocUrlMap(obsidianBase, projectKey, outputBase)
   const resolver = (name: string) => urlMap.get(name) ?? null
 
-  // Top-level docs
-  const topLevel = [{ src: join(obsidianBase, 'Architecture.md'), out: '01-architecture.mdx' }]
-  for (const { src, out } of topLevel) {
-    if (!existsSync(src)) { console.warn(`Not found: ${src}`); continue }
-    processDocFile(src, join(outDir, out), resolver)
+  // 01: Architecture.md
+  const archSrc = join(obsidianBase, 'Architecture.md')
+  if (existsSync(archSrc)) {
+    processDocFile(archSrc, join(outDir, '01-architecture.mdx'), resolver)
+  } else {
+    console.warn(`Not found: ${archSrc}`)
   }
 
-  // API endpoint docs from Docs/Backend/Endpoints/
+  // 02: API endpoint docs from Docs/Backend/Endpoints/
   const endpointsBase = join(obsidianBase, 'Docs', 'Backend', 'Endpoints')
-  if (!existsSync(endpointsBase)) return
-
-  const apiOutDir = join(outDir, '02-api')
-  const domains = readdirSync(endpointsBase, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .sort((a, b) => a.name.localeCompare(b.name))
-
-  domains.forEach((domain, di) => {
-    const domainSlug = `${numericPrefix(di)}-${domain.name.toLowerCase()}`
-    const domainOut = join(apiOutDir, domainSlug)
-    mkdirSync(domainOut, { recursive: true })
-
-    const files = readdirSync(join(endpointsBase, domain.name))
-      .filter(f => f.endsWith('.md'))
-      .sort()
-
-    files.forEach((file, fi) => {
-      const outSlug = `${numericPrefix(fi)}-${basename(file, '.md').toLowerCase().replace(/[\s_]+/g, '-')}`
-      processDocFile(join(endpointsBase, domain.name, file), join(domainOut, `${outSlug}.mdx`), resolver)
+  if (existsSync(endpointsBase)) {
+    const apiOutDir = join(outDir, '02-api')
+    const domains = readdirSync(endpointsBase, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .sort((a, b) => a.name.localeCompare(b.name))
+    domains.forEach((domain, di) => {
+      const domainSlug = `${numericPrefix(di)}-${domain.name.toLowerCase()}`
+      const domainOut = join(apiOutDir, domainSlug)
+      mkdirSync(domainOut, { recursive: true })
+      readdirSync(join(endpointsBase, domain.name))
+        .filter(f => f.endsWith('.md'))
+        .sort()
+        .forEach((file, fi) => {
+          const outSlug = `${numericPrefix(fi)}-${toSlug(basename(file, '.md'))}`
+          processDocFile(join(endpointsBase, domain.name, file), join(domainOut, `${outSlug}.mdx`), resolver)
+        })
     })
-  })
+  }
+
+  // 03: Database docs from Docs/Database/
+  const dbBase = join(obsidianBase, 'Docs', 'Database')
+  if (existsSync(dbBase)) {
+    const dbOutDir = join(outDir, '03-database')
+    mkdirSync(dbOutDir, { recursive: true })
+    readdirSync(dbBase).filter(f => f.endsWith('.md')).sort().forEach((file, fi) => {
+      const outSlug = `${numericPrefix(fi)}-${toSlug(basename(file, '.md'))}`
+      processDocFile(join(dbBase, file), join(dbOutDir, `${outSlug}.mdx`), resolver)
+    })
+  }
+
+  // 04: Frontend docs
+  const frontendPagesBase = join(obsidianBase, 'Docs', 'Frontend', 'Pages')
+  const frontendStoresBase = join(obsidianBase, 'Docs', 'Frontend', 'Stores')
+  if (existsSync(frontendPagesBase) || existsSync(frontendStoresBase)) {
+    if (existsSync(frontendPagesBase)) {
+      const pagesOutDir = join(outDir, '04-frontend', '01-pages')
+      mkdirSync(pagesOutDir, { recursive: true })
+      readdirSync(frontendPagesBase).filter(f => f.endsWith('.md')).sort().forEach((file, fi) => {
+        const outSlug = `${numericPrefix(fi)}-${toSlug(basename(file, '.md'))}`
+        processDocFile(join(frontendPagesBase, file), join(pagesOutDir, `${outSlug}.mdx`), resolver)
+      })
+    }
+    if (existsSync(frontendStoresBase)) {
+      const storesOutDir = join(outDir, '04-frontend', '02-stores')
+      mkdirSync(storesOutDir, { recursive: true })
+      readdirSync(frontendStoresBase).filter(f => f.endsWith('.md')).sort().forEach((file, fi) => {
+        const outSlug = `${numericPrefix(fi)}-${toSlug(basename(file, '.md'))}`
+        processDocFile(join(frontendStoresBase, file), join(storesOutDir, `${outSlug}.mdx`), resolver)
+      })
+    }
+  }
+
+  // 05: DevOps docs from Docs/DevOps*.md
+  const docsRoot = join(obsidianBase, 'Docs')
+  if (existsSync(docsRoot)) {
+    const devopsFiles = readdirSync(docsRoot).filter(f => f.startsWith('DevOps') && f.endsWith('.md')).sort()
+    if (devopsFiles.length > 0) {
+      const devopsOutDir = join(outDir, '05-devops')
+      mkdirSync(devopsOutDir, { recursive: true })
+      devopsFiles.forEach((file, fi) => {
+        const outSlug = `${numericPrefix(fi)}-${toSlug(basename(file, '.md'))}`
+        processDocFile(join(docsRoot, file), join(devopsOutDir, `${outSlug}.mdx`), resolver)
+      })
+    }
+  }
 }
 
 export function buildFrontmatter(

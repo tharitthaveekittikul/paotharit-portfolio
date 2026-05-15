@@ -1,0 +1,111 @@
+---
+title: API-GET-v1-chat-ask-stream
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+The primary chat endpoint. Accepts a question and session context, classifies intent, retrieves relevant document chunks from Qdrant, streams an LLM response via SSE, and persists both the user and assistant messages to PostgreSQL as a `BackgroundTask` after streaming completes.
+</Callout>
+
+---
+
+## 🔒 Authentication
+
+None.
+
+---
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Property | Value |
+| :--- | :--- |
+| **Method** | `GET` |
+| **Path** | `/api/v1/chat/ask-stream` |
+| **Tags** | `["Chat"]` |
+| **Response type** | `text/event-stream` (SSE) |
+
+### 📦 Query Parameters
+
+| Param | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `question` | `string` | Yes | — | User's message |
+| `session_id` | `UUID` | Yes | — | Active chat session |
+| `provider` | `string` | No | `"ollama"` | LLM provider |
+| `model` | `string` | No | `"minimax-m2:cloud"` | Model name |
+| `top_k` | `int` | No | reads `rag_top_k` from DB (default `5`) | Number of Qdrant chunks to retrieve |
+| `score_threshold` | `float` | No | reads `rag_score_threshold` from DB | Minimum similarity score for chunks |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Frontend (SSE)
+    participant Router as GET /chat/ask-stream
+    participant DB as PostgreSQL
+    participant Intent as intent_service
+    participant Retrieval as retrieval_service
+    participant Qdrant
+    participant LLM as llm_service
+    participant BG as BackgroundTask
+
+    Client->>Router: GET /ask-stream?question=...&session_id=...
+    Router->>DB: save user message (chat_history_service.add_message)
+    Router->>DB: load last 10 messages (chat_history_service.get_history)
+    Router->>DB: read rag_top_k / rag_score_threshold (settings_service.get)
+    Router->>Intent: classify intent (mode, label, icon)
+    Router-->>Client: SSE: { type: "intent", mode, label, icon }
+    Router->>Retrieval: search(question, limit=top_k, min_score=score_threshold)
+    Retrieval->>Qdrant: embed + vector search
+    Qdrant-->>Retrieval: chunks[]
+    Router->>LLM: generate_answer_stream(question, chunks, history, provider, model, intent)
+    loop streaming tokens
+        LLM-->>Client: SSE: { type: "token", content: "..." }
+    end
+    Router-->>Client: SSE: { type: "sources", sources: [...] }
+    Router->>BG: add_task(save assistant message + sources + detected_mode)
+    alt first message in session
+        Router->>BG: add_task(update_session_title_logic)
+    end
+```
+
+### SSE Event Types
+
+| `type` field | Payload | When sent |
+| :--- | :--- | :--- |
+| `"intent"` | `{ mode, label, icon }` | Before retrieval — signals which mode badge to show |
+| `"token"` | `{ content: "..." }` | Each LLM output chunk |
+| `"sources"` | `{ sources: SourceItem[] }` | After streaming completes |
+
+### 📤 HTTP Response
+
+| Status | Description |
+| :--- | :--- |
+| `200 OK` | Stream opened — SSE begins immediately |
+| Connection error | Frontend `use-chat-stream.ts` handles abort/error |
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/v1/chat.py :: ask_question_stream()` |
+| Intent classification | `backend/app/services/intent_service.py` |
+| Vector retrieval | `backend/app/services/retrieval_service.py` |
+| LLM streaming | `backend/app/services/llm_service.py :: generate_answer_stream()` |
+| Message persistence | `backend/app/services/chat_history_service.py :: add_message()` |
+| RAG params | `backend/app/services/settings_service.py` → `appsetting` table |
+| Frontend SSE handler | `frontend/src/hooks/use-chat-stream.ts` via `apiStream()` in `lib/api.ts` |
+
+---
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Non-streaming ask | `API-POST-v1-chat-ask` |
+| History load | `API-GET-v1-chat-history-id` |
+| RAG settings | [DB - appsetting](/en/docs/docrag/database/db-appsetting) |
+| DB message storage | [DB - chatmessage](/en/docs/docrag/database/db-chatmessage) |

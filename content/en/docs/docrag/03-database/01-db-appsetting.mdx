@@ -1,0 +1,88 @@
+---
+title: DB - appsetting
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Key-value store for all application-level settings: LLM provider selection, API keys, RAG parameters (top-k, score threshold), Ollama base URL, and any user preference that must survive restarts.
+</Callout>
+
+---
+
+## Table Info
+
+| Property | Value |
+| :--- | :--- |
+| **Table Name** | `appsetting` |
+| **SQLAlchemy Model** | `backend/app/models/settings.py :: AppSetting` |
+| **Service Layer** | `backend/app/services/settings_service.py` |
+| **Migration** | `SQLModel.metadata.create_all(engine)` in `backend/app/core/database.py :: init_db()` |
+| **TimescaleDB Hypertable** | No |
+
+---
+
+## Columns
+
+| Column | Type | Nullable | Default | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| `key` | `VARCHAR` | No | — | Primary key; human-readable string (e.g. `"openai_api_key"`, `"rag_top_k"`) |
+| `value` | `VARCHAR` | Yes | `null` | Stored as plain string; API keys are returned masked via `GET /api/v1/settings` |
+| `updated_at` | `TIMESTAMP` | No | `datetime.utcnow()` | Set at Python layer on each write via `settings_service.set()` |
+
+---
+
+## Constraints & Indexes
+
+| Type | Columns | Notes |
+| :--- | :--- | :--- |
+| PRIMARY KEY | `key` | String; upsert by key via `settings_service.set()` |
+
+---
+
+## Known Settings Keys
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `openai_api_key` | sensitive | OpenAI API key — returned masked |
+| `anthropic_api_key` | sensitive | Anthropic API key — returned masked |
+| `gemini_api_key` | sensitive | Google Gemini API key — returned masked |
+| `openrouter_api_key` | sensitive | OpenRouter API key — returned masked |
+| `moonshot_api_key` | sensitive | Moonshot API key — returned masked |
+| `minimax_api_key` | sensitive | MiniMax API key — returned masked |
+| `zai_api_key` | sensitive | Zai API key — returned masked |
+| `ollama_base_url` | config | Ollama server URL; falls back to `LLM.OLLAMA_BASE_URL` env if unset |
+| `rag_top_k` | config | Number of chunks to retrieve per query; read by `GET /chat/ask-stream` |
+| `rag_score_threshold` | config | Minimum similarity score for Qdrant retrieval |
+
+---
+
+## SQLAlchemy Model (reference snapshot)
+
+```python
+class AppSetting(SQLModel, table=True):
+    key: str = Field(primary_key=True)
+    value: Optional[str] = Field(default=None)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+```
+
+---
+
+## Service Layer
+
+| Operation | File | Notes |
+| :--- | :--- | :--- |
+| `get(key, db)` | `backend/app/services/settings_service.py` | Returns `value` or `None` |
+| `get_all(db)` | same | Returns `dict[str, str]` of all rows |
+| `set(key, value, db)` | same | Upsert by primary key; updates `updated_at` |
+
+---
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Settings API (read) | `API-GET-v1-settings` |
+| Settings API (write) | `API-PUT-v1-settings` |
+| Streaming chat (reads rag_top_k) | [API-GET-v1-chat-ask-stream](/en/docs/docrag/api/chat/api-get-v1-chat-ask-stream) |
+| DevOps | [DevOps - DocRAG](/en/docs/docrag/devops/devops-docrag) |

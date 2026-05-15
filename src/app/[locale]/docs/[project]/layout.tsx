@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/docs'
 
 const PROJECT_TITLES: Record<string, string> = {
   zentri: 'Zentri',
+  docrag: 'DocRAG',
 }
 
 export default async function ProjectDocsLayout({

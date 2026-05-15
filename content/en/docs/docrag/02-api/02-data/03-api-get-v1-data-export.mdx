@@ -1,0 +1,70 @@
+---
+title: API-GET-v1-data-export
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Exports all chat sessions and their messages as a JSON array. Output format is compatible with `POST /api/v1/data/import` for backup and restore workflows.
+</Callout>
+
+---
+
+## 🔒 Authentication
+
+None.
+
+---
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Property | Value |
+| :--- | :--- |
+| **Method** | `GET` |
+| **Path** | `/api/v1/data/export` |
+| **Tags** | `["Data"]` |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router as GET /data/export
+    participant DB as PostgreSQL
+
+    Client->>Router: GET /api/v1/data/export
+    Router->>DB: SELECT * FROM chatsession
+    loop each session
+        Router->>DB: SELECT messages WHERE session_id=? ORDER BY created_at ASC
+        DB-->>Router: ChatMessage[]
+    end
+    Router-->>Client: 200 JSON array of sessions + messages
+```
+
+### 📤 Responses
+
+| Status | Body | Condition |
+| :--- | :--- | :--- |
+| `200 OK` | `[{ title, provider, model_name, created_at, messages: [{ role, content, provider, model, created_at }] }]` | Always (may be empty array) |
+
+<Callout type="note">
+`sources` and `detected_mode` are not included in the export — only `role`, `content`, `provider`, `model`, `created_at` are exported per message.
+</Callout>
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/v1/data.py :: export_chat()` |
+| DB models | `backend/app/models/chat.py :: ChatSession`, `ChatMessage` |
+
+---
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Import chat | `API-POST-v1-data-import` |
+| DB session table | [DB - chatsession](/en/docs/docrag/database/db-chatsession) |

@@ -1,0 +1,77 @@
+---
+title: API-POST-v1-chat-ask
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Non-streaming single-turn Q&A. Retrieves context chunks, generates a complete answer, and returns it in one JSON response. Does not persist the exchange to the database. Suitable for programmatic usage or simple integrations that don't require streaming.
+</Callout>
+
+---
+
+## 🔒 Authentication
+
+None.
+
+---
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Property | Value |
+| :--- | :--- |
+| **Method** | `POST` |
+| **Path** | `/api/v1/chat/ask` |
+| **Tags** | `["Chat"]` |
+
+### 📦 Query Parameters
+
+| Param | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `question` | `string` | Yes | The question to answer |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router as POST /chat/ask
+    participant Retrieval as retrieval_service
+    participant LLM as llm_service
+
+    Client->>Router: POST /chat/ask?question=...
+    Router->>Retrieval: search(question, limit=5)
+    Retrieval-->>Router: context_chunks[]
+    alt no chunks found
+        Router-->>Client: 200 { answer: "Sorry, I couldn't find...", sources: [] }
+    else chunks found
+        Router->>LLM: generate_answer(question, context_chunks)
+        LLM-->>Router: answer string
+        Router-->>Client: 200 { answer, sources }
+    end
+```
+
+### 📤 Responses
+
+| Status | Body | Condition |
+| :--- | :--- | :--- |
+| `200 OK` | `{ answer: string, sources: chunk[] }` | Always — even when no context found |
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/v1/chat.py :: ask_question()` |
+| Retrieval | `backend/app/services/retrieval_service.py` |
+| LLM | `backend/app/services/llm_service.py` |
+
+---
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Streaming ask (preferred) | `API-GET-v1-chat-ask-stream` |
+| Semantic search only | `API-GET-v1-query-search` |
