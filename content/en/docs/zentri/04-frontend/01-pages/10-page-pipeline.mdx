@@ -1,0 +1,80 @@
+---
+title: Page - Pipeline
+description: ""
+type: doc
+---
+
+## Route
+| Field | Value |
+| :--- | :--- |
+| Path | `/pipeline` |
+| Auth guard | `(auth)` layout group |
+| File | `frontend/app/(auth)/pipeline/page.tsx` |
+
+## Component Tree
+```
+PipelinePage
+├── PageHeader (title: "Pipeline")
+├── [loading state] → Skeleton (8 rows)
+├── p (subtitle: "Live price fetch job status...")
+├── TriggerButtons
+└── JobsTable (jobs={jobs})
+```
+
+## Data Layer
+
+### Server State — React Query
+| Query key | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| `["pipeline-jobs"]` | `fetchJobs(50)` | Initial load of last 50 pipeline jobs |
+
+### Global State — Zustand
+| Store | Fields used |
+| :--- | :--- |
+| None | — |
+
+### Local State — `useState`
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| `jobs` | `PipelineJob[]` | Live job list, seeded from React Query then updated by SSE |
+
+## Page Lifecycle
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant P as PipelinePage
+    participant API as Backend
+    participant SSE as "SSE /api/v1/pipeline/stream"
+
+    P->>API: fetchJobs(50) via React Query
+    API-->>P: last 50 jobs
+    P->>P: setJobs (seed local state)
+    P->>SSE: new EventSource (JWT as ?token= query param)
+    SSE-->>P: onmessage → updated PipelineJob[] (JSON)
+    P->>P: setJobs (replace with latest from SSE)
+    U->>P: click trigger button (in TriggerButtons)
+    P->>API: trigger job request
+    API-->>SSE: job status update pushed
+    SSE-->>P: onmessage → new jobs list
+    P->>P: setJobs → JobsTable re-renders
+    P->>P: component unmount → es.close()
+```
+
+## Validation & Conditions
+
+### Form Validation (if any)
+| Rule | Where enforced |
+| :--- | :--- |
+| None | Page is read-only except for trigger actions in `TriggerButtons` |
+
+### Render Conditions
+| Condition | Rendered |
+| :--- | :--- |
+| `isLoading` is true | 8-row Skeleton placeholder |
+| `isLoading` is false | Full page with `TriggerButtons` + `JobsTable` |
+| `jobs.length === 0` | `JobsTable` renders empty state (handled internally) |
+
+## Related
+- Component - JobsTable
+- Component - TriggerButtons

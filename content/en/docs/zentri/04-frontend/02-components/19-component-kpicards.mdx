@@ -1,0 +1,45 @@
+---
+title: Component - KpiCards
+description: ""
+type: doc
+---
+
+## Purpose
+Renders four KPI metric cards (Portfolio Value, Daily Change, Total P&L, Daily Change %) in a responsive 2×4 grid on the Overview page. Each card shows a primary value via `DualCurrencyAmount` and an optional percentage badge with directional coloring.
+
+## Props
+| Prop | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `summary` | `OverviewSummary` | Yes | From `@/lib/services/overview`; fields: `total_value`, `total_cost`, `total_pnl`, `daily_change`, `total_pnl_pct`, `daily_change_pct` |
+
+## Component Tree
+```
+KpiCards
+└── KpiCard ×4 (internal)
+    ├── DualCurrencyAmount
+    └── ArrowUpRight / ArrowDownRight
+```
+
+## Data Layer
+
+### Local State
+None — purely presentational.
+
+### React Query
+Not used directly; data arrives via the `summary` prop, fetched by the parent Overview page.
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount — receive summary prop"] --> B["Compute pnlPositive and dailyPositive"]
+    B --> C["Render 4 KpiCard instances"]
+    C --> D{"direction prop"}
+    D -->|positive| E["Signal-gain color + ArrowUpRight"]
+    D -->|negative| F["Destructive color + ArrowDownRight"]
+    D -->|neutral| G["Muted foreground, no arrow"]
+```
+
+## Related
+- Component - SummaryBar
+- Component - PerformanceChart
+- Page - Overview

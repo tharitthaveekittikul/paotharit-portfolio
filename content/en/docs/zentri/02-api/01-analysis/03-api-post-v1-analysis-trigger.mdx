@@ -1,0 +1,81 @@
+---
+title: POST Analysis Trigger
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Triggers a BUY/SELL/HOLD analysis for a specific asset. The job is queued in Redis and processed by the ARQ worker asynchronously. Returns a job_id immediately so the frontend can poll for completion via the pipeline stream.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `symbol` | Path | String | Yes | Asset symbol e.g. `AAPL`, `BTC` |
+| `depth` | Body | String | No | `quick` (local LLM) or `deep` (cloud LLM). Default: `deep` |
+
+### Mermaid Logic
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as Frontend
+    participant API as FastAPI
+    participant Redis as Redis Queue
+    participant Worker as ARQ Worker
+    participant Chroma as ChromaDB
+    participant LLM as LLM Provider
+    participant DB as PostgreSQL
+
+    UI->>API: POST /api/v1/analysis/AAPL
+    API->>Redis: Enqueue run_analysis job
+    API->>DB: INSERT pipeline_log (queued)
+    API-->>UI: 202 Accepted { job_id }
+    Redis->>Worker: Dequeue job
+    Worker->>DB: UPDATE pipeline_log (running)
+    Worker->>DB: Fetch holdings + price history
+    Worker->>Chroma: Search relevant doc chunks for AAPL
+    Worker->>LLM: Prompt with context + holdings + prices + docs
+    LLM-->>Worker: { verdict, reasoning, target_price }
+    Worker->>DB: INSERT ai_analyses + llm_conversations
+    Worker->>DB: UPDATE pipeline_log (done)
+```
+
+### 📦 Request Body
+
+```json
+{
+  "depth": "deep"
+}
+```
+
+### 📤 Responses
+
+**202 Accepted**
+```json
+{
+  "job_id": "uuid",
+  "status": "queued",
+  "message": "Analysis queued. Check /pipeline/stream for progress."
+}
+```
+
+**401 Unauthorized**
+
+**404 Not Found** — Symbol not in portfolio or watchlist
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/analysis.py` |
+| Worker Job | `backend/worker/jobs/analysis.py` |
+| Service | `backend/app/services/analysis.py` |
+| Schema | `backend/app/schemas/analysis.py` |

@@ -1,0 +1,77 @@
+---
+title: API - POST Cash Balances v1
+description: ""
+type: doc
+---
+
+
+## Overview
+
+Creates a new cash balance snapshot for a specific cash asset. Cash balances are point-in-time snapshots rather than running totals.
+
+## 🔒 Authentication
+
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Field | Value |
+| :--- | :--- |
+| Method | `POST` |
+| Path | `/api/v1/cash-balances` |
+| Content-Type | `application/json` |
+
+### 📦 Request Body
+
+| Field | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `asset_id` | UUID | Yes | Must be a cash-type asset |
+| `balance` | number | Yes | Balance amount |
+| `snapshot_date` | date | Yes | ISO date of the snapshot |
+| `notes` | string | No | Optional memo |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "cash_balance.py"
+    participant S as "cash_balance service"
+    participant DB as TimescaleDB
+
+    C->>A: POST /api/v1/cash-balances
+    Note over A: Validate JWT
+    A->>S: "create_snapshot(user_id, asset_id, balance, date, notes)"
+    S->>DB: INSERT INTO cash_balances
+    DB-->>S: CashBalance row
+    S-->>A: CashBalanceOut
+    A-->>C: 201 Created
+```
+
+### 📤 Responses
+
+**201 Created** — new cash balance snapshot
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/cash_balance.py` |
+| Service | `backend/app/services/cash_balance.py` |
+| Model | `backend/app/models/cash_balance.py` |
+
+
+
+## 🗂️ Related
+
+- [DB - cash_balances](/en/docs/zentri/database/db-cash-balances)
+- [API-GET-v1-Cash-Balances-Latest-All](API-GET-v1-Cash-Balances-Latest-All)
+- [Component - AddCashAccountDialog](Component - AddCashAccountDialog)

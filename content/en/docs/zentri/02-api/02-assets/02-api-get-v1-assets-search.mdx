@@ -1,0 +1,54 @@
+---
+title: GET Assets Search
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Searches for assets by symbol or name across all asset types. Used by the "Add Asset" dialog and universe settings to let the user find and select assets. Returns metadata including asset type and currency.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `q` | Query | String | Yes | Search query (min 2 chars) |
+| `asset_type` | Query | String | No | Filter: `us_stock`, `thai_stock`, `th_fund`, `crypto`, `gold` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "results": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "asset_type": "us_stock",
+      "currency": "USD",
+      "exchange": "NASDAQ"
+    },
+    {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "asset_type": "crypto",
+      "currency": "USD"
+    }
+  ]
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/assets.py` |
+| Service | `backend/app/services/asset_service.py` |

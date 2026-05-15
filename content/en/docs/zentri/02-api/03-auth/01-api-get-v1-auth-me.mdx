@@ -1,0 +1,40 @@
+---
+title: GET Auth Me
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns the current authenticated user's profile. Used by the frontend to validate session and display username.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "id": "uuid",
+  "username": "paotharit",
+  "created_at": "2026-04-22T00:00:00Z"
+}
+```
+
+**401 Unauthorized** — Token missing or expired
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/auth.py` |
+| Schema | `backend/app/schemas/auth.py` |

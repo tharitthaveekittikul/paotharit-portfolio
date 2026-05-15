@@ -1,0 +1,47 @@
+---
+title: POST Watchlist Promote
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Moves an asset from the watchlist to the portfolio. Removes the watchlist entry and opens the manual holding entry flow with the asset pre-filled. Called when the user decides to actually buy a watchlisted asset.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `id` | Path | UUID | Yes | Watchlist item ID |
+| `quantity` | Body | Decimal | Yes | How many units purchased |
+| `price` | Body | Decimal | Yes | Purchase price |
+| `platform_id` | Body | UUID | No | Which broker used |
+| `executed_at` | Body | DateTime | No | Purchase date |
+
+### 📤 Responses
+
+**201 Created**
+```json
+{
+  "holding_id": "uuid",
+  "symbol": "NVDA",
+  "message": "Moved from watchlist to portfolio."
+}
+```
+
+**404 Not Found** — Watchlist item not found
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/watchlist.py` |
+| Service | `backend/app/services/watchlist.py` |

@@ -1,0 +1,75 @@
+---
+title: API - GET Events Calendar v1
+description: ""
+type: doc
+---
+
+
+## Overview
+
+Returns a unified calendar of upcoming dividend payment dates and IPO events for the next N months (1–12). Combines both event types into a single chronological response for the Events page.
+
+## 🔒 Authentication
+
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Field | Value |
+| :--- | :--- |
+| Method | `GET` |
+| Path | `/api/v1/events/calendar` |
+
+| Query param | Type | Default | Notes |
+| :--- | :--- | :--- | :--- |
+| `months` | int | `3` | Range 1–12; raises 400 outside this range |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as "Events Page"
+    participant A as "events.py"
+    participant S as "events_calendar service"
+    participant DB as TimescaleDB
+
+    C->>A: GET /api/v1/events/calendar?months=3
+    Note over A: Validate JWT; check 1 <= months <= 12
+    A->>S: "get_calendar(db, user_id, months, currency_secondary)"
+    S->>DB: "SELECT dividend_events WHERE ex_date in range AND user holds asset"
+    S->>DB: "SELECT ipo_events WHERE ipo_date in range"
+    DB-->>S: dividend + IPO rows
+    S-->>A: EventsCalendarResponse
+    A-->>C: 200 OK
+```
+
+### 📤 Responses
+
+**200 OK** — `EventsCalendarResponse` with dividend and IPO event lists
+
+**400 Bad Request** — `months` outside 1–12
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/events.py` |
+| Service | `backend/app/services/events_calendar.py` |
+| Schema | `backend/app/schemas/events.py` |
+| Frontend | `frontend/app/(auth)/events/page.tsx` |
+
+
+
+## 🗂️ Related
+
+- [DB - dividend_events](/en/docs/zentri/database/db-dividend-events)
+- [DB - ipo_events](/en/docs/zentri/database/db-ipo-events)
+- [Page - Events](/en/docs/zentri/frontend/pages/page-events)

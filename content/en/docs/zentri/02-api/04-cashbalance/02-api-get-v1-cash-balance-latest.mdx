@@ -1,0 +1,74 @@
+---
+title: API - GET Cash Balance Latest v1
+description: ""
+type: doc
+---
+
+
+## Overview
+
+Returns the single most recent balance snapshot for a specific cash asset. Returns 404 if no snapshots exist for that asset.
+
+## 🔒 Authentication
+
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Field | Value |
+| :--- | :--- |
+| Method | `GET` |
+| Path | `/api/v1/cash-balances/{asset_id}/latest` |
+
+| Path param | Type | Notes |
+| :--- | :--- | :--- |
+| `asset_id` | UUID | Cash asset ID |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "cash_balance.py"
+    participant S as "cash_balance service"
+    participant DB as TimescaleDB
+
+    C->>A: "GET /api/v1/cash-balances/{asset_id}/latest"
+    Note over A: Validate JWT
+    A->>S: "get_latest(user_id, asset_id)"
+    S->>DB: "SELECT ORDER BY snapshot_date DESC LIMIT 1"
+    alt no snapshot
+        DB-->>A: None
+        A-->>C: 404 Not Found
+    else found
+        DB-->>A: CashBalance row
+        A-->>C: 200 OK CashBalanceOut
+    end
+```
+
+### 📤 Responses
+
+**200 OK** — single `CashBalanceOut`
+
+**404 Not Found** — no balance snapshots for this asset
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/cash_balance.py` |
+| Service | `backend/app/services/cash_balance.py` |
+
+## 🗂️ Related
+
+- [DB - cash_balances](/en/docs/zentri/database/db-cash-balances)
+- [API-GET-v1-Cash-Balances-Latest-All](API-GET-v1-Cash-Balances-Latest-All)
+- [API-GET-v1-Cash-Balance-History](API-GET-v1-Cash-Balance-History)

@@ -1,0 +1,82 @@
+---
+title: API - POST Provider Config Test Connection v1
+description: ""
+type: doc
+---
+
+
+## Overview
+Attempts to connect to the configured LLM provider by decrypting the stored API key, building an adapter via `_build_adapter`, and calling `adapter.fetch_models()`. Sets `is_connected = true` on success or `false` on failure, then persists the updated state. Never throws 5xx — connection failures are recorded silently and reflected in the response.
+
+## 🔒 Authentication
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+| Field | Value |
+| :--- | :--- |
+| Method | `POST` |
+| Path | `/api/v1/provider-configs/{config_id}/test-connection` |
+| Request Body | — (none) |
+
+**Path Parameters:**
+| Param | Type | Description |
+| :--- | :--- | :--- |
+| `config_id` | `uuid` | ID of the ProviderConfig to test |
+
+### Logic Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "provider_config.py"
+    participant ENC as "encryption.py"
+    participant GW as "_build_adapter"
+    participant P as "LLM Provider API"
+    participant DB as TimescaleDB
+
+    C->>A: POST /api/v1/provider-configs/{config_id}/test-connection
+    Note over A: Validate JWT
+    A->>DB: SELECT ProviderConfig WHERE id AND user_id
+    DB-->>A: row or 404
+    A->>ENC: decrypt(encrypted_api_key)
+    ENC-->>A: plain api_key
+    A->>GW: _build_adapter(provider, api_key, host_url)
+    GW-->>A: adapter
+    A->>P: adapter.fetch_models()
+    alt success
+        P-->>A: models list
+        Note over A: is_connected = true
+    else failure
+        P-->>A: exception
+        Note over A: is_connected = false
+    end
+    A->>DB: COMMIT is_connected
+    A-->>C: 200 OK ProviderConfigOut
+```
+
+### 📤 Responses
+| Status | Description | Body |
+| :--- | :--- | :--- |
+| 200 | Test complete (check `is_connected`) | `ProviderConfigOut` |
+| 401 | Missing or invalid JWT | `{"detail": "..."}` |
+| 404 | Config not found or not owned | `{"detail": "Provider config not found"}` |
+
+### 🗂️ Related Files
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/provider_config.py` |
+| Gateway | `backend/app/services/llm_gateway.py` (`_build_adapter`) |
+| Encryption | `backend/app/core/encryption.py` |
+| Auth | `backend/app/api/auth.py` |
+
+
+
+## 🗂️ Related
+- [API-GET-v1-ProviderConfig-List](API-GET-v1-ProviderConfig-List)
+- [API-POST-v1-ProviderConfig-Create](API-POST-v1-ProviderConfig-Create)
+- [API-POST-v1-ProviderConfig-FetchModels](API-POST-v1-ProviderConfig-FetchModels)

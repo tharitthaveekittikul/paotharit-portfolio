@@ -1,0 +1,43 @@
+---
+title: POST Pipeline Trigger
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Manually triggers a background job outside its normal schedule. Useful for forcing a price refresh, re-running dividend fetch, or taking an immediate net worth snapshot without waiting for the scheduled run.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `job_type` | Path | String | Yes | `price_fetch`, `fetch_dividends`, `net_worth_snapshot` |
+
+### 📤 Responses
+
+**202 Accepted**
+```json
+{
+  "job_id": "uuid",
+  "job_type": "price_fetch",
+  "status": "queued"
+}
+```
+
+**400 Bad Request** — Invalid job_type
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/pipeline.py` |
+| Worker | `backend/worker/jobs/` |

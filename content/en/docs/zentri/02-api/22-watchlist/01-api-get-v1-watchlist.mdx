@@ -1,0 +1,49 @@
+---
+title: GET Watchlist
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns all assets on the user's watchlist with AI-generated thesis, suggested entry price, and current market price. Powers the Watchlist discovery page.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "watchlist": [
+    {
+      "id": "uuid",
+      "symbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "asset_type": "us_stock",
+      "current_price": 850.00,
+      "suggested_entry_price": 780.00,
+      "ai_thesis": "NVIDIA dominates AI accelerator market with 80%+ share. Data center revenue grew 400% YoY. Current price is elevated but any pullback to $780 range offers compelling risk/reward given AI infrastructure spending cycle.",
+      "created_at": "2026-04-20T08:00:00Z"
+    }
+  ]
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/watchlist.py` |
+| Service | `backend/app/services/watchlist.py` |

@@ -1,0 +1,81 @@
+---
+title: Page - Research
+description: ""
+type: doc
+---
+
+## Route
+| Field | Value |
+| :--- | :--- |
+| Path | `/research` |
+| Auth guard | `(auth)` layout |
+| File | `frontend/app/(auth)/research/page.tsx` |
+
+## Component Tree
+```
+ResearchPage
+├── PageHeader (title="Research Library")
+└── Card
+    ├── CardHeader
+    │   ├── CardTitle (NewspaperIcon — "News Index")
+    │   └── article count badge
+    └── CardContent
+        ├── Input (filter — title/symbol/source)
+        └── Article list (filtered)
+            └── per NewsArticle
+                ├── title (ExternalLinkIcon link → article.url)
+                ├── symbol badge
+                ├── source
+                └── published_at / fetched_at
+```
+
+## Data Layer
+
+### Server State — React Query
+| Query key | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| `["research", "news"]` | `GET /api/v1/research/news?limit=100` | Fetch full news library (up to 100 articles) |
+
+### Global State — Zustand
+None.
+
+### Local State — useState
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| `filter` | `string` | Client-side filter string for title/symbol/source |
+
+## Page Lifecycle
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant P as ResearchPage
+    participant API as Backend
+
+    P->>API: "GET /api/v1/research/news?limit=100" on mount
+    API-->>P: "NewsArticle[]"
+    P->>P: React Query caches result under ["research", "news"]
+    U->>P: Type in filter input
+    P->>P: Client-side filter — no new API call
+    P->>P: Render filtered articles
+    U->>P: Click article title link
+    P->>P: Open article.url in new tab (ExternalLink)
+```
+
+## Validation & Conditions
+
+### Form Validation
+None — filter is purely client-side, read-only page.
+
+### Render Conditions
+| Condition | Rendered |
+| :--- | :--- |
+| `isLoading === true` | Skeleton cards |
+| `filtered.length === 0` | Empty state / no results message |
+| `filter.trim()` truthy | Articles filtered by title, symbol, or source |
+| `filter.trim()` falsy | All 100 articles shown |
+| `article.url` present | ExternalLinkIcon link rendered |
+
+## Related
+- Page - Documents
+- `frontend/lib/api.ts`

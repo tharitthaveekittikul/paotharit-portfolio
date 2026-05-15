@@ -1,0 +1,52 @@
+---
+title: GET Net Worth Timeline
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns daily net worth snapshots over a date range, broken down by asset type. Powers the Net Worth Timeline page wealth history chart. Snapshots are taken automatically by the worker at midnight each day.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `from` | Query | Date | No | Default: 1 year ago |
+| `to` | Query | Date | No | Default: today |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "snapshots": [
+    {
+      "snapshot_at": "2026-04-22",
+      "total_value": 125000.00,
+      "total_cost": 100000.00,
+      "breakdown": {
+        "us_stock": 90000.00,
+        "crypto": 20000.00,
+        "th_fund": 10000.00,
+        "gold": 5000.00
+      }
+    }
+  ]
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/networth.py` |
+| Worker Job | `backend/worker/jobs/net_worth_snapshot.py` |

@@ -1,0 +1,65 @@
+---
+title: POST Portfolio Holdings
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Manually adds a new holding to the user's portfolio. Also creates the corresponding transaction record (type: buy). Used when the user enters assets that weren't imported via CSV.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `symbol` | Body | String | Yes | Asset symbol e.g. `AAPL`, `BTC` |
+| `asset_type` | Body | String | Yes | `us_stock`, `thai_stock`, `th_fund`, `crypto`, `gold` |
+| `quantity` | Body | Decimal | Yes | Number of shares/units |
+| `avg_cost_price` | Body | Decimal | Yes | Average purchase price |
+| `currency` | Body | String | Yes | `USD`, `THB` |
+| `platform_id` | Body | UUID | No | Which broker app this was purchased through |
+| `executed_at` | Body | DateTime | No | Purchase date (default: now) |
+
+### 📦 Request Body
+
+```json
+{
+  "symbol": "AAPL",
+  "asset_type": "us_stock",
+  "quantity": 10,
+  "avg_cost_price": 150.00,
+  "currency": "USD",
+  "platform_id": "uuid-of-dime-platform",
+  "executed_at": "2025-01-15T10:00:00Z"
+}
+```
+
+### 📤 Responses
+
+**201 Created**
+```json
+{
+  "holding_id": "uuid",
+  "symbol": "AAPL",
+  "quantity": 10,
+  "avg_cost_price": 150.00
+}
+```
+
+**400 Bad Request** — Invalid symbol or asset_type
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/portfolio.py` |
+| Service | `backend/app/services/portfolio.py` |
+| Schema | `backend/app/schemas/portfolio.py` |

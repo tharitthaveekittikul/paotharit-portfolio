@@ -1,0 +1,36 @@
+---
+title: POST Auth Logout
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Invalidates the current session by clearing JWT cookies and blacklisting the refresh token in Redis.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{ "message": "Logged out successfully" }
+```
+
+**401 Unauthorized** — Token missing or expired
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/auth.py` |
+| Service | `backend/app/services/auth.py` |

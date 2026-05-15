@@ -1,0 +1,127 @@
+---
+title: API - POST Chat v1
+description: ""
+type: doc
+---
+
+
+## Overview
+
+Sends a chat message within a session. Persists the user message, calls `LLMGateway.complete_chat()`, persists the assistant response with cost/token metadata, updates `session.updated_at`, and returns the full assistant reply.
+
+---
+
+## 🔒 Authentication
+
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+| Scope | Session must belong to `current_user.id` — returns 404 otherwise |
+
+---
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Field | Value |
+| :--- | :--- |
+| Method | `POST` |
+| Path | `/api/v1/chat` |
+| Content-Type | `application/json` |
+
+### 📦 Request Body
+
+```json
+{
+  "session_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "messages": [
+    { "role": "user", "content": "What is my portfolio performance?" }
+  ]
+}
+```
+
+| Field | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `session_id` | string UUID | Yes | Must be an existing session owned by the user |
+| `messages` | array | Yes | Full conversation history; last item is the new user message |
+| `messages[].role` | `"user"` or `"assistant"` | Yes | — |
+| `messages[].content` | string | Yes | Message text |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "chat.py router"
+    participant GW as LLMGateway
+    participant LLM as "LLM Provider"
+    participant DB as TimescaleDB
+
+    C->>A: POST /api/v1/chat {session_id, messages}
+    Note over A: Validate JWT; verify session ownership
+    alt session not found
+        A-->>C: 404 Not Found
+    else ok
+        A->>DB: INSERT user ChatSessionMessage
+        A->>GW: "complete_chat(user_id, messages)"
+        GW->>LLM: API call with full history
+        LLM-->>GW: content, tokens_in, tokens_out, cost
+        GW-->>A: LLMResult
+        A->>DB: INSERT assistant ChatSessionMessage
+        A->>DB: UPDATE session.updated_at
+        A-->>C: 200 OK ChatResponse
+    end
+```
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "content": "Your portfolio is up 12% YTD...",
+  "tokens_in": 512,
+  "tokens_out": 340,
+  "cost_usd": 0.003412,
+  "cost_thb": 0.118,
+  "model": "gpt-4o",
+  "provider": "openai"
+}
+```
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `content` | string | Assistant reply; may be JSON `{"type":"out_of_scope"}` for off-topic queries |
+| `tokens_in` | int | Prompt token count |
+| `tokens_out` | int | Completion token count |
+| `cost_usd` | number | USD cost of this call |
+| `cost_thb` | number | THB cost at rate captured in `llm_call_logs.exchange_rate` |
+| `model` | string | Actual model used by the gateway |
+| `provider` | string | `openai`, `anthropic`, or `ollama` |
+
+**404 Not Found** — session not found or belongs to another user
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/chat.py` |
+| LLM Gateway | `backend/app/services/llm_gateway.py` |
+| DB Models | `backend/app/models/chat_session.py` |
+| Frontend service | `frontend/lib/services/chat.ts` → `sendChatMessage(sessionId, messages)` |
+| Frontend page | `frontend/app/(auth)/chat/page.tsx` → `handleSend()` |
+
+---
+
+
+
+## 🗂️ Related
+
+- [DB - chat_sessions](/en/docs/zentri/database/db-chat-sessions)
+- [API - GET Chat Sessions v1](API - GET Chat Sessions v1)
+- [API - GET Chat Session Messages v1](API - GET Chat Session Messages v1)
+- [Page - Chat](/en/docs/zentri/frontend/pages/page-chat)

@@ -1,0 +1,183 @@
+---
+title: Zentri — System Architecture
+description: ""
+type: doc
+---
+
+
+## Architecture Pattern
+
+**Backend + Worker Separation**
+
+FastAPI handles all API requests. A separate ARQ worker handles all background jobs. Both share PostgreSQL/TimescaleDB. Redis acts as the job queue between them.
+
+```mermaid
+graph TD
+    Browser["User Browser"]
+    Nginx["Nginx (port 80)"]
+    Frontend["Next.js Frontend (port 3000)"]
+    Backend["FastAPI Backend (port 8000)"]
+    Postgres[("PostgreSQL + TimescaleDB")]
+    Redis[("Redis")]
+    Chroma[("ChromaDB (vector store)")]
+    Worker["ARQ Worker\nfetch_prices · ingest_document · run_analysis\nscan_watchlist · take_net_worth_snapshot · fetch_dividends"]
+    Ollama["Ollama (optional)"]
+    CloudLLM["Cloud LLMs\nOpenAI / Claude / Gemini"]
+
+    Browser --> Nginx
+    Nginx -->|"/"| Frontend
+    Nginx -->|"/api"| Backend
+    Backend --> Postgres
+    Backend --> Redis
+    Backend --> Chroma
+    Redis --> Worker
+    Worker --> Ollama
+    Worker --> CloudLLM
+```
+
+---
+
+## Services
+
+| Service | Image | Port | Purpose |
+|---------|-------|------|---------|
+| nginx | nginx:alpine | 80 | Reverse proxy, single entry point |
+| frontend | custom | 3000 | Next.js 15 App Router |
+| backend | custom | 8000 | FastAPI REST API |
+| worker | custom (same as backend) | — | ARQ background jobs |
+| postgres | timescale/timescaledb | 5432 | Main database + time-series |
+| redis | redis:alpine | 6379 | Job queue + API cache |
+| chromadb | chromadb/chroma | 8001 | Embedded document vector store |
+| ollama | ollama/ollama | 11434 | Local LLM inference (optional) |
+
+---
+
+## Ollama Setup by Platform
+
+<Callout type="warning">
+Docker on Mac cannot access Metal/GPU. Run Ollama **natively** for GPU acceleration:
+```bash
+brew install ollama
+ollama pull mistral:7b-q4
+docker compose up -d   # worker connects via host.docker.internal:11434
+```
+</Callout>
+
+<Callout type="info">
+```bash
+docker compose --profile local-llm up
+```
+Requires NVIDIA Container Toolkit. See `docs/gpu-setup.md`.
+</Callout>
+
+<Callout type="tip">
+Skip Ollama entirely. Configure API key in Settings → LLM Configuration.
+</Callout>
+
+---
+
+## Data Flow: AI Analysis
+
+```mermaid
+sequenceDiagram
+    participant UI as Frontend
+    participant API as FastAPI
+    participant Redis as Redis Queue
+    participant Worker as ARQ Worker
+    participant DB as PostgreSQL
+    participant Chroma as ChromaDB
+    participant LLM as LLM Provider
+
+    UI->>API: POST /api/v1/analysis/{symbol}
+    API->>Redis: Enqueue run_analysis job
+    API-->>UI: 202 Accepted { job_id }
+    Redis->>Worker: Dequeue job
+    Worker->>DB: Fetch holdings + price history
+    Worker->>Chroma: Search relevant document chunks
+    Worker->>LLM: Prompt with context
+    LLM-->>Worker: verdict + reasoning + target_price
+    Worker->>DB: Save ai_analyses + llm_conversations + pipeline_logs
+    UI->>API: GET /api/v1/analysis/{symbol}/latest
+    API->>DB: Fetch result
+    API-->>UI: verdict + reasoning + cost
+```
+
+---
+
+## Data Flow: CSV Import
+
+```mermaid
+sequenceDiagram
+    participant UI as Frontend
+    participant API as FastAPI
+    participant LLM as LLM Provider
+    participant DB as PostgreSQL
+
+    UI->>API: POST /api/v1/portfolio/import (CSV file)
+    API->>DB: Check import_profiles for broker match
+    alt Broker profile found
+        DB-->>API: Saved column mapping
+    else Unknown broker
+        API->>LLM: Map column headers to schema fields
+        LLM-->>API: Suggested mapping
+    end
+    API-->>UI: Preview + column mapping
+    UI->>API: POST /api/v1/portfolio/import/confirm
+    API->>DB: Insert transactions + update holdings
+    API-->>UI: 200 OK { imported_count }
+```
+
+---
+
+## Configuration: Two-Tier
+
+| Tier | Location | What lives here |
+|------|----------|----------------|
+| Infrastructure | `.env` | DB password, JWT secret, timezone, Ollama host |
+| User config | DB (encrypted) | API keys, LLM model, benchmarks, platforms, universe |
+
+API keys encrypted with AES-256, key derived from `JWT_SECRET`.
+
+---
+
+## Monorepo Layout
+
+```
+zentri/
+├── frontend/
+│   ├── Dockerfile
+│   ├── app/                  # Next.js App Router pages
+│   ├── components/           # shadcn/ui components
+│   └── lib/                  # API client, utils
+├── backend/
+│   ├── Dockerfile
+│   ├── app/
+│   │   ├── api/              # FastAPI routers (one per domain)
+│   │   ├── models/           # SQLAlchemy models
+│   │   ├── schemas/          # Pydantic schemas
+│   │   ├── services/         # Business logic
+│   │   └── core/             # Config, security, DB
+│   └── worker/
+│       └── jobs/             # ARQ job definitions
+├── nginx/
+│   └── nginx.conf
+├── scripts/
+│   ├── backup.sh
+│   └── restore.sh
+├── docker-compose.yml
+├── docker-compose.override.yml
+└── .env.example
+```
+
+---
+
+## Health Checks & Startup Order
+
+```yaml
+postgres:  health → backend depends on
+redis:     health → backend + worker depend on
+backend:   depends_on postgres (healthy) + redis (healthy)
+worker:    depends_on postgres (healthy) + redis (healthy)
+frontend:  depends_on backend
+nginx:     depends_on frontend + backend
+```

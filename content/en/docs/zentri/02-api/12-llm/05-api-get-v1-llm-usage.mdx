@@ -1,0 +1,56 @@
+---
+title: GET LLM Usage
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns all LLM analysis runs with per-call token usage, cost breakdown, model used, and asset analyzed. Powers the AI Usage page so the user understands what they're spending on AI analysis.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `provider` | Query | String | No | Filter by provider |
+| `from` | Query | Date | No | Start date |
+| `to` | Query | Date | No | End date |
+| `limit` | Query | Int | No | Default 50 |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "analyses": [
+    {
+      "id": "uuid",
+      "symbol": "AAPL",
+      "verdict": "hold",
+      "model_used": "claude-3-5-sonnet-20241022",
+      "provider": "claude",
+      "tokens_in": 4200,
+      "tokens_out": 380,
+      "cost_usd": 0.014,
+      "created_at": "2026-04-22T10:30:00Z"
+    }
+  ],
+  "total_cost_usd": 1.24,
+  "total_analyses": 15
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/llm.py` |
+| Schema | `backend/app/schemas/llm.py` |

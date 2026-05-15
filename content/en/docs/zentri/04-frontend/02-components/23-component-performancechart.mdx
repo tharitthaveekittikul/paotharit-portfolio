@@ -1,0 +1,55 @@
+---
+title: Component - PerformanceChart
+description: ""
+type: doc
+---
+
+## Purpose
+Renders a dual-line chart comparing portfolio performance vs. S&P 500 benchmark over a selectable time range (1W, 1M, 3M, 1Y) on the Overview page. Wrapped in `memo`.
+
+## Props
+None — self-contained; fetches its own data via React Query.
+
+## Component Tree
+```
+PerformanceChart (memo)
+├── Tabs (range selector: 1W / 1M / 3M / 1Y)
+└── ResponsiveContainer
+    └── LineChart (recharts)
+        ├── XAxis (date)
+        ├── YAxis
+        ├── Tooltip
+        ├── Legend
+        ├── Line (portfolio — indigo)
+        └── Line (benchmark S&P500 — slate dashed)
+```
+
+## Data Layer
+
+### Local State
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| `range` | `"1W" \| "1M" \| "3M" \| "1Y"` | Currently selected time range tab |
+
+### React Query
+| Query key | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| `["overview", "performance", range]` | `fetchPerformance(range)` → `GET /api/v1/overview/performance?range={range}` | Fetches portfolio + benchmark timeseries |
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount — default range 1M"] --> B["useQuery with key ['overview','performance','1M']"]
+    B --> C{"data returned?"}
+    C -->|no| D["Render empty state with Activity icon"]
+    C -->|yes| E["Map to combined array with date/portfolio/benchmark"]
+    E --> F["Render LineChart with two lines"]
+    F --> G["User clicks range tab"]
+    G --> H["setRange — new query fires"]
+    H --> B
+```
+
+## Related
+- Component - KpiCards
+- Component - AllocationDonut
+- Page - Overview

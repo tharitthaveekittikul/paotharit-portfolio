@@ -1,0 +1,72 @@
+---
+title: Page - Net Worth
+description: ""
+type: doc
+---
+
+## Route
+| Field | Value |
+| :--- | :--- |
+| Path | `/net-worth` |
+| Auth guard | `(auth)` layout group |
+| File | `frontend/app/(auth)/net-worth/page.tsx` |
+
+## Component Tree
+```
+NetWorthPage
+├── PageHeader (title: "Net Worth")
+└── NetWorthChart (privacyMode={isPrivate})
+```
+
+## Data Layer
+
+### Server State — React Query
+| Query key | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| Not used directly | — | Data fetching is handled inside `NetWorthChart` component |
+
+### Global State — Zustand
+| Store | Fields used |
+| :--- | :--- |
+| `usePrivacyStore` (`@/store/privacy`) | `isPrivate` — passed to `NetWorthChart` to mask monetary values |
+
+### Local State — `useState`
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| None | — | Page is fully stateless; all logic lives in `NetWorthChart` |
+
+## Page Lifecycle
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant P as NetWorthPage
+    participant C as NetWorthChart
+    participant API as Backend
+
+    P->>P: read isPrivate from usePrivacyStore
+    P->>C: render NetWorthChart (privacyMode)
+    C->>API: fetch net worth history data
+    API-->>C: time-series data
+    C->>C: render chart (mask values if privacyMode)
+    U->>P: toggle privacy mode (elsewhere in app)
+    P->>P: isPrivate updates from Zustand
+    P->>C: re-render with updated privacyMode
+```
+
+## Validation & Conditions
+
+### Form Validation (if any)
+| Rule | Where enforced |
+| :--- | :--- |
+| None | Read-only chart page |
+
+### Render Conditions
+| Condition | Rendered |
+| :--- | :--- |
+| Always | `NetWorthChart` is always rendered |
+| `isPrivate === true` | `NetWorthChart` masks monetary values via `privacyMode` prop |
+
+## Related
+- Component - NetWorthChart
+- DB - net_worth_snapshots

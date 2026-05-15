@@ -1,0 +1,50 @@
+---
+title: GET Overview Performance
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns portfolio performance over a date range, compared against a selected benchmark (S&P 500, SET50, etc.). Powers the benchmark comparison chart on the Market Overview page.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `from` | Query | Date | No | Start date (default: 1 year ago) |
+| `to` | Query | Date | No | End date (default: today) |
+| `benchmark` | Query | String | No | `^GSPC`, `^SET`, `^IXIC`. Default: `^GSPC` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "portfolio": [
+    { "date": "2025-04-22", "value": 100000.00, "return_pct": 0.0 },
+    { "date": "2026-04-22", "value": 125000.00, "return_pct": 25.0 }
+  ],
+  "benchmark": [
+    { "date": "2025-04-22", "value": 5200.00, "return_pct": 0.0 },
+    { "date": "2026-04-22", "value": 5800.00, "return_pct": 11.5 }
+  ],
+  "benchmark_symbol": "^GSPC",
+  "benchmark_name": "S&P 500"
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/overview.py` |
+| Service | `backend/app/services/overview.py` |

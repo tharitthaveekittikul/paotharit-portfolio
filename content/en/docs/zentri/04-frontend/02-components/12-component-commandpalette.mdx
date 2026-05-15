@@ -1,0 +1,68 @@
+---
+title: Component - CommandPalette
+description: ""
+type: doc
+---
+
+## Purpose
+CommandPalette is a global keyboard-driven search dialog (triggered via the TopNav search pill or `⌘K`). It lets users quickly navigate to any page or jump to a portfolio holding. It renders two filtered groups — "Pages" (from the static `PAGES` registry) and "Holdings" (from the `usePaletteStore` assets list populated at app load). Selecting an item navigates and closes the dialog.
+
+## Props
+This component accepts no props. Open state and assets list are sourced from `usePaletteStore`.
+
+## Component Tree
+```
+CommandPalette
+└── CommandDialog (shadcn/ui, controlled by open/setOpen)
+    ├── CommandInput (value: query, onValueChange: setQuery)
+    └── CommandList
+        ├── CommandEmpty (shown when no matches)
+        ├── CommandGroup "Pages"
+        │   └── CommandItem × N  (filteredPages)
+        └── CommandGroup "Holdings"
+            └── CommandItem × N  (filteredAssets)
+```
+
+## Data Layer
+
+### Local State — `useState`
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| `query` | `string` | Current search input text; drives client-side filtering |
+
+### Zustand Store — `usePaletteStore`
+| Value | Purpose |
+| :--- | :--- |
+| `open` | Controls dialog visibility |
+| `setOpen` | Opens/closes the dialog |
+| `assets` | Portfolio holdings list (symbol + name) for the Holdings group |
+
+### Static Data
+| Source | Purpose |
+| :--- | :--- |
+| `PAGES` from `@/lib/search/pages` | Static registry of all navigable pages with labels and keywords |
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount"] --> B["Read open and assets from usePaletteStore"]
+    B --> C{"open === true?"}
+    C -->|no| D["Dialog hidden"]
+    C -->|yes| E["Render CommandDialog"]
+    E --> F["User types query"]
+    F --> G["Filter PAGES by label/keywords"]
+    F --> H["Filter assets by symbol/name"]
+    G --> I{"Results?"}
+    H --> I
+    I -->|yes| J["Render CommandGroup items"]
+    I -->|no| K["Render CommandEmpty"]
+    J --> L{"User selects item"}
+    L -->|"Page item"| M["router.push(entry.url)"]
+    L -->|"Asset item"| N["router.push('/portfolio/SYMBOL')"]
+    M --> O["setOpen(false), setQuery('')"]
+    N --> O
+```
+
+## Related
+- Component - TopNav
+- Component - Sidebar

@@ -1,0 +1,58 @@
+---
+title: GET Pipeline Stream (SSE)
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Server-Sent Events endpoint that pushes real-time pipeline job updates to the frontend. The Pipeline Monitor page subscribes once and receives pushed updates as jobs transition through queued → running → done/failed states. Eliminates polling.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT (passed as query param since EventSource doesn't support headers)
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `token` | Query | String | Yes | JWT access token |
+
+### Mermaid Logic
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as Frontend (Pipeline Page)
+    participant API as FastAPI (SSE)
+    participant Redis as Redis PubSub
+
+    UI->>API: GET /api/v1/pipeline/stream?token=...
+    API->>API: Validate JWT
+    API->>Redis: Subscribe to pipeline_events channel
+    loop On each job update
+        Redis-->>API: Job status change event
+        API-->>UI: data: { job_id, job_type, status, ... }
+    end
+    UI->>UI: Update job card in real-time
+```
+
+### 📤 SSE Event Format
+
+```
+data: {"job_id": "uuid", "job_type": "llm_analysis", "status": "running", "started_at": "2026-04-22T10:30:00Z"}
+
+data: {"job_id": "uuid", "job_type": "llm_analysis", "status": "done", "finished_at": "2026-04-22T10:30:45Z"}
+
+data: {"job_id": "uuid", "job_type": "price_fetch", "status": "failed", "error_message": "yfinance timeout"}
+```
+
+**401 Unauthorized** — Invalid or missing token
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/pipeline.py` |
+| Worker | `backend/worker/jobs/*.py` (publishes events) |

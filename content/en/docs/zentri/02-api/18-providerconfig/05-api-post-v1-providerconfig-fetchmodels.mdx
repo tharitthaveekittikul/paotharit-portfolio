@@ -1,0 +1,84 @@
+---
+title: API - POST Provider Config Fetch Models v1
+description: ""
+type: doc
+---
+
+
+## Overview
+Fetches the available model list from the configured LLM provider and caches the result in `models_cache` on the ProviderConfig record. Also sets `is_connected = true` and `models_fetched_at` to the current UTC timestamp. Returns 502 if the provider API call fails.
+
+## 🔒 Authentication
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+| Field | Value |
+| :--- | :--- |
+| Method | `POST` |
+| Path | `/api/v1/provider-configs/{config_id}/fetch-models` |
+| Request Body | — (none) |
+
+**Path Parameters:**
+| Param | Type | Description |
+| :--- | :--- | :--- |
+| `config_id` | `uuid` | ID of the ProviderConfig |
+
+### Logic Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "provider_config.py"
+    participant ENC as "encryption.py"
+    participant GW as "_build_adapter"
+    participant P as "LLM Provider API"
+    participant DB as TimescaleDB
+
+    C->>A: POST /api/v1/provider-configs/{config_id}/fetch-models
+    Note over A: Validate JWT
+    A->>DB: SELECT ProviderConfig WHERE id AND user_id
+    DB-->>A: row or 404
+    A->>ENC: decrypt(encrypted_api_key)
+    ENC-->>A: plain api_key
+    A->>GW: _build_adapter(provider, api_key, host_url)
+    GW-->>A: adapter
+    A->>P: adapter.fetch_models()
+    alt success
+        P-->>A: models list
+        Note over A: Store models_cache, models_fetched_at, is_connected = true
+        A->>DB: COMMIT
+        A-->>C: 200 OK ProviderConfigOut
+    else failure
+        P-->>A: exception
+        A-->>C: 502 Bad Gateway
+    end
+```
+
+### 📤 Responses
+| Status | Description | Body |
+| :--- | :--- | :--- |
+| 200 | Models fetched and cached | `ProviderConfigOut` (with `models_cache` populated) |
+| 401 | Missing or invalid JWT | `{"detail": "..."}` |
+| 404 | Config not found or not owned | `{"detail": "Provider config not found"}` |
+| 502 | Provider API call failed | `{"detail": "Failed to fetch models: <error>"}` |
+
+### 🗂️ Related Files
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/provider_config.py` |
+| Gateway | `backend/app/services/llm_gateway.py` (`_build_adapter`) |
+| Encryption | `backend/app/core/encryption.py` |
+| Schema | `backend/app/schemas/provider_config.py` |
+| Auth | `backend/app/api/auth.py` |
+
+
+
+## 🗂️ Related
+- [API-GET-v1-ProviderConfig-List](API-GET-v1-ProviderConfig-List)
+- [API-POST-v1-ProviderConfig-TestConnection](API-POST-v1-ProviderConfig-TestConnection)
+- [API-POST-v1-FeatureLLMConfig-Create](API-POST-v1-FeatureLLMConfig-Create)

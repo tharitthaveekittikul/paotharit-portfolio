@@ -1,0 +1,50 @@
+---
+title: Component - BottomTabBar
+description: ""
+type: doc
+---
+
+## Purpose
+BottomTabBar is the mobile navigation component that mirrors a subset of the Sidebar links. It renders as a floating pill-shaped tab bar fixed near the bottom of the viewport on small screens (`md:hidden`). It exposes five primary destinations: Overview, Portfolio, Watchlist, Chat, and Settings. Active tab detection uses `pathname.startsWith(href)` to handle nested routes under each section.
+
+## Props
+This component accepts no props. Tabs are defined in the internal `tabs` constant.
+
+## Component Tree
+```
+BottomTabBar
+└── nav (fixed, z-50)
+    └── div (glass-chrome pill)
+        └── div (flex row, h-62px)
+            └── Link × 5  (one per tab)
+                ├── div (icon pill, highlighted if active)
+                │   └── Icon (lucide)
+                └── span (label text)
+```
+
+## Data Layer
+
+### Local State — `useState`
+None.
+
+### Routing
+| Hook | Purpose |
+| :--- | :--- |
+| `usePathname()` | Determines the active tab via `pathname.startsWith(href)` |
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount"] --> B["Read pathname"]
+    B --> C["Render 5 tab Links"]
+    C --> D{"pathname.startsWith(href)?"}
+    D -->|yes| E["Icon pill highlighted, label bold, opacity 100"]
+    D -->|no| F["Icon muted, label opacity 50"]
+    E --> G["User taps tab"]
+    F --> G
+    G --> H["Next.js Link navigates"]
+```
+
+## Related
+- Component - Sidebar
+- Component - TopNav

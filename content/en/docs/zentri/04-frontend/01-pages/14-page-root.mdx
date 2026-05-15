@@ -1,0 +1,63 @@
+---
+title: Page - Root
+description: ""
+type: doc
+---
+
+## Route
+
+| Field | Value |
+| :--- | :--- |
+| Path | `/` |
+| Auth guard | None — server component |
+| File | `frontend/app/page.tsx` |
+
+---
+
+## Purpose
+
+This is a Next.js server component that immediately calls `redirect("/overview")`. It exists only to handle the root URL — the actual dashboard content lives in `frontend/app/(auth)/page.tsx` (the Overview page inside the auth group).
+
+```typescript
+import { redirect } from "next/navigation";
+
+export default function RootPage() {
+  redirect("/overview");
+}
+```
+
+---
+
+## Component Tree
+
+None — this file contains no JSX. It immediately redirects.
+
+---
+
+## Data Layer
+
+None — no data fetching, no state, no queries.
+
+---
+
+## Page Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant N as "Next.js Server"
+    participant A as "(auth)/overview"
+
+    B->>N: GET /
+    N->>N: "redirect('/overview')"
+    N-->>B: 307 Temporary Redirect to /overview
+    B->>A: GET /overview
+```
+
+---
+
+## Related
+
+- Page - Overview
+- Page - Login

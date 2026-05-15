@@ -1,0 +1,66 @@
+---
+title: POST Watchlist Scan
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Triggers the AI discovery scan across the user's configured universe (stocks/crypto/funds they want Zentri to monitor). The worker screens assets for fundamental strength, relative value, and portfolio fit — then surfaces candidates as watchlist items with AI thesis and suggested entry price.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+
+### Mermaid Logic
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as Frontend
+    participant API as FastAPI
+    participant Redis as Redis Queue
+    participant Worker as ARQ Worker
+    participant DB as PostgreSQL
+    participant Chroma as ChromaDB
+    participant LLM as LLM Provider
+
+    UI->>API: POST /api/v1/watchlist/scan
+    API->>Redis: Enqueue scan_watchlist job
+    API-->>UI: 202 Accepted { job_id }
+    Worker->>DB: Load universe symbols from settings
+    Worker->>DB: Fetch prices + existing holdings (to check exposure)
+    Worker->>Chroma: Search recent reports per symbol
+    Worker->>LLM: Screen each symbol — thesis + entry + upside
+    Worker->>DB: INSERT/UPDATE watchlist items
+    Worker->>DB: UPDATE pipeline_log (done)
+```
+
+### 📤 Responses
+
+**202 Accepted**
+```json
+{
+  "job_id": "uuid",
+  "message": "Watchlist scan queued. Results will appear on /watchlist when complete."
+}
+```
+
+**401 Unauthorized**
+
+**400 Bad Request** — Universe not configured. Set up in Settings → Universe.
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/watchlist.py` |
+| Worker Job | `backend/worker/jobs/scan_watchlist.py` |
+| Service | `backend/app/services/watchlist.py` |

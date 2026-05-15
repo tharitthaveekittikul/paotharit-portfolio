@@ -1,0 +1,73 @@
+---
+title: POST Documents Upload
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Accepts a PDF upload (10-K, 10-Q, fund fact sheet, SET report, etc.), stores file metadata, and queues an ingestion job. The worker extracts text, chunks it, embeds it, and stores in ChromaDB for RAG-based LLM analysis.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `Content-Type` | Header | String | Yes | `multipart/form-data` |
+| `file` | Body | File | Yes | PDF file |
+| `asset_id` | Body | UUID | Yes | Associated asset |
+| `doc_type` | Body | String | Yes | `10k`, `10q`, `fund_fact`, `set_report`, `other` |
+
+### Mermaid Logic
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as Frontend
+    participant API as FastAPI
+    participant DB as PostgreSQL
+    participant Redis as Redis Queue
+    participant Worker as ARQ Worker
+    participant Chroma as ChromaDB
+
+    UI->>API: POST /api/v1/documents/upload (PDF)
+    API->>DB: INSERT document (status=pending)
+    API->>Redis: Enqueue ingest_document job
+    API-->>UI: 202 Accepted { document_id, status: "pending" }
+    Redis->>Worker: Dequeue job
+    Worker->>DB: UPDATE status=processing
+    Worker->>Worker: Extract text (PyMuPDF)
+    Worker->>Worker: Chunk text (recursive splitter)
+    Worker->>Worker: Embed chunks (embedding model)
+    Worker->>Chroma: Store embeddings
+    Worker->>DB: UPDATE status=done, chroma_collection_id
+```
+
+### 📤 Responses
+
+**202 Accepted**
+```json
+{
+  "document_id": "uuid",
+  "filename": "AAPL-10K-2025.pdf",
+  "status": "pending",
+  "message": "Document queued for ingestion."
+}
+```
+
+**400 Bad Request** — Not a PDF or missing fields
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/documents.py` |
+| Worker Job | `backend/worker/jobs/ingest_document.py` |
+| Service | `backend/app/services/rag_service.py` |

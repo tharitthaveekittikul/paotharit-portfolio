@@ -1,0 +1,110 @@
+---
+title: Page - Events
+description: ""
+type: doc
+---
+
+## Route
+| Field | Value |
+| :--- | :--- |
+| Path | `/events` |
+| Auth guard | `(auth)` layout |
+| File | `frontend/app/(auth)/events/page.tsx` |
+
+## Component Tree
+```
+EventsPage
+├── PageHeader (title="Events")
+├── Filter bar
+│   ├── Button group (All / Dividends / IPOs / Watchlist)
+│   └── Button "Refresh" (RefreshCw icon)
+├── Events Table (shadcn)
+│   ├── TableHeader
+│   └── TableBody
+│       └── TableRow (per CalendarEvent)
+│           ├── TickerLogo
+│           ├── event_type badge (STATUS_BADGE)
+│           ├── event_date, details (amount/price)
+│           └── Button (dividend detail / IPO analyze)
+├── Dialog — Dividend Detail
+│   └── DividendCalendarEvent fields
+├── Dialog — IPO Detail + Analyze
+│   ├── IpoCalendarEvent fields
+│   ├── Input (confirmQty)
+│   ├── DatePicker (confirmDate)
+│   └── Button "Analyze IPO"
+└── Skeleton (loading state)
+```
+
+## Data Layer
+
+### Server State — React Query
+None — uses direct `fetchEventsCalendar` + `useEffect`.
+
+### Global State — Zustand
+None (uses `useDualCurrency` hook).
+
+### Local State — useState
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| `allEvents` | `CalendarEvent[]` | Flattened events from 3-month calendar fetch |
+| `loading` | `boolean` | Initial load skeleton |
+| `fetchError` | `string \| null` | Error message if fetch fails |
+| `refreshing` | `boolean` | Refresh button in-flight |
+| `filter` | `FilterType` | Active tab — `"all" \| "dividend" \| "ipo" \| "watchlist"` |
+| `selectedDividend` | `DividendCalendarEvent \| null` | Dividend detail dialog target |
+| `selectedIpo` | `IpoCalendarEvent \| null` | IPO detail dialog target |
+| `confirmQty` | `string` | IPO confirm quantity input |
+| `confirmDate` | `string` | IPO confirm date input |
+| `confirming` | `boolean` | IPO analyze in-flight |
+
+### Derived State (useMemo)
+- `filteredEvents` — `allEvents` filtered by `filter` and `is_in_watchlist`.
+
+## Page Lifecycle
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant P as EventsPage
+    participant API as Backend
+
+    P->>API: "fetchEventsCalendar(3)" on mount
+    API-->>P: "{ months: [{ events }] }"
+    P->>P: flatMap months → setAllEvents, setLoading(false)
+    U->>P: Click Refresh
+    P->>API: "POST /api/v1/dividends/refresh"
+    P->>API: "POST /api/v1/ipos/refresh"
+    P->>P: Poll fetchEventsCalendar every 5s up to 60s
+    API-->>P: Updated data
+    P->>P: setAllEvents, setRefreshing(false)
+    U->>P: Click IPO row
+    P->>P: setSelectedIpo(event)
+    U->>P: Enter qty + date, click "Analyze IPO"
+    P->>API: "analyzeIpo(symbol, qty, date)" via events service
+    API-->>P: "IpoAnalysisResult"
+    P->>P: Show analysis result in dialog
+```
+
+## Validation & Conditions
+
+### Form Validation
+- IPO confirm form: `confirmQty` and `confirmDate` must be provided before `analyzeIpo()` is called.
+- Refresh uses a polling loop (5-second intervals, 60-second timeout) because dividend/IPO refresh jobs are async background tasks.
+
+### Render Conditions
+| Condition | Rendered |
+| :--- | :--- |
+| `loading === true` | Skeleton rows |
+| `fetchError !== null` | Error alert banner |
+| `filter === "dividend"` | Only dividend events |
+| `filter === "ipo"` | Only IPO events |
+| `filter === "watchlist"` | Only events where `is_in_watchlist === true` |
+| `selectedDividend !== null` | Dividend detail dialog |
+| `selectedIpo !== null` | IPO detail + analyze dialog |
+| `refreshing === true` | Refresh button disabled + spinner |
+
+## Related
+- `frontend/lib/services/events.ts`
+- `frontend/components/ui/TickerLogo.tsx`
+- `frontend/hooks/useDualCurrency.ts`

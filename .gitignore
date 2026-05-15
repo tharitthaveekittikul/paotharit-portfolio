@@ -40,7 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# generated docs (synced from Obsidian at build time)
-content/en/docs/
 # Added by code-review-graph
 .code-review-graph/

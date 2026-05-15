@@ -1,0 +1,46 @@
+---
+title: POST Portfolio Import Confirm
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Commits a previously previewed CSV import using the confirmed column mapping. Inserts transactions, recalculates holdings, and optionally saves the mapping as a new import_profile for future imports from the same broker.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `session_id` | Body | UUID | Yes | From POST /portfolio/import |
+| `mapping` | Body | Object | Yes | Confirmed column mapping |
+| `save_profile` | Body | Boolean | No | Save as import profile for this broker |
+| `broker_name` | Body | String | No | Required if save_profile is true |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "imported_count": 42,
+  "skipped_count": 2,
+  "profile_saved": true
+}
+```
+
+**400 Bad Request** — Session expired or invalid mapping
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/portfolio.py` |
+| Service | `backend/app/services/import_service.py` |

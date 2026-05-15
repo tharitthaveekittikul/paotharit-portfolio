@@ -1,0 +1,47 @@
+---
+title: Component - HoldingsSnapshot
+description: ""
+type: doc
+---
+
+## Purpose
+Renders a compact, scrollable table of top holdings on the Overview page, showing symbol, asset type, quantity, current value (dual currency), cost basis, and P&L %. Each row is clickable and navigates to the holding's detail page.
+
+## Props
+| Prop | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `holdings` | `SnapshotHolding[]` | Yes | Array with `symbol`, `asset_type`, `quantity`, `current_value`, `cost_basis`, `pnl_pct` |
+
+## Component Tree
+```
+HoldingsSnapshot
+└── table (overflow-x-auto)
+    ├── thead (Symbol / Type / Qty / Value / Cost Basis / P&L%)
+    └── tbody
+        └── tr ×N (clickable → router.push)
+            └── DualCurrencyAmount (value, cost_basis)
+```
+
+## Data Layer
+
+### Local State
+None — purely presentational.
+
+### React Query
+Not used; data provided by parent Overview page.
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount — receive holdings prop"] --> B{"holdings.length > 0?"}
+    B -->|no| C["Render empty tbody"]
+    B -->|yes| D["Map each SnapshotHolding to a table row"]
+    D --> E["User clicks row"]
+    E --> F["router.push to /portfolio/symbol"]
+```
+
+## Related
+- Component - KpiCards
+- Component - AllocationDonut
+- Page - Overview
+- Page - Portfolio Detail

@@ -1,0 +1,129 @@
+---
+title: Page - Chat
+description: ""
+type: doc
+---
+
+## Route
+
+| Field | Value |
+| :--- | :--- |
+| Path | `/chat` |
+| Auth guard | `(auth)` layout group |
+| File | `frontend/app/(auth)/chat/page.tsx` |
+
+---
+
+## Component Tree
+
+```
+ChatPage
+├── PageHeader (title="Chat")
+├── SessionStrip
+│   └── [session tabs] — rename / delete per session
+└── [message list]
+    ├── MessageBubble (role=user)
+    │   └── [text content]
+    ├── MessageBubble (role=assistant)
+    │   ├── [text content or out-of-scope warning]
+    │   └── MessageMetaRow
+    │       └── ChatCostBadge
+    └── [textarea + Send button]
+```
+
+---
+
+## Data Layer
+
+### Server State — React Query
+
+Not used. This page uses `useState` + direct `api.*` calls (no React Query).
+
+| Call | Function | Endpoint |
+| :--- | :--- | :--- |
+| List sessions on mount | `listChatSessions()` | `GET /api/v1/chat/sessions` |
+| Create new session | `createChatSession(title)` | `POST /api/v1/chat/sessions` |
+| Load session messages | `getChatMessages(sessionId)` | `GET /api/v1/chat/sessions/{id}/messages` |
+| Send message | `sendChatMessage(sessionId, messages)` | `POST /api/v1/chat` |
+| Rename session | `renameChatSession(id, title)` | `PATCH /api/v1/chat/sessions/{id}` |
+| Delete session | `deleteChatSession(id)` | `DELETE /api/v1/chat/sessions/{id}` |
+
+All functions live in `frontend/lib/services/chat.ts`.
+
+### Global State — Zustand
+
+None used on this page.
+
+### Local State — `useState`
+
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| `sessions` | `ChatSessionSummary[]` | Sidebar session list |
+| `activeSessionId` | `string \| null` | Which session is open |
+| `messages` | `ChatMessageWithMeta[]` | Messages in the active session |
+| `input` | `string` | Textarea value |
+| `loading` | `boolean` | Send in-flight guard |
+| `error` | `string \| null` | Error banner text |
+
+Computed:
+- `sessionCost` — sum of `cost_usd` and `cost_thb` across all `messages` for `ChatCostBadge`
+
+---
+
+## Page Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant P as ChatPage
+    participant API as Backend
+
+    P->>API: listChatSessions()
+    API-->>P: sessions[]
+    alt sessions exist
+        P->>API: getChatMessages(sessions[0].id)
+        API-->>P: messages[]
+        P->>P: setActiveSessionId + setMessages
+    else no sessions
+        P->>P: show empty state
+    end
+    U->>P: type message + Enter / Send
+    P->>P: setLoading(true); optimistic user bubble
+    P->>API: sendChatMessage(sessionId, messages)
+    API-->>P: ChatResponse
+    P->>P: append assistant message; setLoading(false)
+```
+
+---
+
+## Validation & Conditions
+
+### Form Validation
+
+| Rule | Where enforced |
+| :--- | :--- |
+| Empty input blocked | `handleSend()` returns early if `!input.trim()` |
+| Loading guard | `handleSend()` returns early if `loading === true` |
+| Session required | `handleSend()` returns early if `!activeSessionId` |
+
+### Render Conditions
+
+| Condition | Rendered |
+| :--- | :--- |
+| `isOutOfScope(content)` is true | Amber out-of-scope warning bubble |
+| `role === "assistant"` | `MessageMetaRow` with `ChatCostBadge` |
+| `loading` and last message is user | Typing indicator (pending bubble) |
+| `error !== null` | Error text below input bar |
+
+`isOutOfScope(content)` tries `JSON.parse(content)` and checks `obj?.type === "out_of_scope"`.
+
+---
+
+## Related
+
+- API - GET Chat Sessions v1
+- API - POST Chat Session v1
+- API - GET Chat Session Messages v1
+- API - POST Chat v1
+- DB - chat_sessions

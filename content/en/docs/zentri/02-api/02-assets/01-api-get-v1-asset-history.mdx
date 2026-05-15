@@ -1,0 +1,55 @@
+---
+title: GET Asset Price History
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns OHLCV (Open, High, Low, Close, Volume) time-series data for a specific asset over a given range. This is the primary data source for lightweight-charts on the asset detail page.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `symbol` | Path | String | Yes | Asset symbol e.g. `AAPL`, `BTC` |
+| `range` | Query | String | No | `1d`, `1w`, `1m`, `3m`, `6m`, `1y`, `5y`. Default: `1y` |
+| `interval` | Query | String | No | `1h`, `1d`, `1w`. Default: `1d` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "symbol": "AAPL",
+  "interval": "1d",
+  "candles": [
+    {
+      "time": "2026-04-21",
+      "open": 178.50,
+      "high": 181.20,
+      "low": 177.80,
+      "close": 180.00,
+      "volume": 52400000
+    }
+  ]
+}
+```
+
+**404 Not Found** — Symbol not found or no price data
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/assets.py` |
+| Service | `backend/app/services/price_service.py` |
+| Schema | `backend/app/schemas/assets.py` |

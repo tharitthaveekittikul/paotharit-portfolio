@@ -1,0 +1,60 @@
+---
+title: PUT Settings LLM
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Saves the user's LLM provider configuration including API key (stored AES-256 encrypted) and model selection. This replaces the need to put API keys in `.env` — all LLM configuration is managed through the UI at runtime.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `provider` | Body | String | Yes | `ollama`, `openai`, `claude`, `gemini` |
+| `model_name` | Body | String | Yes | e.g. `claude-3-5-sonnet-20241022` |
+| `api_key` | Body | String | No | Required for cloud providers |
+| `is_default` | Body | Boolean | No | Set as default LLM. Default: false |
+
+### 📦 Request Body
+
+```json
+{
+  "provider": "claude",
+  "model_name": "claude-3-5-sonnet-20241022",
+  "api_key": "sk-ant-...",
+  "is_default": true
+}
+```
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "id": "uuid",
+  "provider": "claude",
+  "model_name": "claude-3-5-sonnet-20241022",
+  "is_default": true,
+  "api_key": "sk-ant-...****"
+}
+```
+
+**400 Bad Request** — Missing api_key for cloud provider
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/settings.py` |
+| Service | `backend/app/services/settings.py` |
+| Security | `backend/app/core/encryption.py` |

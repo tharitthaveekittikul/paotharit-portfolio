@@ -1,0 +1,52 @@
+---
+title: GET Dividends Calendar
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns upcoming and recent dividend events for the user's holdings. Used to populate the Dividend Calendar page with ex-dividend dates and pay dates, so the user knows when to expect income.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `months` | Query | Int | No | Number of months ahead to show. Default: 3 |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "upcoming": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "amount_per_unit": 0.25,
+      "total_amount": 2.50,
+      "ex_dividend_date": "2026-05-09",
+      "pay_date": "2026-05-15",
+      "status": "upcoming",
+      "currency": "USD"
+    }
+  ],
+  "annual_income_usd": 480.00
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/dividends.py` |
+| Worker Job | `backend/worker/jobs/fetch_dividends.py` |
+| Schema | `backend/app/schemas/dividends.py` |

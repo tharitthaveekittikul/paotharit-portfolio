@@ -1,0 +1,45 @@
+---
+title: GET LLM Usage Summary
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns aggregated LLM spend broken down by provider. Used to show the running total cost card at the top of the AI Usage page.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "total_cost_usd": 4.82,
+  "total_analyses": 48,
+  "by_provider": [
+    { "provider": "claude",  "cost_usd": 3.20, "analyses": 30 },
+    { "provider": "openai",  "cost_usd": 1.50, "analyses": 15 },
+    { "provider": "ollama",  "cost_usd": 0.00, "analyses": 3 }
+  ],
+  "this_month_cost_usd": 1.24
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/llm.py` |
+| Schema | `backend/app/schemas/llm.py` |

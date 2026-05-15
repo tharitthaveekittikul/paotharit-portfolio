@@ -1,0 +1,50 @@
+---
+title: GET Pipeline Jobs
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns a paginated list of recent pipeline job logs. Used to populate the Pipeline Monitor page on initial load before the SSE stream takes over for real-time updates.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `job_type` | Query | String | No | Filter by type |
+| `status` | Query | String | No | Filter by status |
+| `limit` | Query | Int | No | Default 50 |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "jobs": [
+    {
+      "id": "uuid",
+      "job_type": "price_fetch",
+      "status": "done",
+      "started_at": "2026-04-22T10:00:00Z",
+      "finished_at": "2026-04-22T10:00:12Z",
+      "error_message": null
+    }
+  ]
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/pipeline.py` |
+| Schema | `backend/app/schemas/pipeline.py` |

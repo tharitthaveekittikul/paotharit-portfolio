@@ -1,0 +1,111 @@
+---
+title: API - GET LLM Call Logs v1
+description: ""
+type: doc
+---
+
+
+## Overview
+
+Returns paginated LLM call logs for the authenticated user, with aggregated cost/token totals. Supports filtering by `feature_key`, `from_date`, and `to_date`. Used by the AI Usage page to display the LLM call logs table and summary stats.
+
+---
+
+## 🔒 Authentication
+
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+| Scope | User-scoped — only logs where `user_id == current_user.id` |
+
+---
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Field | Value |
+| :--- | :--- |
+| Method | `GET` |
+| Path | `/api/v1/llm/call-logs` |
+| Request body | None |
+
+| Query param | Type | Default | Notes |
+| :--- | :--- | :--- | :--- |
+| `feature_key` | string | — | Filter to a specific feature, e.g. `overview_analysis` |
+| `from_date` | ISO 8601 datetime | — | Inclusive lower bound on `created_at` |
+| `to_date` | ISO 8601 datetime | — | Inclusive upper bound on `created_at` |
+| `limit` | int | `50` | Max `200` |
+| `offset` | int | `0` | For pagination |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as "AI Usage Page"
+    participant A as "llm_usage.py router"
+    participant DB as TimescaleDB
+
+    C->>A: GET /api/v1/llm/call-logs?limit=100
+    Note over A: Validate JWT; build WHERE user_id=? + optional filters
+    A->>DB: "SELECT logs ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    A->>DB: "SELECT SUM(cost_usd), SUM(tokens_in), COUNT(*) aggregate"
+    DB-->>A: logs + aggregates
+    A-->>C: 200 OK {totals + logs[]}
+```
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "total_cost_usd": 1.234567,
+  "total_cost_thb": 42.80,
+  "total_tokens_in": 45000,
+  "total_tokens_out": 30000,
+  "total_calls": 87,
+  "logs": [
+    {
+      "id": "3fa85f64-...",
+      "feature_key": "overview_analysis",
+      "provider": "openai",
+      "model": "gpt-4o",
+      "tokens_in": 512,
+      "tokens_out": 340,
+      "cost_usd": 0.003412,
+      "cost_thb": 0.118,
+      "created_at": "2026-05-11T10:01:00Z"
+    }
+  ]
+}
+```
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `total_cost_usd/thb` | float | Aggregated over the filtered set (not just the page) |
+| `total_tokens_in/out` | int | Aggregated |
+| `total_calls` | int | Total matching rows |
+| `logs[].feature_key` | string | Which Zentri feature triggered the call |
+| `logs[].prompt_in/response_out` | — | NOT returned here — use `GET /llm/call-logs/{id}` |
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/llm_usage.py` |
+| Model | `backend/app/models/llm_call_log.py` |
+| Frontend caller | `frontend/app/(auth)/ai-usage/page.tsx` → `loadCallLogs()` |
+
+---
+
+
+
+## 🗂️ Related
+
+- [DB - llm_call_logs](/en/docs/zentri/database/db-llm-call-logs)
+- [API - GET LLM Call Log Detail v1](/en/docs/zentri/api/llm/api-get-v1-llm-call-log-detail)
+- [Page - AI Usage](Page - AI Usage)

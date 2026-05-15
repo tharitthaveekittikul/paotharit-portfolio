@@ -1,0 +1,107 @@
+---
+title: API - POST IPOs Analyze v1
+description: ""
+type: doc
+---
+
+
+## Overview
+
+Runs LLM analysis on an IPO event and returns a verdict (BUY/WATCH/SKIP), suggested price, and reasoning. Results are cached in `ai_analyses` and returned immediately on subsequent calls unless `force=true`.
+
+## 🔒 Authentication
+
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Field | Value |
+| :--- | :--- |
+| Method | `POST` |
+| Path | `/api/v1/ipos/{event_id}/analyze` |
+
+| Path param | Type | Notes |
+| :--- | :--- | :--- |
+| `event_id` | UUID | IPO event to analyze |
+
+| Query param | Type | Default | Notes |
+| :--- | :--- | :--- | :--- |
+| `force` | bool | `false` | Skip cache, force fresh LLM call |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "ipos.py"
+    participant GW as LLMGateway
+    participant YF as "yfinance"
+    participant DB as TimescaleDB
+
+    C->>A: "POST /api/v1/ipos/{id}/analyze"
+    A->>DB: SELECT ipo_event
+    alt event not found
+        A-->>C: 404 Not Found
+    end
+    alt cached and not force
+        A->>DB: SELECT ai_analysis WHERE ipo_event_id=?
+        DB-->>A: cached analysis
+        A-->>C: "200 OK {cached: true}"
+    else
+        A->>YF: "yf.Ticker(symbol).info (executor)"
+        YF-->>A: market data
+        A->>GW: "complete('ipo_analysis', user_id, variables)"
+        GW-->>A: LLM result
+        A->>DB: INSERT ai_analysis
+        A-->>C: "200 OK {cached: false}"
+    end
+```
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "verdict": "BUY",
+  "suggested_price": 25.50,
+  "reasoning": "Strong fundamentals...",
+  "provider": "openai",
+  "model": "gpt-4o",
+  "cached": false
+}
+```
+
+**400 Bad Request** — LLM not configured for `ipo_analysis` feature key
+
+**404 Not Found** — IPO event not found
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/ipos.py` |
+| LLM Gateway | `backend/app/services/llm_gateway.py` |
+| Model | `backend/app/models/ai_analysis.py` |
+| External | `yfinance` library — fetches market cap, PE ratio, description |
+
+## External Dependencies
+
+- **[EXT-SEC-Thailand](EXT-SEC-Thailand)** — not used directly here; IPO data comes from `ipo_feed` service
+- **yfinance** — enriches IPO data with live market info (`marketCap`, `trailingPE`, `longBusinessSummary`)
+
+
+
+## 🗂️ Related
+
+- [DB - ipo_events](/en/docs/zentri/database/db-ipo-events)
+- [DB - ai_analyses](/en/docs/zentri/database/db-ai-analyses)
+- [DB - llm_call_logs](/en/docs/zentri/database/db-llm-call-logs)
+- [Page - Events](/en/docs/zentri/frontend/pages/page-events)

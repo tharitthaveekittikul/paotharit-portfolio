@@ -1,0 +1,77 @@
+---
+title: Component - ModelTooltip
+description: ""
+type: doc
+---
+
+## Purpose
+Info-icon tooltip that shows model recommendations for a given feature key. Displays the recommended model, cost tier, rationale, and alternatives — each with live pricing from `llmPricing.ts`. Uses Base UI's `@base-ui/react/tooltip` primitives.
+
+## Usage
+
+```tsx
+<ModelTooltip featureKey="portfolio_analysis" />
+```
+
+Used in: Component - AISettings (next to the Model label in each feature row)
+
+## Props Interface
+
+```typescript
+interface ModelTooltipProps {
+  featureKey: string; // required — key into MODEL_RECOMMENDATIONS
+}
+```
+
+| Prop | Type | Required | Default | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| `featureKey` | `string` | Yes | — | Looks up the recommendation entry; renders `null` if no match |
+
+## State
+
+No local state. Pure render component.
+
+## Component Tree
+
+```
+ModelTooltip
+└── TooltipPrimitive.Provider (delay=300ms)
+    └── TooltipPrimitive.Root
+        ├── TooltipPrimitive.Trigger  ← InfoIcon
+        └── TooltipPrimitive.Portal
+            └── TooltipPrimitive.Positioner (side=right, offset=8)
+                └── TooltipPrimitive.Popup
+                    ├── "Recommended" label + cost tier badge
+                    ├── <code> recommended model + PricingBadge
+                    ├── Why text
+                    ├── Alternatives list (model + PricingBadge + note)
+                    └── "Pricing: input/output per 1M tokens" footnote
+```
+
+### Internal: `PricingBadge`
+
+Reads `getPricingForModel(model)` from `llmPricing.ts`. Formats input/output cost per 1M tokens as `$X/$Y /1M`. Returns `null` if no pricing entry exists for the model.
+
+## Render Conditions
+
+| Condition | What renders |
+| :--- | :--- |
+| `MODEL_RECOMMENDATIONS[featureKey]` is undefined | Returns `null` — no icon shown |
+| `rec.alternatives.length === 0` | Alternatives section omitted |
+| `getPricingForModel(model)` is null | `PricingBadge` returns null silently |
+
+## Cost Tier Colors
+
+| Tier | Color (light / dark) |
+| :--- | :--- |
+| `low` | `text-emerald-600` / `text-emerald-400` |
+| `medium` | `text-amber-600` / `text-amber-400` |
+| `high` | `text-red-600` / `text-red-400` |
+
+## Related
+
+| Role | Link |
+| :--- | :--- |
+| Parent | Component - AISettings |
+| Data source | `frontend/lib/modelRecommendations.ts` |
+| Pricing source | `frontend/lib/llmPricing.ts` |

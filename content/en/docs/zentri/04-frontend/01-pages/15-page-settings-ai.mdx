@@ -1,0 +1,58 @@
+---
+title: Page - Settings AI
+description: ""
+type: doc
+---
+
+## Route
+| Field | Value |
+| :--- | :--- |
+| Path | `/settings/ai` |
+| Auth guard | `(auth)` layout |
+| File | `frontend/app/(auth)/settings/ai/page.tsx` |
+
+## Component Tree
+```
+SettingsAiPage
+└── (immediate server-side redirect — no UI rendered)
+```
+
+## Data Layer
+
+### Server State — React Query
+None.
+
+### Global State — Zustand
+None.
+
+### Local State — useState
+None.
+
+## Page Lifecycle
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant P as SettingsAiPage
+    participant Router as Next.js Router
+
+    U->>Router: Navigate to "/settings/ai"
+    Router->>P: Render SettingsAiPage (server component)
+    P->>Router: redirect("/ai-usage?tab=import-mapping")
+    Router-->>U: Land on AI Usage page, import-mapping tab
+```
+
+## Validation & Conditions
+
+### Form Validation
+None — page is a pure redirect.
+
+### Render Conditions
+| Condition | Rendered |
+| :--- | :--- |
+| Always | Immediate redirect, no UI |
+
+## Related
+- Page - AI Usage
+- Page - Settings
+- `frontend/app/(auth)/settings/ai/page.tsx`

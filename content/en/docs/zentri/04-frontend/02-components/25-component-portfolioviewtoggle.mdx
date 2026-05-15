@@ -1,0 +1,67 @@
+---
+title: Component - PortfolioViewToggle
+description: ""
+type: doc
+---
+
+## Purpose
+Pill-style toggle bar that lets the user switch the Portfolio page between four visualisation modes: Table, Grid, Swarm (beeswarm), and Bubbles (circlepack). Stateless — current view and change handler are fully controlled by the parent.
+
+## Usage
+
+```tsx
+<PortfolioViewToggle view={view} onChange={setView} />
+```
+
+Used in: Page - Portfolio
+
+## Props Interface
+
+```typescript
+interface Props {
+  view: ViewMode;
+  onChange: (view: ViewMode) => void;
+}
+```
+
+| Prop | Type | Required | Default | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| `view` | `ViewMode` | Yes | — | Currently active mode; drives active button style |
+| `onChange` | `(view: ViewMode) => void` | Yes | — | Callback when user selects a different mode |
+
+## ViewMode Values
+
+Defined in `frontend/lib/visualizations/types.ts`:
+
+| Value | Icon | Label |
+| :--- | :--- | :--- |
+| `"table"` | `<List />` | Table |
+| `"grid"` | `<LayoutGrid />` | Grid |
+| `"swarm"` | `<ScatterChart />` | Swarm |
+| `"bubbles"` | `<Circle />` | Bubbles |
+
+## State
+
+No local state — fully controlled component.
+
+## Component Tree
+
+```
+PortfolioViewToggle
+└── div (pill container, border + bg-muted/40)
+    └── VIEWS.map → button
+        ├── icon (always visible)
+        └── span.label (hidden on mobile, visible sm+)
+```
+
+Active button receives `bg-background text-foreground shadow-sm`; inactive gets `text-muted-foreground hover:text-foreground`.
+
+## Related
+
+| Role | Link |
+| :--- | :--- |
+| Page | Page - Portfolio |
+| Visualisation (swarm) | Component - BeeswarmView |
+| Visualisation (bubbles) | Component - CirclepackView |
+| Visualisation (treemap) | Component - TreemapView |
+| Table view | Component - HoldingsTable |

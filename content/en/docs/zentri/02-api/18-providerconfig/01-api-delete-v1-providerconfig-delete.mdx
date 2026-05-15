@@ -1,0 +1,69 @@
+---
+title: API - DELETE Provider Config Delete v1
+description: ""
+type: doc
+---
+
+
+## Overview
+Permanently deletes a provider config owned by the authenticated user. The encrypted API key is removed from the database. If any FeatureLLMConfig references this provider config, those records may be left with a dangling FK — check for cascade behavior in the migration.
+
+## 🔒 Authentication
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+| Field | Value |
+| :--- | :--- |
+| Method | `DELETE` |
+| Path | `/api/v1/provider-configs/{config_id}` |
+| Request Body | — |
+
+**Path Parameters:**
+| Param | Type | Description |
+| :--- | :--- | :--- |
+| `config_id` | `uuid` | ID of the ProviderConfig to delete |
+
+### Logic Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "provider_config.py"
+    participant DB as TimescaleDB
+
+    C->>A: DELETE /api/v1/provider-configs/{config_id}
+    Note over A: Validate JWT
+    A->>DB: SELECT ProviderConfig WHERE id = config_id AND user_id = current_user.id
+    DB-->>A: row or 404
+    A->>DB: DELETE ProviderConfig row
+    A->>DB: COMMIT
+    A-->>C: 204 No Content
+```
+
+### 📤 Responses
+| Status | Description | Body |
+| :--- | :--- | :--- |
+| 204 | Deleted | — |
+| 401 | Missing or invalid JWT | `{"detail": "..."}` |
+| 404 | Config not found or not owned | `{"detail": "Provider config not found"}` |
+
+### 🗂️ Related Files
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/provider_config.py` |
+| Model | `backend/app/models/provider_config.py` |
+| Auth | `backend/app/api/auth.py` |
+
+
+
+## 🗂️ Related
+- [API-GET-v1-ProviderConfig-List](API-GET-v1-ProviderConfig-List)
+- [API-POST-v1-ProviderConfig-Create](API-POST-v1-ProviderConfig-Create)
+- [API-PATCH-v1-ProviderConfig-Update](API-PATCH-v1-ProviderConfig-Update)
+- [API-POST-v1-ProviderConfig-TestConnection](API-POST-v1-ProviderConfig-TestConnection)
+- [API-POST-v1-ProviderConfig-FetchModels](API-POST-v1-ProviderConfig-FetchModels)

@@ -1,0 +1,43 @@
+---
+title: Component - PageHeader
+description: ""
+type: doc
+---
+
+## Purpose
+PageHeader is a simple, stateless presentational component that renders a consistent page-level heading. It outputs an `h1` title and an optional muted description paragraph, wrapped in a `div` with bottom margin. It is used at the top of content pages to establish visual hierarchy without requiring each page to re-implement heading styles.
+
+## Props
+| Prop | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `title` | `string` | Yes | Main page heading rendered as `h1` |
+| `description` | `string` | No | Subtitle rendered as muted small text below the title |
+
+## Component Tree
+```
+PageHeader
+└── div (mb-6)
+    ├── h1 (title)
+    └── p (description, conditional)
+```
+
+## Data Layer
+
+### Local State — `useState`
+None.
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount"] --> B["Receive title and description props"]
+    B --> C["Render h1 with title"]
+    C --> D{"description provided?"}
+    D -->|yes| E["Render muted p below h1"]
+    D -->|no| F["Render h1 only"]
+```
+
+## Related
+- Page - Overview
+- Page - Portfolio
+- Page - Import
+- Page - Settings

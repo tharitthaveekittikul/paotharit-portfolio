@@ -1,0 +1,70 @@
+---
+title: API - PUT Platforms Upsert v1
+description: ""
+type: doc
+---
+
+
+## Overview
+Creates or updates the color associated with a named platform for the authenticated user. Uses a PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` against the unique constraint `uq_platform_configs_user_name`, making it idempotent. The platform name is taken from the URL path parameter.
+
+## 🔒 Authentication
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+| Field | Value |
+| :--- | :--- |
+| Method | `PUT` |
+| Path | `/api/v1/platforms/{name}` |
+| Content-Type | `application/json` |
+
+**Path Parameters:**
+| Param | Type | Description |
+| :--- | :--- | :--- |
+| `name` | `string` | Platform name (e.g. `Binance`, `Robinhood`) |
+
+**Request Body — `PlatformColorIn`:**
+| Field | Type | Required | Validation |
+| :--- | :--- | :--- | :--- |
+| `color` | `string` | Yes | 6-digit hex `#RRGGBB` (validated by `HEX_RE`) |
+
+### Logic Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "platforms.py"
+    participant DB as TimescaleDB
+
+    C->>A: PUT /api/v1/platforms/{name} body color
+    Note over A: Validate JWT
+    Note over A: Validate color matches #RRGGBB regex
+    A->>DB: INSERT INTO platform_configs ON CONFLICT uq_platform_configs_user_name DO UPDATE SET color
+    DB-->>A: ok
+    A-->>C: 200 OK {"ok": true}
+```
+
+### 📤 Responses
+| Status | Description | Body |
+| :--- | :--- | :--- |
+| 200 | Upserted | `{"ok": true}` |
+| 401 | Missing or invalid JWT | `{"detail": "..."}` |
+| 422 | Invalid color format | `{"detail": [{"msg": "color must be a 6-digit hex string like #FF6B00"}]}` |
+
+### 🗂️ Related Files
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/platforms.py` |
+| Model | `backend/app/models/platform_config.py` |
+| Auth | `backend/app/api/deps.py` |
+
+
+
+## 🗂️ Related
+- [API-GET-v1-Platforms-List](API-GET-v1-Platforms-List)
+- [API-DELETE-v1-Platforms-Delete](API-DELETE-v1-Platforms-Delete)

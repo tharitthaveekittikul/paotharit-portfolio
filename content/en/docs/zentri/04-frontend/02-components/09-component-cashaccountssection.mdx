@@ -1,0 +1,65 @@
+---
+title: Component - CashAccountsSection
+description: ""
+type: doc
+---
+
+## Purpose
+Self-contained section on the Portfolio page that fetches, displays, and manages all cash accounts. Renders each account as a card showing balance, currency, and optional account number (copyable). Provides inline update-balance, edit, and delete actions with confirmation dialogs.
+
+## Props
+None — fully self-contained.
+
+## Component Tree
+```
+CashAccountsSection
+├── Header: "Cash Accounts" + AddCashAccountDialog trigger
+├── Account cards ×N
+│   ├── Account name + currency badge
+│   ├── Account number (copyable, if set)
+│   ├── Balance + snapshot date
+│   ├── "Update Balance" Button
+│   ├── Edit Button → EditCashAccountDialog
+│   └── Delete Button → AlertDialog
+├── UpdateBalanceDialog (conditional)
+├── EditCashAccountDialog (conditional)
+└── AlertDialog (delete confirmation)
+```
+
+## Data Layer
+
+### Local State
+| Variable | Type | Purpose |
+| :--- | :--- | :--- |
+| `accounts` | `CashAccountState[]` | List of `{ asset, latest }` pairs |
+| `updateTarget` | `CashAccountState \| null` | Account selected for balance update |
+| `updateOpen` | `boolean` | Update-balance dialog open state |
+| `editTarget` | `CashAsset \| null` | Account selected for editing |
+| `editOpen` | `boolean` | Edit dialog open state |
+| `deleteTarget` | `CashAsset \| null` | Account selected for deletion |
+| `deleteOpen` | `boolean` | Delete confirmation dialog open state |
+| `deleteLoading` | `boolean` | Delete API call in-flight |
+
+### React Query
+Not used; data loaded imperatively via `api.get("/api/v1/assets")` and `getAllLatestBalances()` in `useCallback load`.
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount"] --> B["load() — GET /api/v1/assets filtered to asset_type=cash"]
+    B --> C["getAllLatestBalances() — fetch latest balance for each asset"]
+    C --> D["setAccounts with merged CashAccountState array"]
+    D --> E["Render account cards"]
+    E --> F{"User action"}
+    F -->|Update Balance| G["setUpdateTarget + setUpdateOpen true → UpdateBalanceDialog"]
+    F -->|Edit| H["setEditTarget + setEditOpen true → EditCashAccountDialog"]
+    F -->|Delete| I["setDeleteTarget + setDeleteOpen true → AlertDialog"]
+    G --> J["onUpdated: load() refresh"]
+    H --> J
+    I --> K["handleDelete: DELETE /api/v1/assets/{id}, load() refresh"]
+```
+
+## Related
+- Component - AddCashAccountDialog
+- Component - EditCashAccountDialog
+- Page - Portfolio

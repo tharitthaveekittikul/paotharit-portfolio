@@ -1,0 +1,68 @@
+---
+title: API - GET Cash Balance History v1
+description: ""
+type: doc
+---
+
+
+## Overview
+
+Returns all balance snapshots for a specific cash asset in chronological order. Used to show the balance history chart for a cash account.
+
+## 🔒 Authentication
+
+| Field | Value |
+| :--- | :--- |
+| Required | Yes |
+| Mechanism | JWT Bearer token via `get_current_user` |
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Field | Value |
+| :--- | :--- |
+| Method | `GET` |
+| Path | `/api/v1/cash-balances/{asset_id}/history` |
+
+| Path param | Type | Notes |
+| :--- | :--- | :--- |
+| `asset_id` | UUID | Cash asset ID |
+
+### Logic Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Frontend
+    participant A as "cash_balance.py"
+    participant S as "cash_balance service"
+    participant DB as TimescaleDB
+
+    C->>A: "GET /api/v1/cash-balances/{asset_id}/history"
+    Note over A: Validate JWT
+    A->>S: "get_history(user_id, asset_id)"
+    S->>DB: "SELECT WHERE asset_id=? AND user_id=? ORDER BY snapshot_date ASC"
+    DB-->>S: list rows
+    A-->>C: 200 OK list
+```
+
+### 📤 Responses
+
+**200 OK** — chronological list of all snapshots for the asset (may be empty)
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+
+| Role | File |
+| :--- | :--- |
+| Router | `backend/app/api/cash_balance.py` |
+| Service | `backend/app/services/cash_balance.py` |
+
+
+
+## 🗂️ Related
+
+- [DB - cash_balances](/en/docs/zentri/database/db-cash-balances)
+- [API-POST-v1-Cash-Balances](API-POST-v1-Cash-Balances)

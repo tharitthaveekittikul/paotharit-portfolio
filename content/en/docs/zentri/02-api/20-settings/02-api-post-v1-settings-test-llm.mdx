@@ -1,0 +1,62 @@
+---
+title: POST Settings Test LLM
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Sends a minimal test prompt to the configured LLM provider and returns latency and status. Called immediately after the user saves API keys in Settings to give instant feedback on whether the key works.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+| `provider` | Body | String | Yes | `ollama`, `openai`, `claude`, `gemini` |
+| `model_name` | Body | String | Yes | Model to test |
+
+### 📦 Request Body
+
+```json
+{
+  "provider": "claude",
+  "model_name": "claude-3-5-sonnet-20241022"
+}
+```
+
+### 📤 Responses
+
+**200 OK — Success**
+```json
+{
+  "status": "ok",
+  "provider": "claude",
+  "model": "claude-3-5-sonnet-20241022",
+  "latency_ms": 843,
+  "response": "Hello! I'm ready to help with financial analysis."
+}
+```
+
+**200 OK — Failure**
+```json
+{
+  "status": "error",
+  "provider": "claude",
+  "error": "Invalid API key. Please check your Anthropic API key in Settings."
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/settings.py` |
+| Service | `backend/app/services/llm_service.py` |

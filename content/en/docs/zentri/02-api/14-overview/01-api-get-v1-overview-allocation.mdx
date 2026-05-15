@@ -1,0 +1,44 @@
+---
+title: GET Overview Allocation
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Returns asset allocation breakdown by type and optionally by sector/geography. Powers the allocation donut chart on the Market Overview dashboard.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Bearer JWT
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `Authorization` | Header | String | Yes | `Bearer {access_token}` |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "by_type": [
+    { "label": "US Stock", "type": "us_stock", "value": 90000.00, "pct": 72.0 },
+    { "label": "Crypto",   "type": "crypto",   "value": 20000.00, "pct": 16.0 },
+    { "label": "TH Fund",  "type": "th_fund",  "value": 10000.00, "pct": 8.0 },
+    { "label": "Gold",     "type": "gold",     "value": 5000.00,  "pct": 4.0 }
+  ],
+  "total_value": 125000.00
+}
+```
+
+**401 Unauthorized**
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/overview.py` |
+| Service | `backend/app/services/overview.py` |

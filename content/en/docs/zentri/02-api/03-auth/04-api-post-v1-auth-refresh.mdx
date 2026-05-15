@@ -1,0 +1,38 @@
+---
+title: POST Auth Refresh
+description: ""
+type: doc
+---
+
+
+## Overview
+<Callout type="abstract">
+Issues a new access token using a valid refresh token. Prevents users from being logged out when the short-lived access token expires.
+</Callout>
+
+## 🔒 Authentication
+- **Mechanism:** Refresh token (from httpOnly cookie or request body)
+
+## 🛠️ Technical Specification
+
+### Request
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `refresh_token` | Body | String | Yes | Long-lived refresh token |
+
+### 📤 Responses
+
+**200 OK**
+```json
+{
+  "access_token": "eyJhbGci..."
+}
+```
+
+**401 Unauthorized** — Refresh token invalid, expired, or blacklisted
+
+### 🗂️ Related Files
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/app/api/auth.py` |
+| Service | `backend/app/services/auth.py` |

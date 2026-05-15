@@ -1,0 +1,83 @@
+---
+title: Component - PlatformBreakdownCards
+description: ""
+type: doc
+---
+
+## Purpose
+Collapsible row of mini-cards summarising holdings grouped by brokerage platform. Each card shows the platform name, holding count, total value, and P&L per currency. Renders nothing if there are no holdings.
+
+## Usage
+
+```tsx
+<PlatformBreakdownCards holdings={holdingRows} />
+```
+
+Used in: Page - Portfolio
+
+## Props Interface
+
+```typescript
+interface Props {
+  holdings: HoldingRow[];
+}
+```
+
+| Prop | Type | Required | Default | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| `holdings` | `HoldingRow[]` | Yes | — | Raw holding rows; grouped internally by `groupHoldingsByPlatform` |
+
+## State
+
+### Local State — `useState`
+
+| Variable | Type | Initial | Purpose |
+| :--- | :--- | :--- | :--- |
+| `open` | `boolean` | `true` | Controls Collapsible open/close |
+
+### Global State — Zustand
+
+| Store | Fields Read | Actions Called |
+| :--- | :--- | :--- |
+| `useDualCurrency` (hook) | `formatNative` | Formats value amounts for display |
+
+## Component Tree
+
+```
+PlatformBreakdownCards
+└── Collapsible (open state)
+    ├── CollapsibleTrigger → "By Platform" label + ChevronDown icon
+    └── CollapsibleContent
+        └── div (horizontal scroll row)
+            └── groups.map → platform card
+                ├── platform name (truncated) + count badge
+                └── currencyGroups.map
+                    ├── DualCurrencyAmount (total value)
+                    └── DualCurrencyAmount (P&L, colored)
+```
+
+## Data Flow
+
+Holdings are grouped via `groupHoldingsByPlatform(holdings)` (a pure function from `portfolio` service). Each group has:
+- `platform: string`
+- `count: number`
+- `currencyGroups: { currency, totalValue, totalPnl }[]`
+
+The `useMemo` dependency is `[holdings]` so grouping only recalculates on prop change.
+
+## Render Conditions
+
+| Condition | What renders |
+| :--- | :--- |
+| `groups.length === 0` | Returns `null` — nothing rendered |
+| `hasCurrencyData === false` | "No price data" muted text in card |
+| `totalPnl >= 0` | Emerald P&L color |
+| `totalPnl < 0` | Destructive (red) P&L color |
+
+## Related
+
+| Role | Link |
+| :--- | :--- |
+| Page | Page - Portfolio |
+| Sibling component | Component - HoldingsTable |
+| Sibling component | Component - BeeswarmView |

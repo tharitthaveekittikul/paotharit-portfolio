@@ -1,0 +1,50 @@
+---
+title: Component - CirclepackView
+description: ""
+type: doc
+---
+
+## Purpose
+Renders holdings as proportional circles (circle-pack layout) on the Portfolio page. Circle area encodes holding value; color encodes P&L direction via `getHoldingColor`. Shows symbol, P&L %, and logo inside circles above a radius threshold. Clicking navigates to the holding detail page.
+
+## Props
+| Prop | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `items` | `PortfolioViewItem[]` | Yes | From `@/lib/visualizations/types`; each has `symbol`, `pnlPct`, `value`, `assetType` |
+
+## Component Tree
+```
+CirclepackView
+└── div (ref — resize observer, full viewport height)
+    ├── Empty state text
+    └── circle div ×N (absolute positioned)
+        ├── TickerLogo (radius > 32)
+        ├── symbol label (radius > 28)
+        └── pnlPct label (radius > 38)
+```
+
+## Data Layer
+
+### Local State
+None.
+
+### React Query
+Not used; `items` provided by Portfolio page.
+
+## Behavior
+```mermaid
+flowchart TD
+    A["Mount — ref attached"] --> B["useResizeObserver reports dimensions"]
+    B --> C{"items present and size known?"}
+    C -->|no| D["circles = empty array"]
+    C -->|yes| E["useMemo: new CirclePack(width, height, 30).layout(items)"]
+    E --> F["Each circle: position x/y, radius from layout"]
+    F --> G["Conditionally render logo/symbol/pnl based on radius thresholds"]
+    G --> H["User clicks circle"]
+    H --> I["router.push to /portfolio/symbol"]
+```
+
+## Related
+- Component - BeeswarmView
+- Component - HoldingsTable
+- Page - Portfolio
