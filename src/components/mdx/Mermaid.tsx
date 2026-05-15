@@ -133,7 +133,7 @@ export function Mermaid({ chart }: MermaidProps) {
           </div>
         )}
       </div>
-      {isOpen && <MermaidModal chart={chart} onClose={() => setIsOpen(false)} />}
+      {isOpen && chart && <MermaidModal chart={chart} onClose={() => setIsOpen(false)} />}
     </>
   )
 }
