@@ -6,9 +6,10 @@ import rehypeSlug from 'rehype-slug'
 import rehypePrettyCode from 'rehype-pretty-code'
 import { visit } from 'unist-util-visit'
 import type { Root, Element } from 'hast'
-import { getDocContent, extractHeadings } from '@/lib/docs'
+import { getDocContent, extractHeadings, buildSidebarTree } from '@/lib/docs'
 import { mdxComponents } from '@/components/mdx'
-import { TableOfContents, CopyMarkdownButton } from '@/components/docs'
+import { TableOfContents, CopyMarkdownButton, MobileTableOfContents } from '@/components/docs'
+import { MobileDocsSidebar } from '@/components/docs/MobileDocsSidebar'
 
 // Marks mermaid code blocks before rehype-pretty-code processes them.
 // Sets data-mermaid="true" on <pre> and strips the language class from <code>
@@ -59,45 +60,59 @@ export default async function DocPage({
   const { frontmatter, content } = result!
 
   const headings = extractHeadings(content)
+  const tree = buildSidebarTree(project, locale)
 
   return (
-    <div className="flex gap-8">
-      <article className="min-w-0 flex-1 pb-[100vh]">
-        <div className="mb-6 flex items-center justify-between">
-          <nav className="text-xs text-zinc-500 dark:text-zinc-400">
-            <span>Docs</span>
-            {' / '}
-            <span className="capitalize">{project}</span>
-            {' / '}
-            <span>{frontmatter.title}</span>
-          </nav>
-          <CopyMarkdownButton content={content} filename={frontmatter.title} />
-        </div>
-        <h1 className="mb-8 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-          {frontmatter.title}
-        </h1>
-        <div className="prose prose-zinc max-w-none dark:prose-invert">
-          <MDXRemote
-            source={content}
-            components={mdxComponents}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm],
-                rehypePlugins: [
-                  rehypeSlug,
-                  rehypeExtractMermaid,
-                  [rehypePrettyCode, { theme: { dark: 'github-dark', light: 'github-light' } }],
-                ],
-              },
-            }}
-          />
-        </div>
-      </article>
-      <aside className="hidden xl:block">
-        <div className="sticky top-24">
-          <TableOfContents headings={headings} />
-        </div>
-      </aside>
-    </div>
+    <>
+      <div className="flex gap-8">
+        <article className="min-w-0 flex-1 pb-[100vh]">
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="lg:hidden shrink-0">
+                <MobileDocsSidebar tree={tree} projectTitle={project.charAt(0).toUpperCase() + project.slice(1)} />
+              </div>
+              <nav className="text-xs text-zinc-500 dark:text-zinc-400">
+                <span>Docs</span>
+                {' / '}
+                <span className="capitalize">{project}</span>
+                {' / '}
+                <span>{frontmatter.title}</span>
+              </nav>
+            </div>
+            <div className="hidden sm:block">
+              <CopyMarkdownButton content={content} filename={frontmatter.title} />
+            </div>
+          </div>
+          <h1 className="mb-4 sm:mb-8 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            {frontmatter.title}
+          </h1>
+          <div className="mb-8 sm:hidden w-fit">
+            <CopyMarkdownButton content={content} filename={frontmatter.title} />
+          </div>
+          <div className="prose prose-zinc max-w-none dark:prose-invert">
+            <MDXRemote
+              source={content}
+              components={mdxComponents}
+              options={{
+                mdxOptions: {
+                  remarkPlugins: [remarkGfm],
+                  rehypePlugins: [
+                    rehypeSlug,
+                    rehypeExtractMermaid,
+                    [rehypePrettyCode, { theme: { dark: 'github-dark', light: 'github-light' } }],
+                  ],
+                },
+              }}
+            />
+          </div>
+        </article>
+        <aside className="hidden xl:block">
+          <div className="sticky top-24">
+            <TableOfContents headings={headings} />
+          </div>
+        </aside>
+      </div>
+      <MobileTableOfContents headings={headings} />
+    </>
   )
 }
