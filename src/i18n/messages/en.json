@@ -24,5 +24,10 @@
     "backToBlog": "Back to Blog",
     "backToProjects": "Back to Projects",
     "archived": "Archived"
+  },
+  "notFound": {
+    "heading": "Lost in the void",
+    "body": "This page doesn't exist — but the rest of the site does.",
+    "back": "Go back"
   }
 }
