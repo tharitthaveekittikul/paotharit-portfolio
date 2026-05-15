@@ -3,6 +3,7 @@
     "home": "Home",
     "blog": "Blog",
     "projects": "Projects",
+    "resume": "Resume",
     "about": "About"
   },
   "blog": {
@@ -24,6 +25,11 @@
     "backToBlog": "Back to Blog",
     "backToProjects": "Back to Projects",
     "archived": "Archived"
+  },
+  "resume": {
+    "title": "Resume",
+    "download": "Download PDF",
+    "mobileNote": "PDF preview isn't available on mobile. Download to view."
   },
   "notFound": {
     "heading": "Lost in the void",

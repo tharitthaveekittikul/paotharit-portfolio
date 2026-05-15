@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           {
@@ -22,7 +22,8 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: *.google-analytics.com *.googletagmanager.com",
               "connect-src 'self' *.google-analytics.com *.analytics.google.com *.googletagmanager.com",
               "font-src 'self'",
-              "object-src 'none'",
+              "object-src 'self'",
+              "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
             ].join('; '),

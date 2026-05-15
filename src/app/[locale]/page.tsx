@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { setRequestLocale } from 'next-intl/server'
+import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getAllContent } from '@/lib/content'
 import { Badge } from '@/components/ui/badge'
+import { ResumeLink } from '@/components/shared/ResumeLink'
 
 export default async function HomePage({
   params,
@@ -10,6 +11,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations('nav')
   const featuredProjects = getAllContent('projects', locale).filter(p => p.featured).slice(0, 3)
   const recentPosts = getAllContent('blog', locale).slice(0, 3)
 
@@ -22,6 +24,12 @@ export default async function HomePage({
         <p className="max-w-xl text-lg text-muted-foreground">
           Software engineer building AI systems, trading tools, and developer infrastructure.
         </p>
+        <ResumeLink
+          label={t('resume')}
+          href={`/${locale}/resume`}
+          location="hero"
+          className="mt-4 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        />
       </section>
 
       {featuredProjects.length > 0 && (

@@ -5,6 +5,7 @@ import { LocaleSwitcher } from './LocaleSwitcher'
 import { SearchButton } from "./SearchButton"
 import { SocialLinks } from './SocialLinks'
 import { EmailLink } from './EmailLink'
+import { ResumeLink } from './ResumeLink'
 
 export async function Header() {
   const locale = await getLocale()
@@ -32,6 +33,12 @@ export async function Header() {
           >
             {t('projects')}
           </Link>
+          <ResumeLink
+            label={t('resume')}
+            href={`/${locale}/resume`}
+            location="nav"
+            className="px-2 py-1 text-sm text-zinc-400 hover:text-zinc-50 sm:px-3 dark:text-zinc-500 dark:hover:text-zinc-900"
+          />
         </div>
         <div data-testid="social-links" className="hidden lg:flex items-center">
           <SocialLinks className="p-2 text-zinc-400 hover:text-zinc-50 dark:text-zinc-500 dark:hover:text-zinc-900" />
