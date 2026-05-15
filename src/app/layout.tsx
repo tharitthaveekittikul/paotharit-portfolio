@@ -1,4 +1,6 @@
 import { Lora, Noto_Serif_Thai, Geist_Mono } from 'next/font/google'
+import { ThemeProvider } from 'next-themes'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import './globals.css'
 
 const lora = Lora({ variable: '--font-lora', subsets: ['latin'], display: 'swap' })
@@ -16,7 +18,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          {children}
+        </ThemeProvider>
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
       </body>
     </html>
   )

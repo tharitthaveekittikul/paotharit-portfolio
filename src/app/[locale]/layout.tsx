@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
-import { ThemeProvider } from 'next-themes'
-import { GoogleAnalytics } from '@next/third-parties/google'
 import { Header } from '@/components/shared/Header'
 import { Footer } from '@/components/shared/Footer'
 import { CommandPaletteProvider } from "@/components/shared/CommandPaletteProvider"
@@ -35,15 +33,12 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-        <CommandPaletteProvider>
-          <Header />
-          <main className="flex-1 pt-20">{children}</main>
-          <Footer />
-          <CommandPalette />
-        </CommandPaletteProvider>
-      </ThemeProvider>
-      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
+      <CommandPaletteProvider>
+        <Header />
+        <main className="flex-1 pt-20">{children}</main>
+        <Footer />
+        <CommandPalette />
+      </CommandPaletteProvider>
     </NextIntlClientProvider>
   )
 }

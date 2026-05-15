@@ -84,7 +84,10 @@ export function createDocsUtils(docsRoot: string) {
   }
 
   function buildSidebarTree(project: string, locale: string): SidebarNode[] {
-    return walkDir(join(docsRoot, locale, 'docs', project), project, locale, [])
+    const localeDir = join(docsRoot, locale, 'docs', project)
+    if (existsSync(localeDir)) return walkDir(localeDir, project, locale, [])
+    if (locale !== 'en') return walkDir(join(docsRoot, 'en', 'docs', project), project, locale, [])
+    return []
   }
 
   function findFilePath(dir: string, slugParts: string[], depth: number): string | null {
@@ -110,6 +113,7 @@ export function createDocsUtils(docsRoot: string) {
     locale: string
   ): { frontmatter: DocFrontmatter; content: string } | null {
     const filePath = findFilePath(join(docsRoot, locale, 'docs', project), slugParts, 0)
+      ?? (locale !== 'en' ? findFilePath(join(docsRoot, 'en', 'docs', project), slugParts, 0) : null)
     if (!filePath) return null
     const { data, content } = matter(readFileSync(filePath, 'utf-8'))
     return { frontmatter: data as DocFrontmatter, content }
