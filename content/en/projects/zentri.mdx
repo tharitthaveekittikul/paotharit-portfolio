@@ -6,7 +6,18 @@ type: project
 status: published
 featured: true
 tags: [ai, llm, trading, finance, python, nextjs]
-techStack: [nextjs, python, fastapi, postgresql, timescaledb, redis, chromadb, docker, ollama]
+techStack:
+  [
+    nextjs,
+    python,
+    fastapi,
+    postgresql,
+    timescaledb,
+    redis,
+    chromadb,
+    docker,
+    ollama,
+  ]
 role: "Solo Developer"
 duration: "Ongoing"
 projectStatus: "In Progress"
@@ -24,7 +35,7 @@ metrics:
 
 Managing a portfolio across Thai stocks, US equities, crypto, mutual funds, and gold requires
 jumping between five different apps — none of which talk to each other, and none of which give
-you a plain-language answer to: *what should I do right now?*
+you a plain-language answer to: _what should I do right now?_
 
 Zentri is a self-hosted financial OS that aggregates everything in one place and answers that
 question using LLMs. It runs entirely on your machine via Docker — your data never leaves your system.
@@ -44,7 +55,8 @@ question using LLMs. It runs entirely on your machine via Docker — your data n
 
 ## System Architecture
 
-<Mermaid chart={`
+<Mermaid
+  chart={`
 graph TD
   UI[Next.js Frontend] --> API[FastAPI Backend]
   API --> Redis[Redis Queue]
@@ -54,53 +66,116 @@ graph TD
   Worker --> LLM[LLM Provider]
   LLM --> Ollama[Ollama local]
   LLM --> Cloud[OpenAI / Claude / Gemini]
-`} />
+`}
+/>
 
 ## Key Technical Decisions
 
-| Decision | Chosen | Rejected | Why |
-|----------|--------|----------|-----|
-| Job queue | Redis + ARQ | Celery | Simpler, no separate broker |
-| Vector store | ChromaDB | Pinecone | Local-first, zero cost |
-| LLM routing | Two-tier | Single model | Cost vs quality trade-off |
-| Time-series | TimescaleDB | InfluxDB | Stays in PostgreSQL ecosystem |
-| Auth | JWT + bcrypt | OAuth | Self-hosted, single-user |
+| Decision     | Chosen       | Rejected     | Why                           |
+| ------------ | ------------ | ------------ | ----------------------------- |
+| Job queue    | Redis + ARQ  | Celery       | Simpler, no separate broker   |
+| Vector store | ChromaDB     | Pinecone     | Local-first, zero cost        |
+| LLM routing  | Two-tier     | Single model | Cost vs quality trade-off     |
+| Time-series  | TimescaleDB  | InfluxDB     | Stays in PostgreSQL ecosystem |
+| Auth         | JWT + bcrypt | OAuth        | Self-hosted, single-user      |
 
 ## Screenshots
 
 <div className="not-prose grid grid-cols-1 gap-4 sm:grid-cols-2">
+  
   <figure>
-    <img src="/projects/zentri/overview-page.png" alt="Overview dashboard" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">Overview Dashboard</figcaption>
+    <img
+      src="/projects/zentri/watchlist-page.png"
+      alt="Watchlist with AI thesis"
+      className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Watchlist
+    </figcaption>
   </figure>
+
+<figure>
+  <img
+    src="/projects/zentri/chat-page.png"
+    alt="AI chat interface"
+    className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    AI Chat
+  </figcaption>
+</figure>
+<figure>
+  <img
+    src="/projects/zentri/overview-page.png"
+    alt="Overview dashboard"
+    className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Overview Dashboard
+  </figcaption>
+</figure>
+<figure>
+  <img
+    src="/projects/zentri/ai-usage-page.png"
+    alt="AI usage and token tracking"
+    className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    AI Usage
+  </figcaption>
+</figure>
+<figure>
+  <img
+    src="/projects/zentri/events-page.png"
+    alt="IPO and dividend events calendar"
+    className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Events Calendar
+  </figcaption>
+</figure>
+<figure>
+  <img
+    src="/projects/zentri/transaction-page.png"
+    alt="Transaction history"
+    className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Transactions
+  </figcaption>
+</figure>
+<figure>
+  <img
+    src="/projects/zentri/portfolio-page.png"
+    alt="Portfolio breakdown"
+    className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Portfolio Breakdown
+  </figcaption>
+</figure>
+<figure>
+  <img
+    src="/projects/zentri/pipeline-page.png"
+    alt="Background job pipeline"
+    className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Background Pipeline
+  </figcaption>
+</figure>
+
   <figure>
-    <img src="/projects/zentri/portfolio-page.png" alt="Portfolio breakdown" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">Portfolio Breakdown</figcaption>
+    <img
+      src="/projects/zentri/settings-general-page.png"
+      alt="General settings"
+      className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Settings
+    </figcaption>
   </figure>
-  <figure>
-    <img src="/projects/zentri/chat-page.png" alt="AI chat interface" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">AI Chat</figcaption>
-  </figure>
-  <figure>
-    <img src="/projects/zentri/net-worth-page.png" alt="Net worth timeline" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">Net Worth Timeline</figcaption>
-  </figure>
-  <figure>
-    <img src="/projects/zentri/watchlist-page.png" alt="Watchlist with AI thesis" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">Watchlist</figcaption>
-  </figure>
-  <figure>
-    <img src="/projects/zentri/pipeline-page.png" alt="Background job pipeline" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">Background Pipeline</figcaption>
-  </figure>
-  <figure>
-    <img src="/projects/zentri/research-page.png" alt="Research and document analysis" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">Document Research</figcaption>
-  </figure>
-  <figure>
-    <img src="/projects/zentri/document-page.png" alt="Document ingestion" className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
-    <figcaption className="mt-1 text-center text-xs text-zinc-500">Document Ingestion</figcaption>
-  </figure>
+  
 </div>
 
 ## What I'd Do Differently
