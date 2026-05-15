@@ -8,24 +8,24 @@ description: |
 
 colors:
   # Light mode
-  primary: "oklch(0.608 0.206 38.7)"      # Orange-600 — brand voltage, CTAs, active states
-  on-primary: "oklch(0.985 0 0)"           # Near-white text over orange
-  ink: "oklch(0.145 0 0)"                  # Darkest text — near black
-  body: "oklch(0.371 0 0)"                 # Regular text — zinc-700
-  muted: "oklch(0.556 0 0)"                # Secondary text, disabled — zinc-500
-  canvas: "oklch(1 0 0)"                   # Page floor — white
-  surface-card: "oklch(1 0 0)"             # Card surface — same as canvas in light mode
-  hairline: "oklch(0.922 0 0)"             # Borders, dividers — zinc-200
+  primary: "#ea580c"         # Orange-600 — brand voltage, CTAs, active states
+  on-primary: "#fafafa"      # Near-white text over orange
+  ink: "#111111"             # Darkest text — near black
+  body: "#3f3f46"            # Regular text — zinc-700
+  muted: "#71717a"           # Secondary text, disabled — zinc-500
+  canvas: "#ffffff"          # Page floor — white
+  surface-card: "#ffffff"    # Card surface — same as canvas in light mode
+  hairline: "#e4e4e7"        # Borders, dividers — zinc-200
 
   # Dark mode overrides
-  primary-dark: "oklch(0.703 0.195 40.5)"  # Orange-500 — brighter for dark backgrounds
-  on-primary-dark: "oklch(0.145 0 0)"      # Near-black text over orange (AAA contrast)
-  ink-dark: "oklch(0.985 0 0)"             # Near-white text
-  body-dark: "oklch(0.871 0 0)"            # Body text — zinc-200
-  muted-dark: "oklch(0.708 0 0)"           # Muted text — zinc-400
-  canvas-dark: "oklch(0.145 0 0)"          # Page floor — zinc-950
-  surface-card-dark: "oklch(0.205 0 0)"    # Card surface — zinc-900, lifted above canvas
-  hairline-dark: "oklch(1 0 0 / 10%)"      # 10% white — subtler than light-mode hairline
+  primary-dark: "#f97316"      # Orange-500 — brighter for dark backgrounds
+  on-primary-dark: "#111111"   # Near-black text over orange (AAA contrast)
+  ink-dark: "#fafafa"          # Near-white text
+  body-dark: "#d4d4d8"         # Body text — zinc-300
+  muted-dark: "#a1a1aa"        # Muted text — zinc-400
+  canvas-dark: "#09090b"       # Page floor — zinc-950
+  surface-card-dark: "#27272a" # Card surface — zinc-800, lifted above canvas
+  # hairline-dark is oklch(1 0 0 / 10%) — alpha value, not expressible in 6-digit hex; see prose
 
 typography:
   display-lg:

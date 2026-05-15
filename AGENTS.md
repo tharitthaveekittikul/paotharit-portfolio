@@ -19,7 +19,8 @@ Read `DESIGN.md` before writing any UI code. It defines:
 
 **Do not hardcode hex values or px sizes** — reference the token names from DESIGN.md.  
 **Do not introduce new colors** — the system uses zinc + one orange only.  
-**Do not add box shadows** — elevation strategy is borders-only.
+**Do not add box shadows** — elevation strategy is borders-only.  
+**After editing `DESIGN.md`**, run `npm run lint:design` to validate token references and WCAG contrast.
 
 ## Content Conventions
 
