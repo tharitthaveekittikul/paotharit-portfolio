@@ -9,13 +9,9 @@ export function SearchButton() {
     <button
       onClick={() => setOpen(true)}
       aria-label="Open search"
-      className="flex cursor-pointer items-center gap-2 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-500 transition-colors hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+      className="cursor-pointer p-2.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300"
     >
-      <Search className="h-3.5 w-3.5 shrink-0" />
-      <span className="hidden sm:inline">Search</span>
-      <kbd className="hidden rounded border border-zinc-200 bg-white px-1 py-0.5 text-xs text-zinc-400 sm:inline dark:border-zinc-700 dark:bg-zinc-900">
-        ⌘K
-      </kbd>
+      <Search className="h-4 w-4" />
     </button>
   );
 }
