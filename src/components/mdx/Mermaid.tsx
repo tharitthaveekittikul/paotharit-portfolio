@@ -3,35 +3,35 @@
 import { useEffect, useRef, useState } from 'react'
 
 interface MermaidProps {
-  chart: string
+  chart?: string
 }
 
 function getDarkMode() {
   return document.documentElement.classList.contains('dark')
 }
 
-// mermaid is a singleton — concurrent initialize()+render() calls corrupt its state.
-// Serialize all calls through a lock so only one runs at a time.
-let renderLock = Promise.resolve()
-function withLock<T>(fn: () => Promise<T>): Promise<T> {
-  const result = renderLock.then(() => fn())
-  renderLock = result.then(() => {}, () => {})
-  return result
+// Import and initialize mermaid exactly once — calling initialize() before
+// every render corrupts mermaid's internal state (reset() interleaves with
+// the render pipeline and leaves config in an inconsistent state).
+let mermaidPromise: Promise<typeof import('mermaid')['default']> | null = null
+function getMermaid() {
+  if (!mermaidPromise) {
+    mermaidPromise = import('mermaid').then((m) => {
+      m.default.initialize({ startOnLoad: false })
+      return m.default
+    })
+  }
+  return mermaidPromise
 }
 
-async function renderChart(el: HTMLDivElement, chart: string, dark: boolean) {
-  const mermaid = (await import('mermaid')).default
-  const { svg } = await withLock(async () => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: dark ? 'dark' : 'neutral',
-      themeVariables: dark
-        ? { primaryTextColor: '#e5e7eb', lineColor: '#6b7280', edgeLabelBackground: '#1f2937' }
-        : {},
-    })
-    const id = `mermaid-${Math.random().toString(36).slice(2)}`
-    return mermaid.render(id, chart)
-  })
+async function renderChart(el: HTMLDivElement, chart: string | undefined, dark: boolean) {
+  if (!chart?.trim()) return
+  const mermaid = await getMermaid()
+  const theme = dark ? 'dark' : 'neutral'
+  const id = `mermaid-${Math.random().toString(36).slice(2)}`
+  // Inject theme per-render via directive (safe, processed before parsing)
+  const decorated = `%%{init:{'theme':'${theme}'}}%%\n${chart.trim()}`
+  const { svg } = await mermaid.render(id, decorated)
   // text/html parser is lenient (handles <br> etc.) and runs in an inert document so scripts don't execute
   const doc = new DOMParser().parseFromString(`<!DOCTYPE html><body>${svg}`, 'text/html')
   const svgEl = doc.body.querySelector('svg')
