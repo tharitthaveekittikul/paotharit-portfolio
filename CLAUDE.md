@@ -1,4 +1,5 @@
 @AGENTS.md
+@DESIGN.md
 
 ## Commands
 
@@ -24,14 +25,3 @@ docs/          # Plans and specs (not served)
 
 Key stack: Next.js 16 + React 19 + Tailwind v4 + next-mdx-remote + Vitest + next-intl (i18n) + next-themes (dark/light).
 
-## Non-Obvious Patterns
-
-- **Next.js 16 has breaking changes** — always read `node_modules/next/dist/docs/` before writing any Next.js code; do not rely on training data.
-- Tailwind v4 uses CSS-first config (`@import "tailwindcss"` in CSS, not `tailwind.config.js`).
-- Content is MDX rendered via `next-mdx-remote`; syntax highlighting via `rehype-pretty-code` + `shiki`.
-- `npm run sync` pulls Obsidian vault notes into `content/` — do not manually edit synced files.
-
-## Testing
-
-- Framework: Vitest + `@testing-library/react` + jsdom
-- Run all tests once: `npm run test:run`
