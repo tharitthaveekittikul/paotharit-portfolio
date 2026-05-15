@@ -38,7 +38,7 @@ export default async function LocaleLayout({
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <CommandPaletteProvider>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pt-20">{children}</main>
           <Footer />
           <CommandPalette />
         </CommandPaletteProvider>

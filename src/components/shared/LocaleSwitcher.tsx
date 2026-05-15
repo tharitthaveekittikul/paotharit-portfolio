@@ -2,7 +2,6 @@
 
 import { useLocale } from 'next-intl'
 import { usePathname, useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 
 export function LocaleSwitcher() {
   const locale = useLocale()
@@ -17,8 +16,11 @@ export function LocaleSwitcher() {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={switchLocale}>
+    <button
+      onClick={switchLocale}
+      className="cursor-pointer px-2 py-1 text-sm text-zinc-400 hover:text-zinc-50 dark:text-zinc-500 dark:hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-50 dark:focus-visible:ring-zinc-900 rounded-lg"
+    >
       {locale === 'en' ? 'TH' : 'EN'}
-    </Button>
+    </button>
   )
 }

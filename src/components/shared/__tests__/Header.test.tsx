@@ -19,19 +19,19 @@ describe('Header', () => {
     expect(logo.closest('a')).toHaveAttribute('href', '/en')
   })
 
-  it('renders social links wrapper', async () => {
+  it('renders blog and projects nav links', async () => {
     const { Header } = await import('../Header')
     const jsx = await Header()
     render(jsx)
-    expect(screen.getByTestId('social-links')).toBeInTheDocument()
+    expect(screen.getByText('blog').closest('a')).toHaveAttribute('href', '/en/blog')
+    expect(screen.getByText('projects').closest('a')).toHaveAttribute('href', '/en/projects')
   })
 
-  it('renders all four social links inside the wrapper', async () => {
+  it('renders email mailto link', async () => {
     const { Header } = await import('../Header')
     const jsx = await Header()
     render(jsx)
-    const wrapper = screen.getByTestId('social-links')
-    const links = wrapper.querySelectorAll('a')
-    expect(links.length).toBe(4)
+    const emailLink = screen.getByRole('link', { name: /tharit\.thaveekittikul@gmail\.com/i })
+    expect(emailLink).toHaveAttribute('href', 'mailto:tharit.thaveekittikul@gmail.com')
   })
 })
