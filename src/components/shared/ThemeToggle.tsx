@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
 
@@ -13,7 +13,7 @@ export function ThemeToggle() {
 
   if (!mounted) return <div className="w-11 h-6" />;
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   const handleClick = () => {
     if (!ref.current) return;

@@ -10,17 +10,28 @@ function getDarkMode() {
   return document.documentElement.classList.contains('dark')
 }
 
+// mermaid is a singleton — concurrent initialize()+render() calls corrupt its state.
+// Serialize all calls through a lock so only one runs at a time.
+let renderLock = Promise.resolve()
+function withLock<T>(fn: () => Promise<T>): Promise<T> {
+  const result = renderLock.then(() => fn())
+  renderLock = result.then(() => {}, () => {})
+  return result
+}
+
 async function renderChart(el: HTMLDivElement, chart: string, dark: boolean) {
   const mermaid = (await import('mermaid')).default
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: dark ? 'dark' : 'neutral',
-    themeVariables: dark
-      ? { primaryTextColor: '#e5e7eb', lineColor: '#6b7280', edgeLabelBackground: '#1f2937' }
-      : {},
+  const { svg } = await withLock(async () => {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? 'dark' : 'neutral',
+      themeVariables: dark
+        ? { primaryTextColor: '#e5e7eb', lineColor: '#6b7280', edgeLabelBackground: '#1f2937' }
+        : {},
+    })
+    const id = `mermaid-${Math.random().toString(36).slice(2)}`
+    return mermaid.render(id, chart)
   })
-  const id = `mermaid-${Math.random().toString(36).slice(2)}`
-  const { svg } = await mermaid.render(id, chart)
   // text/html parser is lenient (handles <br> etc.) and runs in an inert document so scripts don't execute
   const doc = new DOMParser().parseFromString(`<!DOCTYPE html><body>${svg}`, 'text/html')
   const svgEl = doc.body.querySelector('svg')

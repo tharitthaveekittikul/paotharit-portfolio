@@ -11,15 +11,15 @@ import '../globals.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
+    process.env.NODE_ENV === 'production'
+      ? 'https://www.paotharit.me'
       : 'http://localhost:3000'
   ),
   title: {
-    default: 'Paotharit — Developer & Builder',
-    template: '%s | Paotharit',
+    default: 'paotharit — Portfolio & Blog',
+    template: '%s | paotharit',
   },
-  description: 'Personal portfolio and technical blog by Paotharit.',
+  description: 'paotharit — Portfolio & Blog',
 }
 
 export default async function LocaleLayout({
@@ -35,7 +35,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <CommandPaletteProvider>
           <Header />
           <main className="flex-1 pt-20">{children}</main>
