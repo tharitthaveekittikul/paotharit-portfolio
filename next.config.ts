@@ -17,10 +17,10 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.vercel-insights.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googletagmanager.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
-              "connect-src 'self' *.vercel-insights.com",
+              "img-src 'self' data: blob: *.google-analytics.com *.googletagmanager.com",
+              "connect-src 'self' *.google-analytics.com *.analytics.google.com *.googletagmanager.com",
               "font-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",

@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { getAllSlugs, getContent } from '@/lib/content'
 import { mdxComponents } from '@/components/mdx'
 import { Badge } from '@/components/ui/badge'
+import { ProjectGithubLink } from '@/components/shared/ProjectGithubLink'
 
 export async function generateStaticParams() {
   const slugs = getAllSlugs('projects')
@@ -74,6 +75,11 @@ export default async function ProjectPage({
             </Badge>
           ))}
         </div>
+        {frontmatter.github && (
+          <div className="mb-6">
+            <ProjectGithubLink href={frontmatter.github} project={slug} />
+          </div>
+        )}
         {frontmatter.metrics && frontmatter.metrics.length > 0 && (
           <div className="grid grid-cols-2 gap-4 rounded-lg border border-zinc-200 p-4 sm:grid-cols-3 dark:border-zinc-800">
             {frontmatter.metrics.map(metric => (

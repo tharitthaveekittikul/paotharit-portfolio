@@ -21,6 +21,7 @@ export interface Frontmatter {
   duration?: string
   projectStatus?: string
   metrics?: { label: string; value: string }[]
+  github?: string
 }
 
 export interface ContentItem extends Frontmatter {
