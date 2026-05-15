@@ -106,7 +106,7 @@ export default async function DocPage({
             />
           </div>
         </article>
-        <aside className="hidden xl:block">
+        <aside className="hidden lg:block">
           <div className="sticky top-24">
             <TableOfContents headings={headings} />
           </div>

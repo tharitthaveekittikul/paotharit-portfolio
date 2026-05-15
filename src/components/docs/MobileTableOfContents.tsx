@@ -47,7 +47,7 @@ export function MobileTableOfContents({ headings }: { headings: Heading[] }) {
   if (headings.length === 0) return null
 
   return (
-    <div className="fixed top-24 right-4 z-40 xl:hidden" ref={ref}>
+    <div className="fixed top-24 right-4 z-40 lg:hidden" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
         aria-label="Table of contents"
