@@ -48,7 +48,7 @@ export default async function BlogPostPage({
   return (
     <article className="mx-auto max-w-3xl px-6 py-16">
       <header className="mb-10">
-        <time className="mb-2 block text-sm text-zinc-400">
+        <time className="mb-2 block text-sm text-zinc-400 dark:text-zinc-500">
           {new Date(frontmatter.date).toLocaleDateString(
             locale === 'th' ? 'th-TH' : 'en-US',
             { year: 'numeric', month: 'long', day: 'numeric' }

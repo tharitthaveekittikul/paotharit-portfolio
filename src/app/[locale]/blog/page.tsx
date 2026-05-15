@@ -26,13 +26,13 @@ export default async function BlogListPage({
         {locale === 'th' ? 'บล็อก' : 'Blog'}
       </h1>
       {posts.length === 0 ? (
-        <p className="text-zinc-500">No posts yet.</p>
+        <p className="text-zinc-500 dark:text-zinc-400">No posts yet.</p>
       ) : (
         <div className="space-y-8">
           {posts.map(post => (
             <article key={post.slug}>
               <Link href={`/${locale}/blog/${post.slug}`} className="group block">
-                <time className="mb-1 block text-sm text-zinc-400">
+                <time className="mb-1 block text-sm text-zinc-400 dark:text-zinc-500">
                   {new Date(post.date).toLocaleDateString(
                     locale === 'th' ? 'th-TH' : 'en-US',
                     { year: 'numeric', month: 'long', day: 'numeric' }

@@ -26,7 +26,7 @@ export default async function ProjectsPage({
         {locale === 'th' ? 'โปรเจกต์' : 'Projects'}
       </h1>
       {projects.length === 0 ? (
-        <p className="text-zinc-500">No projects yet.</p>
+        <p className="text-zinc-500 dark:text-zinc-400">No projects yet.</p>
       ) : (
         <div className="space-y-6">
           {projects.map(project => (

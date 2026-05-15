@@ -34,7 +34,7 @@ const TYPE_ICON = {
 const GROUP_STYLE =
   "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1 " +
   "[&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium " +
-  "[&_[cmdk-group-heading]]:text-zinc-400";
+  "[&_[cmdk-group-heading]]:text-zinc-400 dark:[&_[cmdk-group-heading]]:text-zinc-500";
 
 const ITEM_STYLE =
   "flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm " +

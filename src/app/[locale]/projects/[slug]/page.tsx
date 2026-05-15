@@ -75,7 +75,7 @@ export default async function ProjectPage({
                 <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                   {metric.value}
                 </div>
-                <div className="text-xs text-zinc-500">{metric.label}</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">{metric.label}</div>
               </div>
             ))}
           </div>
