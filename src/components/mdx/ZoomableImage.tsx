@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react'
 interface ZoomableImageProps {
   src?: string
   alt?: string
+  className?: string
   [key: string]: unknown
 }
 
-export function ZoomableImage({ src, alt = '', ...props }: ZoomableImageProps) {
+export function ZoomableImage({ src, alt = '', className, ...props }: ZoomableImageProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function ZoomableImage({ src, alt = '', ...props }: ZoomableImageProps) {
       <img
         src={src}
         alt={alt}
-        className="cursor-zoom-in rounded-lg"
+        className={`cursor-zoom-in rounded-lg${className ? ` ${className}` : ''}`}
         onClick={() => setIsOpen(true)}
         title="Click to enlarge"
         {...(props as React.ImgHTMLAttributes<HTMLImageElement>)}

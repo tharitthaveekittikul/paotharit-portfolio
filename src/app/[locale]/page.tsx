@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getAllContent } from '@/lib/content'
+import { getProjectImages } from '@/lib/project-images'
 import { Badge } from '@/components/ui/badge'
 import { ResumeLink } from '@/components/shared/ResumeLink'
+import { ProjectImageStrip } from '@/components/shared/ProjectImageStrip'
 
 export default async function HomePage({
   params,
@@ -38,27 +40,33 @@ export default async function HomePage({
             Projects
           </h2>
           <div className="space-y-6">
-            {featuredProjects.map(project => (
-              <Link
-                key={project.slug}
-                href={`/${locale}/projects/${project.slug}`}
-                className="group block rounded-lg border border-border p-5 transition-colors hover:border-input"
-              >
-                <h3 className="mb-1 font-semibold text-foreground group-hover:text-foreground">
-                  {project.title}
-                </h3>
-                <p className="mb-3 text-sm text-muted-foreground">
-                  {project.description}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {project.techStack.slice(0, 5).map(tech => (
-                    <Badge key={tech} variant="secondary" className="text-xs">
-                      {tech}
-                    </Badge>
-                  ))}
-                </div>
-              </Link>
-            ))}
+            {featuredProjects.map(project => {
+              const images = getProjectImages(project.slug)
+              return (
+                <Link
+                  key={project.slug}
+                  href={`/${locale}/projects/${project.slug}`}
+                  className="group block overflow-hidden rounded-lg border border-border transition-colors hover:border-input"
+                >
+                  <div className="p-5">
+                    <h3 className="mb-1 font-semibold text-foreground group-hover:text-foreground">
+                      {project.title}
+                    </h3>
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      {project.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {project.techStack.slice(0, 5).map(tech => (
+                        <Badge key={tech} variant="secondary" className="text-xs">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <ProjectImageStrip images={images} />
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}
