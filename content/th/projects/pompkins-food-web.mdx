@@ -1,0 +1,108 @@
+---
+title: "POMPKINS Food"
+description: "แพลตฟอร์มสั่งอาหารออนไลน์สำหรับผู้บริโภคของ POMPKINS — รองรับการส่งอาหาร, QR dine-in, และ QR room service ของโรงแรมในแอป Next.js เดียว พร้อมติดตามออเดอร์แบบ real-time และรองรับสองภาษา"
+date: 2024-11-25
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, food, ordering, saas, restaurant, firebase]
+techStack:
+  [
+    nextjs,
+    react,
+    typescript,
+    tailwind,
+    firebase,
+    next-auth,
+    framer-motion,
+    zustand,
+    swr,
+    next-intl,
+    google-maps,
+  ]
+role: "Sole Frontend Developer"
+duration: "Professional Work"
+projectStatus: "In Production"
+metrics:
+  - { label: "Pages", value: "40+" }
+  - { label: "Order Flows", value: "3" }
+  - { label: "Locales", value: "2" }
+  - { label: "React Version", value: "19" }
+---
+
+## บทบาทของฉัน
+
+Frontend developer คนเดียว — พัฒนาแพลตฟอร์มสั่งอาหารสำหรับผู้บริโภคตั้งแต่ต้น แพลตฟอร์มนี้รองรับบริบทการสั่งอาหารสามรูปแบบที่แตกต่างกัน — delivery/pickup มาตรฐาน, dine-in ผ่าน QR โต๊ะ, และ room service โรงแรมผ่าน QR — แต่ละรูปแบบมี layout, flow, และ UX requirements ของตัวเอง
+
+## สิ่งที่พัฒนา
+
+- **ค้นหาอาหาร** — landing page, แผนที่ร้านค้าใกล้เคียงด้วย Google Maps, หน้าร้านค้าพร้อมเมนูและการค้นหา
+- **ขั้นตอนการสั่งอาหาร** — ตะกร้า, checkout, การชำระเงิน, ติดตามสถานะออเดอร์แบบ real-time, และประวัติการสั่ง
+- **QR table ordering** — สแกน QR ที่โต๊ะ → ดูเมนู → เพิ่มลงตะกร้า → checkout → ตรวจสอบบิล
+- **QR hotel room service** — สแกน QR ในห้อง → กำหนดหมายเลขห้อง → ดูเมนู → สั่งอาหาร → ติดตามสถานะ
+- **ฟีเจอร์ผู้ใช้** — โปรไฟล์, รายการโปรด, สมาชิก, ทดสอบ push notification, export บิลเป็นรูปภาพ
+- Layout responsive mobile-first ในทุก flow การสั่งอาหาร
+
+## จุดเด่นทางเทคนิค
+
+- **บริบทการสั่งอาหารสามรูปแบบ** — delivery/pickup, table QR (`/table-merchant/`), และ hotel QR (`/hotel-service/`) แต่ละรูปแบบมี layout tree อิสระผ่าน Next.js route group โดยแชร์ logic ตะกร้าและออเดอร์ร่วมกัน
+- **axios-cache-interceptor** ซ้อนทับ SWR สำหรับ cache เชิงรุกบนข้อมูลเมนูและร้านค้าที่อ่านบ่อย
+- **สร้าง QR code** สำหรับลิงก์เข้าสู่ออเดอร์โต๊ะและโรงแรม
+- **html2canvas** สำหรับ export บิลและใบเสร็จฝั่ง client เป็นรูปภาพดาวน์โหลดได้
+- **Firebase + next-auth** dual auth — Firebase สำหรับ identity, next-auth สำหรับ session management
+- React 19 + Next.js 15 ใน production — การนำ stack นี้มาใช้ก่อนใครในเวลานั้น
+
+## Screenshots
+
+<ScreenshotGrid>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/landing-page-1.png"
+      alt="Food ordering landing page"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Landing
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/landing-page-2.png"
+      alt="Food discovery"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      ค้นหาอาหาร
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/merchant-page-1.png"
+      alt="Merchant and menu page"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      ร้านค้าและเมนู
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/checkout-page.png"
+      alt="Checkout flow"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Checkout
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/order-status-pending.png"
+      alt="Real-time order status"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      สถานะออเดอร์
+    </figcaption>
+  </figure>
+</ScreenshotGrid>

@@ -1,0 +1,120 @@
+---
+title: "POMPKINS Food iOS"
+description: "แอป iOS สั่งอาหารแบบ native พัฒนาด้วย SwiftUI และ Clean Architecture — มีการติดตามออเดอร์แบบ real-time ผ่าน SSE, Live Activity Widget สำหรับ Dynamic Island และหน้าล็อคสกรีน, ฟีด PompkinsShorts, และ AI chatbot"
+date: 2025-06-30
+type: project
+status: published
+featured: true
+tags: [swift, swiftui, ios, food, ordering, saas, restaurant, firebase]
+techStack: [swift, swiftui, firebase, google-maps, alamofire, lottie, widgetkit]
+role: "Sole iOS Developer"
+duration: "Professional Work"
+projectStatus: "In Production"
+metrics:
+  - { label: "Feature Modules", value: "15+" }
+  - { label: "Auth Methods", value: "4" }
+  - { label: "Cache Policies", value: "5" }
+  - { label: "App Store", value: "Published" }
+---
+
+[ดูใน App Store →](https://apps.apple.com/th/app/pompkins-food/id6749675101)
+
+## บทบาทของฉัน
+
+iOS developer คนเดียว — ออกแบบและพัฒนาแอป native ทั้งหมดตั้งแต่ต้น แอปนี้คือ mobile client ฝั่งผู้บริโภคสำหรับแพลตฟอร์มสั่งอาหาร POMPKINS เผยแพร่บน App Store และดูแลขั้นตอนการสั่งอาหารครบวงจรตั้งแต่การค้นหาจนถึงการส่ง
+
+## สิ่งที่พัฒนา
+
+- **หน้าหลักและค้นหาร้าน** — ฟีดร้านค้าพร้อมหมวดหมู่, spotlight section, และแผนที่ร้านค้าใกล้เคียง (Google Maps)
+- **ขั้นตอนการสั่งอาหาร** — รายละเอียดร้านค้า, เมนูพร้อมตัวเลือก, จัดการตะกร้า, checkout, และการชำระเงินผ่าน Reservepay
+- **ติดตามออเดอร์แบบ real-time** — อัปเดตสถานะ live ผ่าน SSE พร้อม reconnection อัตโนมัติและ exponential backoff
+- **Live Activity Widget** — แสดงสถานะออเดอร์บน Dynamic Island และหน้าล็อคสกรีนตลอดขั้นตอนการส่ง
+- **Multi-auth** — OTP (โทรศัพท์ + SMS), LINE, Google, และ Apple Sign In
+- **PompkinsShorts** — ฟีดวิดีโอสั้นแนวตั้ง (สไตล์ TikTok) ฝังอยู่ในประสบการณ์ค้นหาอาหาร
+- **Pomp Pomp chatbot** — AI assistant ในแอปสำหรับช่วยเรื่องออเดอร์และ FAQ
+- **จัดการที่อยู่** — ที่อยู่ที่บันทึกไว้พร้อม Google Maps location picker
+- **ฟีเจอร์ผู้ใช้** — ประวัติออเดอร์พร้อม pagination, รายการโปรด, รีวิว, กล่องแจ้งเตือน, โปรไฟล์
+
+## จุดเด่นทางเทคนิค
+
+- **Clean Architecture + MVVM** — feature จัดเป็น domain module พร้อม protocol-based repository; `@MainActor` ViewModel ที่ใช้ `@EnvironmentObject` injection สำหรับ state ทั่วแอป (location, address, session)
+- **SSE real-time tracking** — `SSEManager` พร้อม reconnection อัตโนมัติและ exponential backoff; ปิด connection อย่างถูกต้องระหว่าง app lifecycle transition
+- **Live Activity Widget** — WidgetKit integration สำหรับ Dynamic Island และหน้าล็อคสกรีน อัปเดตผ่านแต่ละขั้นตอนการส่ง
+- **Multi-level API cache** — policy 5 รูปแบบ (`cacheFirst`, `networkFirst`, `cacheOnly`, `networkOnly`, `networkAndCache`) พร้อม memory + disk cache 7 วัน; `CachedAsyncImage` สำหรับ cache รูปภาพทั่วทั้งแอป
+- **Auth interceptor** — `AuthIntercepter` รีเฟรช JWT token อัตโนมัติเมื่อได้รับ 401 โดย app ส่วนอื่นไม่รู้ตัว
+- **Secure storage** — token และข้อมูลละเอียดอ่อนทั้งหมดเก็บใน Keychain ผ่าน `KeychainService`; `CryptoService` เข้ารหัส API payload ที่ละเอียดอ่อน; certificate pinning ใน production
+
+## Screenshots
+
+<ScreenshotGrid>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/landing-app-1.png"
+      alt="Home feed and merchant discovery"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      หน้าหลัก
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/merchant-view-1.png"
+      alt="Merchant detail and menu"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      ร้านค้าและเมนู
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/checkout-view.png"
+      alt="Checkout flow"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Checkout
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/order-status-cooking.png"
+      alt="Real-time order status"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      สถานะออเดอร์
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/live-activity-widget-1.png"
+      alt="Live Activity Widget on Dynamic Island and lock screen"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Live Activity Widget
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/shorts-view.png"
+      alt="PompkinsShorts short video feed"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      PompkinsShorts
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/pomp-pomp-chat-bot-view-1.png"
+      alt="Pomp Pomp AI chatbot"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Pomp Pomp Chatbot
+    </figcaption>
+  </figure>
+</ScreenshotGrid>

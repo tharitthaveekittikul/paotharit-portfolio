@@ -1,0 +1,114 @@
+---
+title: "n8n Stock Watchlist: Automated Target Price Tracking"
+description: "ระบบอัตโนมัติบน n8n แบบ self-host สำหรับติดตามราคาหุ้น real-time จาก Finnhub, อัปเดตฐานข้อมูล Notion watchlist, และส่งรายงานสรุปทางอีเมลทุกคืน — รันบน Synology NAS ผ่าน Docker"
+date: 2025-07-27
+type: project
+status: published
+featured: false
+tags: [n8n, notion, docker, automation, stocks, synology, finnhub]
+techStack: [n8n, notion, docker, synology]
+role: "Solo Developer"
+duration: "2025"
+projectStatus: "Self-hosted / Active"
+---
+
+## ปัญหา
+
+การดูแล watchlist หุ้นส่วนตัวด้วยตนเองต้องตรวจสอบราคาหลายตัวทุกวัน เปรียบเทียบกับราคาเป้าหมายที่ต้องการซื้อ และพยายามจำว่าตัวไหนถึงระดับที่น่าสนใจแล้ว ไม่มีการแจ้งเตือน ไม่มีบันทึก และไม่มีวิธีดูภาพรวมราคาในวันนั้นได้ทันที เป้าหมายคือแทนที่การตรวจสอบรายวันด้วยสรุปอัตโนมัติทุกคืน
+
+## Notion เป็นแหล่งข้อมูล
+
+Watchlist อยู่ใน Notion database แต่ละแถวแทนหนึ่ง ticker ของหุ้น บันทึกราคาเป้าหมาย (ระดับที่ต้องการซื้อเพิ่ม) และมี formula field ที่ flag ว่าราคาล่าสุดที่ดึงมาถึงหรือต่ำกว่าเป้าหมายแล้วหรือยัง ฐานข้อมูลนี้ทำหน้าที่เป็น config source ด้วย — การเพิ่มหรือลบ ticker ทำได้แค่แก้ไขแถว
+
+<figure>
+  <ZoomableImage
+    src="/projects/n8n-watchlist-tracking/notion-stock-watchlist.png"
+    alt="Notion stock watchlist database showing tickers and target prices"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ฐานข้อมูล watchlist — ticker, ราคาเป้าหมาย, และสถานะ formula
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/n8n-watchlist-tracking/notion-dashboard.png"
+    alt="Notion dashboard view of the stock watchlist"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Notion dashboard view
+  </figcaption>
+</figure>
+
+## ขั้นตอนการทำงานอัตโนมัติ
+
+n8n รัน pipeline ทั้งหมดทุกคืนวันทำงานเวลา 22:00:
+
+| ขั้นตอน | การดำเนินการ | เครื่องมือ |
+|---------|-------------|-----------|
+| 1 | Schedule trigger จันทร์–ศุกร์ 22:00 | n8n Schedule Trigger |
+| 2 | ดึง ticker และราคาเป้าหมายทั้งหมด | Notion API |
+| 3 | วนลูปแต่ละ ticker | n8n Loop node |
+| 4 | ดึงราคา real-time | Finnhub API |
+| 5 | อัปเดต price field ใน Notion แถวนั้น | Notion API |
+| 6 | ส่งอีเมลสรุปประจำคืน | n8n Email node |
+
+Finnhub API ให้ quote หุ้น real-time ฟรี แต่ละ ticker มี API call ของตัวเองใน loop โดยผลลัพธ์จะเขียนกลับไปยัง Notion แถวที่ตรงกันก่อนขยับไปตัวถัดไป
+
+<figure>
+  <ZoomableImage
+    src="/projects/n8n-watchlist-tracking/n8n-workflow.png"
+    alt="n8n workflow showing the full automation pipeline"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    n8n workflow — schedule trigger, ดึงข้อมูล Notion, loop ราคา, และอีเมล
+  </figcaption>
+</figure>
+
+## โครงสร้างพื้นฐานแบบ Self-Hosted
+
+n8n รันเป็น Docker container โดยใช้ image `n8nio/n8n` อย่างเป็นทางการ ติดตั้งบน Synology NAS ผ่าน Synology Container Manager NAS รัน 24/7 ทำให้ cron schedule ทำงานได้อย่างน่าเชื่อถือโดยไม่มีการพึ่งพาคลาวด์หรือค่าใช้จ่ายนอกจากฮาร์ดแวร์ที่มีอยู่แล้ว
+
+<figure>
+  <ZoomableImage
+    src="/projects/n8n-watchlist-tracking/synology-nas-container-manager-n8n-image.png"
+    alt="n8n container running in Synology Container Manager"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    n8n container ใน Synology Container Manager
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/n8n-watchlist-tracking/n8n-dashboard.png"
+    alt="n8n dashboard showing workflow executions"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    n8n dashboard
+  </figcaption>
+</figure>
+
+## รายงานอีเมลประจำวัน
+
+หลังจาก Notion แถวทั้งหมดถูกอัปเดตแล้ว n8n จะส่งอีเมลสรุป รายงานแสดง ticker แต่ละตัวพร้อมราคาล่าสุดและเป้าหมาย ทำให้เห็นสถานะ watchlist ทั้งหมดได้ทันทีโดยไม่ต้องเปิด Notion
+
+<figure>
+  <ZoomableImage
+    src="/projects/n8n-watchlist-tracking/email-update-report.png"
+    alt="Nightly email report showing stock prices vs targets"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    รายงานอีเมลประจำคืน
+  </figcaption>
+</figure>
+
+## สิ่งที่จะทำต่างออกไป
+
+ความล้มเหลวแบบเงียบ ๆ คือความเสี่ยงหลัก: ถ้า Finnhub ส่ง error หรือการเขียน Notion ล้มเหลวกลางลูป workflow จะดำเนินต่อและส่งอีเมลได้อยู่ — แต่ด้วยข้อมูลเก่าหรือขาดหายไปโดยไม่มีการแจ้งเตือน การเพิ่ม error branch ในแต่ละ API call node พร้อม Telegram หรืออีเมลแจ้งเตือนจะทำให้เห็นความล้มเหลวได้ทันทีแทนที่จะค้นพบทีหลัง

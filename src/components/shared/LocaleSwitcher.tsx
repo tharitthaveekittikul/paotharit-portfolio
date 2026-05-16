@@ -8,6 +8,8 @@ export function LocaleSwitcher() {
   const router = useRouter()
   const pathname = usePathname()
 
+  if (pathname.includes('/docs/')) return null
+
   function switchLocale() {
     const next = locale === 'en' ? 'th' : 'en'
     const segments = pathname.split('/')

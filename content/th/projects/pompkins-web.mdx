@@ -1,0 +1,114 @@
+---
+title: "POMPKINS Web"
+description: "เว็บไซต์การตลาดของ POMPKINS — SaaS จัดการร้านอาหารครอบคลุม POS, การสั่งอาหารในร้าน, ดีลิเวอรี่, และ CRM — พัฒนากว่า 20+ หน้าพร้อมรองรับสองภาษาและสถาปัตยกรรม multi-layout บน Next.js"
+date: 2024-11-25
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, marketing, saas, restaurant, framer-motion]
+techStack:
+  [
+    nextjs,
+    react,
+    typescript,
+    tailwind,
+    firebase,
+    framer-motion,
+    zustand,
+    next-intl,
+    google-maps,
+  ]
+role: "Sole Frontend Developer"
+duration: "Professional Work"
+projectStatus: "In Production"
+metrics:
+  - { label: "Pages", value: "20+" }
+  - { label: "Locales", value: "2" }
+  - { label: "Product Showcases", value: "5" }
+  - { label: "Layouts", value: "3" }
+---
+
+## บทบาทของฉัน
+
+Frontend developer คนเดียว — ออกแบบและพัฒนาเว็บไซต์การตลาดทั้งหมดตั้งแต่ต้น เว็บไซต์นี้คือช่องทางหลักในการดึงลูกค้าสำหรับชุด restaurant management ของ POMPKINS ครอบคลุมห้าพื้นที่ผลิตภัณฑ์กว่า 20+ หน้าพร้อมรองรับสองภาษา (EN/TH)
+
+## สิ่งที่พัฒนา
+
+- Landing page พร้อม hero animation ด้วย Framer Motion และ section reveal แบบ scroll-triggered ด้วย AOS
+- หน้า showcase ผลิตภัณฑ์สำหรับ POS, การสั่งอาหารในร้าน, ดีลิเวอรี่, และ CRM
+- ส่วน Rubtung — sub-section เฉพาะภายในสายผลิตภัณฑ์ POMPKINS
+- หน้าราคาและการเลือกแพ็กเกจพร้อมการเปรียบเทียบแผนแบบ interactive
+- หน้าติดต่อพร้อม Google Maps สำหรับแสดงตำแหน่งร้านค้า
+- หน้ากฎหมายและนโยบาย (cookies, terms, privacy)
+
+## จุดเด่นทางเทคนิค
+
+- **Multi-layout routing** — layout tree อิสระสามแบบ (marketing, Rubtung section, no-layout) แชร์ codebase Next.js เดียวผ่าน route group
+- **ระบบ animation** — Framer Motion สำหรับ transition ระดับ component คู่กับ AOS สำหรับ scroll-triggered reveal โดยไม่ทับซ้อนหน้าที่กัน
+- **Embla Carousel** — carousel ภาพ screenshot ผลิตภัณฑ์พร้อม wheel gesture support และ autoplay
+- **next-intl** — content static สองภาษา (EN/TH) พร้อม locale-aware routing ทั่วทั้งเว็บ
+
+## Screenshots
+
+<ScreenshotGrid>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-web/landing-page.png"
+      alt="Landing page"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Landing Page
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-web/pricing-page.png"
+      alt="Pricing and packages"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      ราคา
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-web/crm-system-page.png"
+      alt="CRM system showcase"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      CRM System
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-web/in-store-order-page.png"
+      alt="In-store ordering showcase"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      การสั่งอาหารในร้าน
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-web/contact-us-page.png"
+      alt="Contact page with Google Maps"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      ติดต่อเรา
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-web/rubtung-page.png"
+      alt="Rubtung section"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Rubtung
+    </figcaption>
+  </figure>
+</ScreenshotGrid>

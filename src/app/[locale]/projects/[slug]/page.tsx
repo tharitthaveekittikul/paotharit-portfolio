@@ -55,7 +55,7 @@ export default async function ProjectPage({
 }) {
   const { locale, slug } = await params;
   const images = getProjectImages(slug);
-  const docsDir = path.join(process.cwd(), "content", locale, "docs", slug);
+  const docsDir = path.join(process.cwd(), "content", "en", "docs", slug);
   const hasDocs = fs.existsSync(docsDir);
 
   let result: ReturnType<typeof getContent>;
@@ -105,7 +105,7 @@ export default async function ProjectPage({
         <div className="mb-6 flex flex-wrap gap-4 text-sm text-zinc-500 dark:text-zinc-400">
           {hasDocs && (
             <Link
-              href={`/${locale}/docs/${slug}`}
+              href={`/en/docs/${slug}`}
               className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             >
               {locale === "th" ? "ดูเอกสาร →" : "View Documentation →"}
