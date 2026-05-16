@@ -17,7 +17,17 @@ export const metadata: Metadata = {
     default: 'paotharit — Portfolio & Blog',
     template: '%s | paotharit',
   },
-  description: 'paotharit — Portfolio & Blog',
+  description:
+    'Tharit Thaveekittikul — Software engineer building AI systems, trading tools, and developer infrastructure.',
+  openGraph: {
+    type: 'website',
+    siteName: 'paotharit',
+    images: [{ url: '/api/og', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/api/og'],
+  },
 }
 
 export default async function LocaleLayout({

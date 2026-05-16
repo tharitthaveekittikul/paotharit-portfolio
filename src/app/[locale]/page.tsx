@@ -19,8 +19,26 @@ export default async function HomePage({
   const allPosts = getAllContent('blog', locale)
   const recentPosts = allPosts.slice(0, 3)
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Tharit Thaveekittikul',
+    url: 'https://www.paotharit.me',
+    jobTitle: 'Software Engineer',
+    sameAs: [
+      'https://github.com/tharitthaveekittikul',
+      'https://www.linkedin.com/in/paotharit/',
+      'https://www.instagram.com/paotharit/',
+    ],
+  }
+
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
       <section className="mb-20">
         <h1 className="mb-4 text-2xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
           Tharit Thaveekittikul
@@ -137,5 +155,6 @@ export default async function HomePage({
         </section>
       )}
     </div>
+    </>
   )
 }

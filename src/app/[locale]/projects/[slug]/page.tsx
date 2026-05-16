@@ -26,9 +26,22 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   try {
     const { frontmatter } = getContent("projects", locale, slug);
+    const title = frontmatter.seoTitle ?? frontmatter.title;
+    const description = frontmatter.seoDescription ?? frontmatter.description;
+    const ogUrl = `/api/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=project`;
     return {
-      title: frontmatter.seoTitle ?? frontmatter.title,
-      description: frontmatter.seoDescription ?? frontmatter.description,
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: "article",
+        images: [{ url: ogUrl, width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        images: [ogUrl],
+      },
     };
   } catch {
     return {};
