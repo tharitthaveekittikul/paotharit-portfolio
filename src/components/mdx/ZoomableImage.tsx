@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ZoomableImageProps {
   src?: string
@@ -32,7 +33,7 @@ export function ZoomableImage({ src, alt = '', className, ...props }: ZoomableIm
         title="Click to enlarge"
         {...(props as React.ImgHTMLAttributes<HTMLImageElement>)}
       />
-      {isOpen && (
+      {isOpen && createPortal(
         <div
           className="cursor-pointer fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-8 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
@@ -53,7 +54,8 @@ export function ZoomableImage({ src, alt = '', className, ...props }: ZoomableIm
             className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
