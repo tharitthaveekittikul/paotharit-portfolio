@@ -5,14 +5,16 @@ import { CodeBlock } from './CodeBlock'
 import { Mermaid } from './Mermaid'
 import { TradingChart } from './TradingChart'
 import { ZoomableImage } from './ZoomableImage'
+import { ScreenshotGrid } from './ScreenshotGrid'
 
-export { Callout, CodeBlock, Mermaid, TradingChart, ZoomableImage }
+export { Callout, CodeBlock, Mermaid, TradingChart, ZoomableImage, ScreenshotGrid }
 
 export const mdxComponents: MDXComponents = {
   Callout,
   Mermaid,
   TradingChart,
   ZoomableImage,
+  ScreenshotGrid,
   img: ZoomableImage as MDXComponents['img'],
   table: (props) => React.createElement('div', { className: 'overflow-x-auto' }, React.createElement('table', props)),
   code: ({ className, ...props }) => React.createElement('code', { className: `${className ?? ''} break-all`, ...props }),

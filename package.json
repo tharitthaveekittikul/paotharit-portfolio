@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "sync": "tsx scripts/obsidian-sync.ts",
-    "sync:docs": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/Zentri\" --project zentri --output content/en/docs",
+    "sync:docs:zentri": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/Zentri\" --project zentri --output content/en/docs",
     "sync:docs:docrag": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/DocRAG\" --project docrag --output content/en/docs"
   },
   "dependencies": {
