@@ -1,12 +1,13 @@
 ---
 title: "DocRAG: Multimodal Self-Hosted RAG"
 description: "An open-source RAG engine that lets you chat with PDFs, spreadsheets, diagrams, and source code using local or cloud LLMs — fully self-hosted with Qdrant and PostgreSQL."
-date: 2026-05-16
+date: 2026-02-22
 type: project
 status: published
 featured: true
 tags: [ai, rag, llm, python, nextjs, docker]
-techStack: [nextjs, python, fastapi, postgresql, qdrant, docker, ollama, docling]
+techStack:
+  [nextjs, python, fastapi, postgresql, qdrant, docker, ollama, docling]
 role: "Solo Developer"
 duration: "Ongoing"
 projectStatus: "In Progress"
@@ -48,24 +49,24 @@ graph TD
   Ollama[Ollama local optional]
   Cloud[OpenAI / Anthropic / Gemini]
 
-  Browser --> Frontend
-  Browser --> Backend
-  Frontend --> Backend
-  Backend --> Qdrant
-  Backend --> Postgres
-  Backend -.-> Ollama
-  Backend -.-> Cloud
+Browser --> Frontend
+Browser --> Backend
+Frontend --> Backend
+Backend --> Qdrant
+Backend --> Postgres
+Backend -.-> Ollama
+Backend -.-> Cloud
 `} />
 
 ## Key Technical Decisions
 
-| Decision | Chosen | Rejected | Why |
-|----------|--------|----------|-----|
-| Document parsing | Docling | PyMuPDF / pdfplumber | Layout-aware parsing preserves reading order and handles multi-column PDFs |
-| Vector store | Qdrant | ChromaDB / FAISS | gRPC support, built-in dashboard, production-grade persistence |
-| Embedding model | nomic-embed-text-v1.5 (768-dim) | all-MiniLM-L6-v2 (384-dim) | 8192-token context window — better for long document chunks |
-| LLM key storage | PostgreSQL (`appsetting` table) | `.env` file | Runtime key management via Settings UI without container restarts |
-| Streaming | SSE via FastAPI `StreamingResponse` | WebSocket | Simpler client-side with `ReadableStream`; no persistent connection needed |
+| Decision         | Chosen                              | Rejected                   | Why                                                                        |
+| ---------------- | ----------------------------------- | -------------------------- | -------------------------------------------------------------------------- |
+| Document parsing | Docling                             | PyMuPDF / pdfplumber       | Layout-aware parsing preserves reading order and handles multi-column PDFs |
+| Vector store     | Qdrant                              | ChromaDB / FAISS           | gRPC support, built-in dashboard, production-grade persistence             |
+| Embedding model  | nomic-embed-text-v1.5 (768-dim)     | all-MiniLM-L6-v2 (384-dim) | 8192-token context window — better for long document chunks                |
+| LLM key storage  | PostgreSQL (`appsetting` table)     | `.env` file                | Runtime key management via Settings UI without container restarts          |
+| Streaming        | SSE via FastAPI `StreamingResponse` | WebSocket                  | Simpler client-side with `ReadableStream`; no persistent connection needed |
 
 ## What I'd Do Differently
 
