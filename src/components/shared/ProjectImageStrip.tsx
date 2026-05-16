@@ -10,7 +10,7 @@ export function ProjectImageStrip({ images }: ProjectImageStripProps) {
   const overflowCount = images.length - 3
 
   return (
-    <div className="flex gap-1.5 px-3 pb-3">
+    <div className="flex gap-1.5 px-3 pb-3 transition-[filter] hover:brightness-90">
       {tiles.map((src, i) => {
         const isOverflowTile = showOverlay && i === 3
         return (

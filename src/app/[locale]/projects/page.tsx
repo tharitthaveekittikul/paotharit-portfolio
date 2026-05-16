@@ -34,44 +34,56 @@ export default async function ProjectsPage({
           {projects.map(project => {
             const images = getProjectImages(project.slug)
             return (
-              <Link
+              <div
                 key={project.slug}
-                href={`/${locale}/projects/${project.slug}`}
-                className="group block overflow-hidden rounded-lg border border-zinc-200 transition-colors hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+                className="group overflow-hidden rounded-lg border border-zinc-200 transition-colors hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
               >
-                <div className="p-6">
-                  <time
-                    dateTime={new Date(project.date).toISOString().slice(0, 10)}
-                    className="mb-1 block text-sm text-zinc-500 dark:text-zinc-400"
+                <Link
+                  href={`/${locale}/projects/${project.slug}`}
+                  className="block"
+                  aria-label={`View ${project.title}`}
+                >
+                  <div className="p-6">
+                    <time
+                      dateTime={new Date(project.date).toISOString().slice(0, 10)}
+                      className="mb-1 block text-sm text-zinc-500 dark:text-zinc-400"
+                    >
+                      {new Date(project.date).toLocaleDateString(
+                        locale === 'th' ? 'th-TH' : 'en-US',
+                        { year: 'numeric' }
+                      )}
+                    </time>
+                    <div className="mb-2 flex items-start justify-between gap-4">
+                      <h2 className="text-xl font-semibold text-zinc-900 group-hover:text-black dark:text-zinc-50 dark:group-hover:text-white">
+                        {project.title}
+                      </h2>
+                      {project.projectStatus && (
+                        <Badge variant="outline" className="shrink-0 text-xs">
+                          {project.projectStatus}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+                      {project.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {project.techStack.slice(0, 6).map(tech => (
+                        <Badge key={tech} variant="secondary" className="text-xs">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </Link>
+                {images.length > 0 && (
+                  <Link
+                    href={`/${locale}/projects/${project.slug}/screenshots`}
+                    aria-label={`View all screenshots for ${project.title}`}
                   >
-                    {new Date(project.date).toLocaleDateString(
-                      locale === 'th' ? 'th-TH' : 'en-US',
-                      { year: 'numeric' }
-                    )}
-                  </time>
-                  <div className="mb-2 flex items-start justify-between gap-4">
-                    <h2 className="text-xl font-semibold text-zinc-900 group-hover:text-black dark:text-zinc-50 dark:group-hover:text-white">
-                      {project.title}
-                    </h2>
-                    {project.projectStatus && (
-                      <Badge variant="outline" className="shrink-0 text-xs">
-                        {project.projectStatus}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-                    {project.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {project.techStack.slice(0, 6).map(tech => (
-                      <Badge key={tech} variant="secondary" className="text-xs">
-                        {tech}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <ProjectImageStrip images={images} />
-              </Link>
+                    <ProjectImageStrip images={images} />
+                  </Link>
+                )}
+              </div>
             )
           })}
         </div>
