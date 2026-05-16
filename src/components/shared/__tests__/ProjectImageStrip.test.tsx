@@ -10,9 +10,9 @@ describe('ProjectImageStrip', () => {
 
   it('renders all images when count is 4 or fewer', () => {
     const images = [
-      '/projects/zentri/a.png',
-      '/projects/zentri/b.png',
-      '/projects/zentri/c.png',
+      { src: '/projects/zentri/a.png', alt: 'A' },
+      { src: '/projects/zentri/b.png', alt: 'B' },
+      { src: '/projects/zentri/c.png', alt: 'C' },
     ]
     const { container } = render(<ProjectImageStrip images={images} />)
     const imgs = container.querySelectorAll('img')
@@ -21,7 +21,7 @@ describe('ProjectImageStrip', () => {
   })
 
   it('shows overflow count on 4th tile when more than 4 images', () => {
-    const images = Array.from({ length: 9 }, (_, i) => `/projects/zentri/${i}.png`)
+    const images = Array.from({ length: 9 }, (_, i) => ({ src: `/projects/zentri/${i}.png`, alt: `Screenshot ${i + 1}` }))
     render(<ProjectImageStrip images={images} />)
     const imgs = document.querySelectorAll('img')
     expect(imgs).toHaveLength(4)
@@ -29,7 +29,7 @@ describe('ProjectImageStrip', () => {
   })
 
   it('shows exactly 4 tiles with no overflow when total is exactly 4', () => {
-    const images = Array.from({ length: 4 }, (_, i) => `/projects/zentri/${i}.png`)
+    const images = Array.from({ length: 4 }, (_, i) => ({ src: `/projects/zentri/${i}.png`, alt: `Screenshot ${i + 1}` }))
     const { container } = render(<ProjectImageStrip images={images} />)
     const imgs = container.querySelectorAll('img')
     expect(imgs).toHaveLength(4)

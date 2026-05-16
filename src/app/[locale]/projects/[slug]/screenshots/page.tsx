@@ -45,14 +45,11 @@ export default async function ScreenshotsPage({
         {title}
       </h1>
       <div className="columns-1 gap-4 sm:columns-2">
-        {images.map(src => {
-          const alt = src.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
-          return (
-            <div key={src} className="mb-4 break-inside-avoid">
-              <ZoomableImage src={src} alt={alt} />
-            </div>
-          )
-        })}
+        {images.map(image => (
+          <div key={image.src} className="mb-4 break-inside-avoid">
+            <ZoomableImage src={image.src} alt={image.alt} />
+          </div>
+        ))}
       </div>
     </div>
   )

@@ -12,9 +12,9 @@ describe('getProjectImages', () => {
       ['z.png', 'a.jpg', 'b.webp', 'readme.md', '.DS_Store'] as unknown as ReturnType<typeof fs.readdirSync>
     )
     expect(getProjectImages('zentri')).toEqual([
-      '/projects/zentri/a.jpg',
-      '/projects/zentri/b.webp',
-      '/projects/zentri/z.png',
+      { src: '/projects/zentri/a.jpg', alt: 'A' },
+      { src: '/projects/zentri/b.webp', alt: 'B' },
+      { src: '/projects/zentri/z.png', alt: 'Z' },
     ])
   })
 
