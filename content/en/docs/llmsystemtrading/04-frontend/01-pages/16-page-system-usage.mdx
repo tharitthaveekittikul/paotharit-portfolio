@@ -1,0 +1,48 @@
+---
+title: Page - System Usage
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Server resource monitor — displays live CPU, memory, disk, and GPU metrics for the machine running the trading system, useful for capacity planning and diagnosing performance issues.
+</Callout>
+
+## Route
+
+| Property | Value |
+| :--- | :--- |
+| **Path** | `/system-usage` |
+| **File** | `frontend/src/app/system-usage/page.tsx` |
+| **Auth Required** | No |
+| **Layout** | Root layout with sidebar |
+| **Dynamic Segment** | None |
+
+
+## Component Tree
+
+```
+SystemUsagePage (page.tsx)
+├── AppHeader (title="System Usage")
+├── Resource Cards
+│   ├── CPU Usage gauge (pct)
+│   ├── Memory gauge (used_gb / total_gb, pct)
+│   ├── Disk gauge (used_gb / total_gb, pct)
+│   └── GPU Card (name, memory used/total) — only if GPU present
+└── Process info (count, uptime)
+```
+
+
+## Data Layer
+
+| Call | API | Triggered When |
+| :--- | :--- | :--- |
+| `GET /api/v1/system/usage` | `SystemUsage` | On mount + polling (every 5s) |
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Backend API | [API-GET-v1-System-Usage](/en/docs/llmsystemtrading/api/system/api-get-v1-system-usage) |
+| Infrastructure | [DevOps - LLMSystemTrading](/en/docs/llmsystemtrading/devops/devops-llmsystemtrading) |

@@ -1,0 +1,156 @@
+---
+title: LLM Analytics Endpoints
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Deep analytics on LLM trading performance — model win rates, cost vs. returns heatmap, pipeline combinations, confidence calibration, and learning insights extracted from historical AI decisions.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## Endpoints in this group (10 total)
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/llm-analytics/summary` | KPI summary (total calls, avg confidence, cost, win rate) |
+| `GET` | `/api/v1/llm-analytics/model-performance` | Per-model win rate, P&L, call count |
+| `GET` | `/api/v1/llm-analytics/heatmap` | Symbol × model win rate heatmap |
+| `GET` | `/api/v1/llm-analytics/pnl-timeline` | P&L over time by model |
+| `GET` | `/api/v1/llm-analytics/pipelines` | Pipeline agent combination performance |
+| `GET` | `/api/v1/llm-analytics/cost-trend` | API cost over time |
+| `GET` | `/api/v1/llm-analytics/learning/confidence-calibration` | Calibration: confidence vs. actual win rate |
+| `GET` | `/api/v1/llm-analytics/learning/signal-reliability` | Signal type (BUY/SELL/HOLD) reliability stats |
+| `GET` | `/api/v1/llm-analytics/learning/lessons` | Auto-extracted lessons from closed trades |
+| `GET` | `/api/v1/llm-analytics/learning/research-config` | Current research loop configuration |
+
+---
+
+## Common Query Parameters
+
+All endpoints accept:
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `days` | `integer` | `30` | Lookback window in days |
+| `account_id` | `integer` | — | Filter by account (optional) |
+
+---
+
+## GET /api/v1/llm-analytics/summary
+
+> High-level KPIs for the LLM system performance.
+
+**200 OK example:**
+```json
+{
+  "total_calls": 1842,
+  "total_cost_usd": 48.32,
+  "avg_confidence": 0.74,
+  "avg_win_rate": 0.612,
+  "total_pnl": 3250.00,
+  "best_model": "claude-opus-4-7",
+  "most_used_provider": "anthropic"
+}
+```
+
+**Pydantic Schema:** `backend/api/routes/llm_analytics.py :: LLMAnalyticsSummary`
+
+---
+
+## GET /api/v1/llm-analytics/model-performance
+
+> Per-model breakdown of call count, avg confidence, win rate, and total P&L attributed to LLM decisions.
+
+**200 OK example:**
+```json
+[
+  {
+    "provider": "anthropic",
+    "model": "claude-opus-4-7",
+    "calls": 850,
+    "avg_confidence": 0.78,
+    "win_rate": 0.64,
+    "total_pnl": 2100.00,
+    "avg_cost_per_call": 0.028
+  }
+]
+```
+
+**Pydantic Schema:** `backend/api/routes/llm_analytics.py :: ModelPerformanceRow`
+
+---
+
+## GET /api/v1/llm-analytics/heatmap
+
+> Win rate matrix: rows = symbols, columns = models. Visualized as a color heatmap in [Page - LLM Analytics](/en/docs/llmsystemtrading/frontend/pages/page-llm-analytics).
+
+**200 OK example:**
+```json
+{
+  "symbols": ["EURUSD", "GBPUSD", "XAUUSD"],
+  "models": ["claude-opus-4-7", "gpt-4o"],
+  "data": [
+    [0.65, 0.58],
+    [0.71, 0.62],
+    [0.55, 0.49]
+  ]
+}
+```
+
+---
+
+## GET /api/v1/llm-analytics/learning/confidence-calibration
+
+> Compares stated LLM confidence vs. actual win rate, bucketed by confidence range. Reveals over/under-confidence.
+
+**200 OK example:**
+```json
+[
+  { "bucket": "0.6-0.65", "avg_confidence": 0.62, "actual_win_rate": 0.55, "count": 45 },
+  { "bucket": "0.65-0.70", "avg_confidence": 0.67, "actual_win_rate": 0.61, "count": 88 },
+  { "bucket": "0.70-0.75", "avg_confidence": 0.72, "actual_win_rate": 0.68, "count": 120 }
+]
+```
+
+---
+
+## GET /api/v1/llm-analytics/learning/lessons
+
+> Auto-extracted lessons from completed trades — patterns the LLM's post-trade analysis identified repeatedly.
+
+**200 OK example:**
+```json
+[
+  {
+    "lesson": "BUY signals on EURUSD during London open (07:00-09:00 UTC) outperform by 18%",
+    "frequency": 12,
+    "avg_pnl_impact": 45.20
+  }
+]
+```
+
+---
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/llm_analytics.py` |
+| DB Table | [DB - llm_calls](/en/docs/llmsystemtrading/database/db-llm-calls) |
+| DB Table | [DB - ai_journal](/en/docs/llmsystemtrading/database/db-ai-journal) |
+| DB Table | [DB - trades](/en/docs/llmsystemtrading/database/db-trades) |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - LLM Analytics](/en/docs/llmsystemtrading/frontend/pages/page-llm-analytics) |
+| DB Schema | [DB - llm_calls](/en/docs/llmsystemtrading/database/db-llm-calls) |
+| DB Schema | [DB - ai_journal](/en/docs/llmsystemtrading/database/db-ai-journal) |

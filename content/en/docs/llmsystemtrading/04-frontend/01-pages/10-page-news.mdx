@@ -1,0 +1,55 @@
+---
+title: Page - News
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Economic calendar viewer — shows upcoming and past high-impact events (NFP, CPI, Fed decisions), their actual vs. forecast vs. previous values, and LLM impact verdicts that guide the news filter.
+</Callout>
+
+## Route
+
+| Property | Value |
+| :--- | :--- |
+| **Path** | `/news` |
+| **File** | `frontend/src/app/news/page.tsx` |
+| **Auth Required** | No |
+| **Layout** | Root layout with sidebar |
+| **Dynamic Segment** | None |
+
+
+## Component Tree
+
+```
+NewsPage (page.tsx)
+├── AppHeader (title="Economic Calendar")
+├── Toolbar: date range filter + impact filter + "Fetch Latest" button
+├── Event List / Table
+│   └── EconomicEventRow × N
+│       ├── Time (colored: upcoming=blue, passed=gray)
+│       ├── Impact badge (HIGH=red, MEDIUM=orange, LOW=green)
+│       ├── Title + currency flag
+│       ├── Actual / Forecast / Previous values
+│       ├── LLM verdict badge (bullish_usd / bearish_usd / neutral)
+│       └── Actions: "Analyze" button → POST /news/{id}/analyze
+└── Empty state (no events in selected range)
+```
+
+
+## Data Layer
+
+### Server State — Direct fetch
+
+| Call | API | Triggered When |
+| :--- | :--- | :--- |
+| Fetch events | `GET /api/v1/news` | On mount + filter changes |
+| Fetch latest | `POST /api/v1/news/fetch` | "Fetch Latest" button |
+| Analyze event | `POST /api/v1/news/{id}/analyze` | Per-row "Analyze" button |
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Backend API | [API-News](/en/docs/llmsystemtrading/api/news/api-news) |

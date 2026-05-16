@@ -1,0 +1,132 @@
+---
+title: WebSocket Dashboard
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Real-time WebSocket channel per account — broadcasts live balance updates, position changes, new AI signals, kill-switch events, and broker clock sync to the dashboard.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## Connection
+
+```
+ws://localhost:8000/ws/dashboard/{account_id}
+```
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `account_id` | Path `integer` | Account to subscribe to |
+
+**Frontend hook:** `frontend/src/hooks/use-websocket.ts`
+
+---
+
+## Message Types (Server → Client)
+
+### balance_update
+```json
+{
+  "type": "balance_update",
+  "data": {
+    "balance": 50000.00,
+    "equity": 49850.00,
+    "margin_used": 500.00,
+    "margin_free": 49350.00,
+    "margin_level": 9970.0
+  }
+}
+```
+
+### positions_update
+```json
+{
+  "type": "positions_update",
+  "data": [
+    {
+      "ticket": 55551234,
+      "symbol": "EURUSD",
+      "direction": "BUY",
+      "volume": 0.1,
+      "profit": 46.00,
+      "entry_price": 1.08520
+    }
+  ]
+}
+```
+
+### new_signal
+```json
+{
+  "type": "new_signal",
+  "data": {
+    "symbol": "EURUSD",
+    "signal": "BUY",
+    "confidence": 0.82,
+    "rationale": "RSI oversold + bullish engulfing"
+  }
+}
+```
+
+### kill_switch
+```json
+{
+  "type": "kill_switch",
+  "data": {
+    "is_active": true,
+    "reason": "Manual halt"
+  }
+}
+```
+
+### clock_sync
+```json
+{
+  "type": "clock_sync",
+  "data": {
+    "broker_time": "2026-05-16T14:00:00.123Z",
+    "server_time": "2026-05-16T14:00:00.050Z"
+  }
+}
+```
+
+---
+
+## Frontend Handling
+
+In `use-websocket.ts`, each message type routes to a store action:
+
+```typescript
+switch (msg.type) {
+  case "balance_update":   store.setBalance(msg.data); break;
+  case "positions_update": store.setOpenPositions(msg.data); break;
+  case "new_signal":       store.addSignal(msg.data); break;
+  case "kill_switch":      store.setKillSwitch(msg.data); break;
+  case "clock_sync":       store.setBrokerClockSkewMs(skewMs); break;
+}
+```
+
+---
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/ws.py` |
+| Frontend Hook | `frontend/src/hooks/use-websocket.ts` |
+| Store | [Store - TradingStore](/en/docs/llmsystemtrading/frontend/stores/store-tradingstore) |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - Dashboard](/en/docs/llmsystemtrading/frontend/pages/page-dashboard) |
+| Store | [Store - TradingStore](/en/docs/llmsystemtrading/frontend/stores/store-tradingstore) |
+| Related Endpoint | [API-GET-v1-Signals](/en/docs/llmsystemtrading/api/signals/api-get-v1-signals) |

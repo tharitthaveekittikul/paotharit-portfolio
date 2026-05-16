@@ -1,0 +1,119 @@
+---
+title: LLM Usage Endpoints
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Token consumption and cost tracking — summary totals, time-series charts, per-model breakdown, and current pricing reference for all LLM providers.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## Endpoints in this group (4 total)
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/llm-usage/summary` | Total tokens + cost for period |
+| `GET` | `/api/v1/llm-usage/timeseries` | Daily/hourly token usage chart data |
+| `GET` | `/api/v1/llm-usage/by-model` | Usage breakdown per provider/model |
+| `GET` | `/api/v1/llm-usage/pricing` | Current pricing table for all providers |
+
+---
+
+## Common Query Parameters
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `days` | `integer` | `30` | Lookback window |
+| `granularity` | `string` | `"daily"` | `"daily"` or `"hourly"` |
+
+---
+
+## GET /api/v1/llm-usage/summary
+
+**200 OK example:**
+```json
+{
+  "total_input_tokens": 4500000,
+  "total_output_tokens": 850000,
+  "total_tokens": 5350000,
+  "total_cost_usd": 48.32,
+  "total_calls": 1842,
+  "period_days": 30,
+  "top_provider": "anthropic",
+  "top_model": "claude-opus-4-7"
+}
+```
+
+**Pydantic Schema:** `backend/api/routes/llm_usage.py :: LLMUsageSummary`
+
+---
+
+## GET /api/v1/llm-usage/timeseries
+
+> Daily or hourly token usage for charting. Used by `LLMUsageTimeseriesChart`.
+
+**200 OK example:**
+```json
+[
+  { "date": "2026-05-01", "input_tokens": 150000, "output_tokens": 28000, "cost_usd": 1.62 },
+  { "date": "2026-05-02", "input_tokens": 180000, "output_tokens": 34000, "cost_usd": 1.95 }
+]
+```
+
+---
+
+## GET /api/v1/llm-usage/by-model
+
+> Per-provider/model usage for the period. Used by `LLMUsageModelTable` and `LLMProviderShareChart`.
+
+**200 OK example:**
+```json
+[
+  {
+    "provider": "anthropic",
+    "model": "claude-opus-4-7",
+    "calls": 850,
+    "input_tokens": 3200000,
+    "output_tokens": 620000,
+    "cost_usd": 38.40,
+    "share_pct": 79.5
+  }
+]
+```
+
+---
+
+## GET /api/v1/llm-usage/pricing
+
+> Reference pricing table — input/output cost per million tokens for each available model.
+
+**200 OK example:**
+```json
+[
+  { "provider": "anthropic", "model": "claude-opus-4-7", "input_per_mtok": 15.00, "output_per_mtok": 75.00 },
+  { "provider": "openai", "model": "gpt-4o", "input_per_mtok": 5.00, "output_per_mtok": 15.00 }
+]
+```
+
+---
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/llm_usage.py` |
+| DB Table | [DB - llm_calls](/en/docs/llmsystemtrading/database/db-llm-calls) |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - LLM Usage](/en/docs/llmsystemtrading/frontend/pages/page-llm-usage) |
+| DB Schema | [DB - llm_calls](/en/docs/llmsystemtrading/database/db-llm-calls) |

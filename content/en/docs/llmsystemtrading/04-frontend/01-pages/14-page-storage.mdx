@@ -1,0 +1,85 @@
+---
+title: Page - Storage
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Developer admin panel — browse PostgreSQL tables and row counts, inspect QuestDB time-series, view Redis cache stats, and perform maintenance operations (purge, truncate, flush).
+</Callout>
+
+## Route
+
+| Property | Value |
+| :--- | :--- |
+| **Path** | `/storage` |
+| **File** | `frontend/src/app/storage/page.tsx` |
+| **Auth Required** | No (⚠️ admin-only in spirit) |
+| **Layout** | Root layout with sidebar |
+| **Dynamic Segment** | None |
+
+
+## Component Tree
+
+```
+StoragePage (page.tsx)
+├── AppHeader (title="Storage")
+├── StorageOverviewCards
+│   ├── PostgreSQL: DB size, table count
+│   ├── QuestDB: table count, total rows
+│   └── Redis: memory used, key count, hit rate
+├── Tabs: "PostgreSQL" | "QuestDB" | "Redis"
+│
+├── Tab: PostgreSQL
+│   ├── TableStatsList (table name, row count, size, last updated)
+│   └── TableBrowserSheet (opens on row click)
+│       └── Paginated row browser + Purge/Truncate buttons
+│
+├── Tab: QuestDB
+│   ├── QuestDB table list with row counts
+│   └── Row browser sheet with drop table button
+│
+└── Tab: Redis
+    ├── RedisPanel (memory info, key count, hit rate)
+    └── "Flush Cache" button (with confirmation dialog)
+```
+
+
+## Data Layer
+
+### Server State — Direct fetch
+
+| Call | API | Triggered When |
+| :--- | :--- | :--- |
+| PG overview | `GET /api/v1/storage/postgres/overview` | On mount |
+| PG tables | `GET /api/v1/storage/postgres/tables` | On mount |
+| PG rows | `GET /api/v1/storage/postgres/tables/{t}/rows` | TableBrowserSheet open |
+| QDB tables | `GET /api/v1/storage/questdb/tables` | On mount |
+| QDB rows | `GET /api/v1/storage/questdb/tables/{t}/rows` | QDB row browser open |
+| Redis info | `GET /api/v1/storage/redis/info` | On mount |
+| Flush Redis | `DELETE /api/v1/storage/redis/flush` | Flush button + confirm |
+| Truncate PG | `DELETE /api/v1/storage/postgres/tables/{t}/truncate` | Truncate + confirm |
+| Purge PG | `DELETE /api/v1/storage/postgres/tables/{t}/purge` | Purge + confirm |
+
+
+## Validation & Conditions
+
+### Destructive Action Guards
+
+| Action | Guard |
+| :--- | :--- |
+| Redis flush | Confirmation dialog required |
+| PostgreSQL truncate | Confirmation dialog required |
+| QuestDB drop table | Confirmation dialog required |
+
+<Callout type="warning">
+Truncate, purge, and flush are irreversible. The page should enforce a confirmation dialog with the target name typed explicitly (e.g., "type table name to confirm").
+</Callout>
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Backend API | [API-Storage](/en/docs/llmsystemtrading/api/storage/api-storage) |
+| Infrastructure | [DevOps - LLMSystemTrading](/en/docs/llmsystemtrading/devops/devops-llmsystemtrading) |

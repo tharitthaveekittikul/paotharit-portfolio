@@ -1,0 +1,46 @@
+---
+title: GET Status
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Health check endpoint — confirms the backend is running and returns version info. Used by the frontend's connection status indicator.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## 🛠️ Technical Specification
+
+### Request
+
+No parameters.
+
+### 📤 Responses
+
+**200 OK example:**
+```json
+{
+  "status": "ok",
+  "version": "1.0.0",
+  "debug": false,
+  "llm_provider": "anthropic"
+}
+```
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/status.py` |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Infrastructure | [DevOps - LLMSystemTrading](/en/docs/llmsystemtrading/devops/devops-llmsystemtrading) |

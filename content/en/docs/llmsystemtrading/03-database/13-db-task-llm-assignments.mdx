@@ -1,0 +1,82 @@
+---
+title: DB - task_llm_assignments
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Maps each AI task type (e.g., market_analysis, vision, execution_decision) to a specific LLM provider and model — allowing different tasks to use different models optimized for cost vs. capability.
+</Callout>
+
+## Table Info
+
+| Property | Value |
+| :--- | :--- |
+| **Table Name** | `task_llm_assignments` |
+| **SQLAlchemy Model** | `backend/db/models.py :: TaskLLMAssignment` |
+| **Pydantic Schema** | `backend/api/routes/settings.py :: TaskAssignment / SaveAssignmentsRequest` |
+| **Migration File** | `alembic/versions/` |
+| **TimescaleDB Hypertable** | No |
+| **Partition Column** | — |
+
+
+## Columns
+
+| Column | SQLAlchemy Type | Nullable | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `task` | `String(64)` | No | — | Task identifier (PRIMARY KEY) |
+| `provider` | `String(32)` | No | — | LLM provider to use for this task |
+| `model_name` | `String(128)` | No | — | Specific model ID (e.g., `claude-opus-4-7`) |
+| `updated_at` | `DateTime(timezone=True)` | No | `datetime.now(UTC)` | Last update timestamp |
+
+
+## Valid Task Values
+
+From `backend/api/routes/settings.py :: _VALID_TASKS`:
+
+| Task | Description |
+| :--- | :--- |
+| `market_analysis` | Core market signal analysis |
+| `vision` | Chart image interpretation |
+| `execution_decision` | Final trade go/no-go decision |
+| `maintenance_technical` | Technical indicator check for open trade |
+| `maintenance_sentiment` | News/sentiment check for open trade |
+| `maintenance_decision` | Final decision on open trade management |
+| `news_analysis` | Financial news parsing and impact scoring |
+| `post_trade_analysis` | Post-close trade review and learning |
+| `indicator_agent` | Dedicated indicator analysis agent |
+
+
+## Constraints & Indexes
+
+| Name | Type | Columns | Purpose |
+| :--- | :--- | :--- | :--- |
+| `pk_task_llm_assignments` | PRIMARY KEY | `task` | One assignment per task type |
+
+
+## SQLAlchemy Model (reference snapshot)
+
+```python
+class TaskLLMAssignment(Base):
+    __tablename__ = "task_llm_assignments"
+
+    task: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # 'market_analysis' | 'vision' | 'execution_decision' | ...
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    model_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+```
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| API Endpoint | [API-POST-v1-Settings](/en/docs/llmsystemtrading/api/settings/api-post-v1-settings) |
+| Frontend Page | [Page - Settings](/en/docs/llmsystemtrading/frontend/pages/page-settings) |
+| Related Table | [DB - llm_provider_configs](/en/docs/llmsystemtrading/database/db-llm-provider-configs) |
+| Related Table | [DB - llm_calls](/en/docs/llmsystemtrading/database/db-llm-calls) |

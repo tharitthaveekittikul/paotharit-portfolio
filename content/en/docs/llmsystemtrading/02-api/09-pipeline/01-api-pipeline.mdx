@@ -1,0 +1,109 @@
+---
+title: Pipeline Endpoints
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Read-only view of multi-agent pipeline execution history — list runs and inspect individual run step traces, timing, and LLM outputs for debugging AI decision chains.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## Endpoints in this group (2 total)
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/pipeline/runs` | List recent pipeline runs |
+| `GET` | `/api/v1/pipeline/runs/{run_id}` | Get run detail with all steps |
+
+---
+
+## GET /api/v1/pipeline/runs
+
+> Returns summary of recent pipeline executions for the active account.
+
+### Request
+
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `account_id` | Query | `integer` | No | Filter by account |
+| `symbol` | Query | `string` | No | Filter by symbol |
+| `limit` | Query | `integer` | No | Max results (default: 50) |
+
+**200 OK example:**
+```json
+[
+  {
+    "id": 991,
+    "account_id": 42,
+    "symbol": "EURUSD",
+    "timeframe": "H1",
+    "task_type": "signal",
+    "status": "completed",
+    "final_action": "BUY",
+    "total_duration_ms": 12450,
+    "created_at": "2026-05-16T14:00:00Z"
+  }
+]
+```
+
+**Pydantic Schema:** `backend/api/routes/pipeline.py :: PipelineRunSummary`
+
+---
+
+## GET /api/v1/pipeline/runs/{run_id}
+
+> Full detail including all steps with input/output JSON — for debugging AI reasoning.
+
+**200 OK example:**
+```json
+{
+  "id": 991,
+  "status": "completed",
+  "final_action": "BUY",
+  "steps": [
+    {
+      "seq": 1,
+      "step_name": "indicator_agent",
+      "status": "ok",
+      "duration_ms": 3200,
+      "output_json": "{\"rsi\": 42.5, \"macd\": \"bullish\", \"verdict\": \"BUY\"}",
+      "error": null
+    },
+    {
+      "seq": 2,
+      "step_name": "trend_agent",
+      "status": "ok",
+      "duration_ms": 4100,
+      "output_json": "{\"htf_trend\": \"uptrend\", \"verdict\": \"BUY\"}",
+      "error": null
+    }
+  ]
+}
+```
+
+**Pydantic Schema:** `backend/api/routes/pipeline.py :: PipelineRunDetail`
+
+---
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/pipeline.py` |
+| DB Table | [DB - pipeline_runs](/en/docs/llmsystemtrading/database/db-pipeline-runs) |
+| DB Table | [DB - pipeline_steps](/en/docs/llmsystemtrading/database/db-pipeline-steps) |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - Agent Workflow](/en/docs/llmsystemtrading/frontend/pages/page-agent-workflow) |
+| DB Schema | [DB - pipeline_runs](/en/docs/llmsystemtrading/database/db-pipeline-runs) |
+| DB Schema | [DB - pipeline_steps](/en/docs/llmsystemtrading/database/db-pipeline-steps) |

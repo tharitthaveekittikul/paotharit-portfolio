@@ -1,0 +1,77 @@
+---
+title: Page - Agent Workflow
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Visualizes the multi-agent LLM pipeline execution — shows recent pipeline runs, expands individual runs to see each agent step's input/output, timing, and status for debugging AI decision chains.
+</Callout>
+
+## Route
+
+| Property | Value |
+| :--- | :--- |
+| **Path** | `/agent-workflow` |
+| **File** | `frontend/src/app/agent-workflow/page.tsx` |
+| **Auth Required** | No |
+| **Layout** | Root layout with sidebar |
+| **Dynamic Segment** | None |
+
+
+## Component Tree
+
+```
+AgentWorkflowPage (page.tsx)
+├── AppHeader (title="Agent Workflow")
+├── Filters: account selector, symbol filter, date range
+├── Pipeline Run List
+│   └── PipelineRunCard × N
+│       ├── Header: symbol + timeframe + task_type badge + status badge
+│       ├── Duration + timestamp
+│       ├── Final action badge (BUY / SELL / HOLD)
+│       └── Expandable: Step Timeline
+│           └── StepRow × N (seq, step_name, status, duration_ms)
+│               └── Expandable: JSON input/output viewer
+└── Empty state (no runs in selected range)
+```
+
+
+## Data Layer
+
+### Server State — Direct fetch
+
+| Call | API | Triggered When |
+| :--- | :--- | :--- |
+| Fetch runs | `GET /api/v1/pipeline/runs` | On mount + filter changes |
+| Fetch run detail | `GET /api/v1/pipeline/runs/{id}` | On run card expand |
+
+
+## Validation & Conditions
+
+### Step Status Colors
+
+| `status` | Color |
+| :--- | :--- |
+| `ok` | Green |
+| `skip` | Yellow |
+| `error` | Red |
+
+### Render Conditions
+
+| Condition | What Shows |
+| :--- | :--- |
+| `runs.length === 0` | Empty state |
+| Run expanded | Step timeline with all `PipelineStep` rows |
+| Step expanded | JSON viewer for `input_json` / `output_json` |
+| `step.status === "error"` | Error message from `step.error` |
+| `run.final_action === "BUY"` | Green action badge |
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Backend API | [API-Pipeline](/en/docs/llmsystemtrading/api/pipeline/api-pipeline) |
+| DB Schema | [DB - pipeline_runs](/en/docs/llmsystemtrading/database/db-pipeline-runs) |
+| DB Schema | [DB - pipeline_steps](/en/docs/llmsystemtrading/database/db-pipeline-steps) |

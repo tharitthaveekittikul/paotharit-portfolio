@@ -1,0 +1,60 @@
+---
+title: DB - telegram_settings
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Singleton Telegram bot configuration — encrypted bot token, chat ID, and enabled flag — for sending trade alerts and system notifications.
+</Callout>
+
+## Table Info
+
+| Property | Value |
+| :--- | :--- |
+| **Table Name** | `telegram_settings` |
+| **SQLAlchemy Model** | `backend/db/models.py :: TelegramSettings` |
+| **Pydantic Schema** | `backend/api/routes/settings.py :: TelegramSettingsModel` |
+| **Migration File** | `alembic/versions/` |
+| **TimescaleDB Hypertable** | No |
+| **Partition Column** | — |
+
+
+## Columns
+
+| Column | SQLAlchemy Type | Nullable | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | `Integer` | No | `1` | Primary key (singleton — always id=1) |
+| `bot_token_encrypted` | `Text` | Yes | `null` | Fernet-encrypted Telegram bot token |
+| `bot_token_hint` | `String(50)` | Yes | `null` | Masked hint for UI display (e.g., `123456:...abc`) |
+| `chat_id` | `String(100)` | No | `""` | Telegram chat ID or channel ID |
+| `is_enabled` | `Boolean` | No | `True` | Master switch for Telegram notifications |
+| `updated_at` | `DateTime(timezone=True)` | No | `datetime.now(UTC)` | Last update timestamp |
+
+
+## SQLAlchemy Model (reference snapshot)
+
+```python
+class TelegramSettings(Base):
+    __tablename__ = "telegram_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bot_token_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    bot_token_hint: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    chat_id: Mapped[str] = mapped_column(String(100), default="")
+    is_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+```
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| API Endpoint | [API-POST-v1-Settings](/en/docs/llmsystemtrading/api/settings/api-post-v1-settings) |
+| Frontend Page | [Page - Settings](/en/docs/llmsystemtrading/frontend/pages/page-settings) |
+| Related Table | [DB - global_settings](/en/docs/llmsystemtrading/database/db-global-settings) |

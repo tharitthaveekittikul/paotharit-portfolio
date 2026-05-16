@@ -1,0 +1,72 @@
+---
+title: Page - Chart
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Entry point for the chart view — reads `lastChartSymbol` from localStorage and immediately redirects to `/chart/{symbol}`. Acts as a redirect proxy; no content is rendered.
+</Callout>
+
+## Route
+
+| Property | Value |
+| :--- | :--- |
+| **Path** | `/chart` |
+| **File** | `frontend/src/app/chart/page.tsx` |
+| **Auth Required** | No |
+| **Layout** | Root layout with sidebar |
+| **Dynamic Segment** | None |
+
+**Primary chart route:** `/chart/[symbol]` — the actual chart view
+
+---
+
+## Behavior
+
+```typescript
+export default function ChartIndexPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const last = localStorage.getItem("lastChartSymbol") ?? "XAUUSD";
+    router.replace(`/chart/${last}`);
+  }, [router]);
+
+  return (
+    <SidebarInset className="flex items-center justify-center">
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+    </SidebarInset>
+  );
+}
+```
+
+- Reads `lastChartSymbol` from `localStorage` (default: `"XAUUSD"`)
+- Uses `router.replace()` (not `push`) — no back-button history entry
+- Shows spinner while redirecting
+
+---
+
+## Chart Detail: /chart/[symbol]
+
+The actual chart page at `frontend/src/app/chart/[symbol]/page.tsx` renders:
+
+```
+ChartSymbolPage (/chart/EURUSD)
+├── AppHeader (title=symbol, timeframe selector)
+├── TradingViewChart (lightweight-charts)
+│   └── Fetches OHLCV from GET /api/v1/market-data/{symbol}/{timeframe}
+│   └── Overlays trade markers (entry/exit lines)
+│   └── Real-time updates via WebSocket
+└── Sidebar: LLM signal panel (latest signal for this symbol)
+```
+
+**localStorage Key:** `lastChartSymbol` — updated when user navigates to a different symbol
+
+---
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Backend API | [API-GET-v1-Market-Data](/en/docs/llmsystemtrading/api/marketdata/api-get-v1-market-data) |

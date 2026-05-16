@@ -1,0 +1,228 @@
+---
+title: DevOps - LLMSystemTrading
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Deployment architecture, services, environment variables, and operational runbooks for LLMSystemTrading.
+</Callout>
+
+
+## Services Map
+
+```mermaid
+graph TD
+    User -->|:80| Nginx[Nginx Reverse Proxy]
+    Nginx -->|/api/**| Backend[Backend FastAPI :8000]
+    Nginx -->|/**| Frontend[Frontend Next.js :3000]
+    Backend --> Postgres[(PostgreSQL :5432)]
+    Backend --> Redis[(Redis :6379)]
+    Backend --> QuestDB[(QuestDB :8812)]
+    Backend -.->|optional| Ollama[Ollama local LLM :11434]
+```
+
+
+## Docker Services
+
+| Service | Image | Internal Port | Purpose |
+| :--- | :--- | :--- | :--- |
+| `trading_redis` | `redis:7-alpine` | 6379 | Low-latency cache and ephemeral state |
+| `trading_postgres` | `postgres:16-alpine` | 5432 | OLTP — accounts, trades, strategies, settings |
+| `trading_questdb` | `questdb/questdb:latest` | 9000 / 9009 / 8812 | Time-series OHLCV candle storage |
+| `trading_nginx` | `nginx:alpine` | 80 | Reverse proxy routing to backend and frontend |
+| `trading_backend` | Built from `backend/Dockerfile` | 8000 | FastAPI + Uvicorn application server |
+| `trading_frontend` | Built from `frontend/Dockerfile` | 3000 | Next.js 16 SSR frontend |
+
+
+## Environment Variables
+
+### Backend (`.env` in project root)
+
+| Variable | Required | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `DATABASE_URL` | Yes | PostgreSQL async connection string | `postgresql+asyncpg://trading:trading_dev@postgres:5432/trading` |
+| `POSTGRES_PASSWORD` | Yes | PostgreSQL password (compose default: `trading_dev`) | `your_secure_password` |
+| `REDIS_URL` | Yes | Redis connection string | `redis://redis:6379` |
+| `QUESTDB_HOST` | Yes | QuestDB hostname (Docker service name) | `questdb` |
+| `QUESTDB_PORT` | Yes | QuestDB asyncpg wire protocol port | `8812` |
+| `LLM_PROVIDER` | Yes | Active LLM provider | `anthropic` |
+| `ANTHROPIC_API_KEY` | Conditional | Required if `LLM_PROVIDER=anthropic` | `sk-ant-...` |
+| `OPENAI_API_KEY` | Conditional | Required if `LLM_PROVIDER=openai` | `sk-...` |
+| `GEMINI_API_KEY` | Conditional | Required if `LLM_PROVIDER=gemini` | `AIza...` |
+| `OPENROUTER_API_KEY` | Conditional | Required if `LLM_PROVIDER=openrouter` | `sk-or-...` |
+| `DEBUG` | No | FastAPI debug mode | `False` |
+| `TELEGRAM_BOT_TOKEN` | No | Telegram alerts bot token (stored encrypted in DB) | `1234567890:ABC...` |
+| `TELEGRAM_CHAT_ID` | No | Telegram chat ID for alerts | `-100123456789` |
+| `MAINTENANCE_INTERVAL_MINUTES` | No | Scheduler interval override | `15` |
+
+### PostgreSQL Container Environment
+
+| Variable | Required | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `POSTGRES_DB` | Yes | Database name (hardcoded in compose) | `trading` |
+| `POSTGRES_USER` | Yes | Database user (hardcoded in compose) | `trading` |
+| `POSTGRES_PASSWORD` | Yes | Database password (from `.env`) | `trading_dev` |
+| `QDB_CAIRO_MAX_UNCOMMITTED_ROWS` | No | QuestDB batch commit threshold | `1000` |
+
+### Frontend (`frontend/.env.local`)
+
+| Variable | Required | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | Yes | Backend HTTP base URL | `http://localhost:8000` |
+| `NEXT_PUBLIC_WS_URL` | No | Backend WebSocket base URL | `ws://localhost:8000` |
+
+<Callout type="warning">
+`NEXT_PUBLIC_API_URL` is baked into the Next.js client bundle at build time (`next build`). If you change the backend URL, you must rebuild the frontend Docker image — a running container restart is not sufficient.
+</Callout>
+
+
+## Nginx Routing Rules
+
+| Path Pattern | Proxy Target | Notes |
+| :--- | :--- | :--- |
+| `/api/**` | `http://backend:8000` | All REST API calls |
+| `/ws/**` | `ws://backend:8000` | WebSocket upgrade |
+| `/**` | `http://frontend:3000` | Next.js SSR fallback |
+
+**Config file:** `nginx/nginx.conf`
+
+<Callout type="warning">
+The `nginx/` directory was not present at inspection time. The nginx service in docker-compose.yml references `nginx:alpine` but the config mount point was not confirmed. Verify `nginx/nginx.conf` exists before running `docker compose up`.
+</Callout>
+
+
+## Deployment Procedure
+
+```mermaid
+flowchart TD
+    A["cp .env.example .env"] --> B["Fill required secrets"]
+    B --> C["docker compose up -d"]
+    C --> D{All services healthy?}
+    D -->|Yes| E["Access http://localhost:80"]
+    D -->|No| F["docker compose logs service_name"]
+    F --> G[Investigate + fix]
+    G --> C
+```
+
+### Commands
+```bash
+# Start all services
+docker compose up -d
+
+# Start with rebuild (after code changes)
+docker compose up -d --build
+
+# Check status
+docker compose ps
+
+# View logs (follow mode)
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Stop (preserves volumes)
+docker compose down
+
+# Stop and remove volumes (destructive — data loss)
+docker compose down -v
+```
+
+
+## Backup & Restore
+
+| Operation | Command | Output |
+| :--- | :--- | :--- |
+| Backup PostgreSQL | `docker exec trading_postgres pg_dump -U trading trading > backup.sql` | `backup.sql` |
+| Backup QuestDB | Copy `questdb_data` volume directory | Volume directory |
+| Backup Redis | `docker exec trading_redis redis-cli BGSAVE` then copy `redis_data` | Volume directory |
+| Restore PostgreSQL | `docker exec -i trading_postgres psql -U trading trading < backup.sql` | — |
+| Restore QuestDB | Stop container, replace volume contents, restart | — |
+| Restore Redis | Stop container, replace volume contents, restart | — |
+
+
+## Security Considerations
+
+| Concern | Mitigation |
+| :--- | :--- |
+| Database passwords in compose defaults | `POSTGRES_PASSWORD` defaults to `trading_dev` — override in `.env` before production |
+| LLM API keys in environment | Keys stored in `.env` file; `.env` must be in `.gitignore`; never commit to git |
+| LLM API keys in database | Stored encrypted via Fernet (`core/security.py`); displayed masked (`sk-...abcd`) |
+| Exposed database ports | PostgreSQL (5432), Redis (6379), QuestDB (9000/8812/19009) exposed on host — restrict with firewall in production |
+| QuestDB Web UI | Port 9000 exposes QuestDB web console with no auth — do not expose publicly |
+| NEXT_PUBLIC vars | Baked into frontend bundle — do not put secrets in `NEXT_PUBLIC_*` variables |
+| nginx no TLS | HTTP only in default config — add SSL termination for public deployments |
+
+
+## Known Gotchas
+
+<Callout type="warning">
+Port 9009 is reserved by Windows WSL2. QuestDB InfluxDB protocol uses host port 19009 instead (`19009:9009` in compose). Code must connect to host port 19009 for InfluxDB line protocol inserts.
+</Callout>
+
+<Callout type="warning">
+`NEXT_PUBLIC_API_URL` is embedded into the JavaScript bundle at `next build` time. Changing it at runtime has no effect. Rebuild the frontend image after changing this variable.
+</Callout>
+
+<Callout type="warning">
+`./docker/postgres/init.sql` only runs on first container initialization (empty volume). To re-run it, delete the `postgres_data` volume: `docker compose down -v && docker compose up -d`.
+</Callout>
+
+<Callout type="warning">
+On backend startup, any runs stuck in `running` or `cancelling` state are automatically reset to `cancelled`. This handles crash recovery but means interrupted long runs cannot be resumed — they must be restarted.
+</Callout>
+
+<Callout type="warning">
+MetaTrader 5 runs natively on Windows. The backend connects via `python-mt5` which communicates with the locally-installed MT5 terminal. MT5 cannot run inside Docker.
+</Callout>
+
+
+## Technical Defense
+
+<Callout type="question">
+**A:** Each solves a different problem. PostgreSQL handles ACID-compliant relational data (accounts, trades, strategies). Redis provides low-latency caching and ephemeral state. QuestDB is a columnar time-series database optimized for OHLCV candle inserts via InfluxDB line protocol — it handles millions of rows far faster than PostgreSQL for time-ordered data.
+</Callout>
+
+<Callout type="question">
+**A:** `pg_dump` creates a full SQL backup. QuestDB data lives in a named Docker volume (`questdb_data`) — copy it to restore. Redis is cache-only; losing it means the next request refills from PostgreSQL. The most critical backup target is `postgres_data` + `questdb_data`.
+</Callout>
+
+<Callout type="question">
+**A:** `restart: unless-stopped` in docker-compose.yml. All services auto-restart after crash. Set up Docker daemon to start on system boot for true 24/7 operation.
+</Callout>
+
+<Callout type="question">
+**A:** MT5 runs natively on Windows (it's a Windows application). The backend connects to it via `python-mt5` which communicates with the locally-installed MetaTrader 5 terminal. MT5 is NOT containerized.
+</Callout>
+
+<Callout type="question">
+**A:** Not with the current setup. APScheduler is single-instance; running multiple backend replicas would cause duplicate scheduled jobs. Horizontal scaling would require Celery + RabbitMQ for job coordination and a shared Redis for distributed locking.
+</Callout>
+
+<Callout type="question">
+**A:** This controls when QuestDB flushes in-memory rows to disk. Lower values reduce data loss on crash; higher values increase throughput. 1000 is a balance for candle insert batches — matches the typical batch size for multi-symbol, multi-timeframe candle fetches.
+</Callout>
+
+
+## Change Impact Analysis
+
+| If you change… | These are affected |
+| :--- | :--- |
+| PostgreSQL port (5432) | `DATABASE_URL` in `.env`, all backend DB connection code |
+| Redis port (6379) | `REDIS_URL` in `.env`, backend cache code |
+| QuestDB port 19009 | InfluxDB insert code in `backend/db/questdb.py` |
+| QuestDB port 8812 | asyncpg query code in `backend/db/questdb.py` |
+| nginx routing rules | Frontend API base URL, backend CORS config |
+| Add new env variable | `.env.example`, `docker-compose.yml`, backend `core/config.py` Settings class |
+| Base Docker image version | `Dockerfile`, requires regression testing |
+| `POSTGRES_PASSWORD` | Must update `DATABASE_URL` to match; existing data remains intact |
+| `NEXT_PUBLIC_API_URL` | Must rebuild frontend Docker image — runtime change has no effect |
+| Backend `core/config.py` Settings | Update `.env.example` to document new field; update compose env section |
+
+
+## Related
+
+| Role | Link |
+| :--- | :--- |
+| Project Overview | [Kanban - LLMSystemTrading](Kanban - LLMSystemTrading) |
+| Backend API | [API-GET-v1-Status](/en/docs/llmsystemtrading/api/status/api-get-v1-status) |
+| DB Schema | [DB - accounts](/en/docs/llmsystemtrading/database/db-accounts) |

@@ -1,0 +1,68 @@
+---
+title: DB - risk_settings
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Singleton risk management configuration — drawdown limits, position caps, per-symbol rate limits, and hedging rules applied before any trade execution.
+</Callout>
+
+## Table Info
+
+| Property | Value |
+| :--- | :--- |
+| **Table Name** | `risk_settings` |
+| **SQLAlchemy Model** | `backend/db/models.py :: RiskSettings` |
+| **Pydantic Schema** | `backend/api/routes/settings.py` |
+| **Migration File** | `alembic/versions/` |
+| **TimescaleDB Hypertable** | No |
+| **Partition Column** | — |
+
+
+## Columns
+
+| Column | SQLAlchemy Type | Nullable | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | `Integer` | No | `1` | Primary key (singleton — always id=1) |
+| `drawdown_check_enabled` | `Boolean` | No | `False` | Enable max drawdown circuit breaker |
+| `max_drawdown_pct` | `Float` | No | `10.0` | Max account drawdown % before halting trading |
+| `position_limit_enabled` | `Boolean` | No | `False` | Enable maximum open position cap |
+| `max_open_positions` | `Integer` | No | `5` | Maximum concurrent open positions |
+| `rate_limit_enabled` | `Boolean` | No | `False` | Enable per-symbol trade rate limiting |
+| `rate_limit_max_trades` | `Integer` | No | `3` | Max trades per symbol within window |
+| `rate_limit_window_hours` | `Float` | No | `4.0` | Time window for rate limit (hours) |
+| `hedging_allowed` | `Boolean` | No | `True` | Allow hedging (opposing positions on same symbol) |
+| `updated_at` | `DateTime(timezone=True)` | No | `datetime.now(UTC)` | Last update timestamp |
+
+
+## SQLAlchemy Model (reference snapshot)
+
+```python
+class RiskSettings(Base):
+    __tablename__ = "risk_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    drawdown_check_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    max_drawdown_pct: Mapped[float] = mapped_column(Float, default=10.0)
+    position_limit_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    max_open_positions: Mapped[int] = mapped_column(Integer, default=5)
+    rate_limit_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    rate_limit_max_trades: Mapped[int] = mapped_column(Integer, default=3)
+    rate_limit_window_hours: Mapped[float] = mapped_column(Float, default=4.0)
+    hedging_allowed: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+```
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| API Endpoint | [API-POST-v1-Settings](/en/docs/llmsystemtrading/api/settings/api-post-v1-settings) |
+| Frontend Page | [Page - Settings](/en/docs/llmsystemtrading/frontend/pages/page-settings) |
+| Related Table | [DB - global_settings](/en/docs/llmsystemtrading/database/db-global-settings) |

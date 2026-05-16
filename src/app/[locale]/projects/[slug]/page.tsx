@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -40,6 +42,8 @@ export default async function ProjectPage({
 }) {
   const { locale, slug } = await params;
   const images = getProjectImages(slug);
+  const docsDir = path.join(process.cwd(), "content", locale, "docs", slug);
+  const hasDocs = fs.existsSync(docsDir);
 
   let result: ReturnType<typeof getContent>;
   try {
@@ -85,8 +89,16 @@ export default async function ProjectPage({
             <ProjectGithubLink href={frontmatter.github} project={slug} />
           </div>
         )}
-        {images.length > 0 && (
-          <div className="mb-6">
+        <div className="mb-6 flex flex-wrap gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+          {hasDocs && (
+            <Link
+              href={`/${locale}/docs/${slug}`}
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+            >
+              {locale === "th" ? "ดูเอกสาร →" : "View Documentation →"}
+            </Link>
+          )}
+          {images.length > 0 && (
             <Link
               href={`/${locale}/projects/${slug}/screenshots`}
               className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -94,8 +106,9 @@ export default async function ProjectPage({
               {locale === "th" ? "ดูภาพหน้าจอทั้งหมด" : "View all screenshots"}{" "}
               ({images.length})
             </Link>
-          </div>
-        )}
+          )}
+        </div>
+
         {frontmatter.metrics && frontmatter.metrics.length > 0 && (
           <div className="grid grid-cols-2 gap-4 rounded-lg border border-zinc-200 p-4 sm:grid-cols-3 dark:border-zinc-800">
             {frontmatter.metrics.map((metric) => (

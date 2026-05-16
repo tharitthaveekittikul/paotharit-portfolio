@@ -1,0 +1,89 @@
+---
+title: Page - LLM Usage
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Token consumption and cost dashboard — summary KPIs, time-series chart, per-model breakdown table, provider share donut, and pricing reference. Period selector from 1 day to all-time.
+</Callout>
+
+## Route
+
+| Property | Value |
+| :--- | :--- |
+| **Path** | `/llm-usage` |
+| **File** | `frontend/src/app/llm-usage/page.tsx` |
+| **Auth Required** | No |
+| **Layout** | Root layout with sidebar |
+| **Dynamic Segment** | None |
+
+
+## Component Tree
+
+```
+LLMUsagePage (page.tsx)
+├── AppHeader (title="LLM Usage")
+├── Period selector (Today / 7d / 30d / 3m / 6m / 1y / All)
+├── Granularity toggle (daily | hourly)
+├── LLMUsageSummaryCards (total tokens, total cost, call count, top model)
+├── LLMUsageTimeseriesChart (daily/hourly cost + token bars)
+├── LLMUsageModelTable (per-model breakdown: calls, tokens, cost, share%)
+├── LLMProviderShareChart (donut: cost by provider)
+└── LLMPricingReference (pricing table for all models)
+```
+
+
+## Data Layer
+
+### Server State — `Promise.all` on mount + period change
+
+| State Var | API Call | Endpoint |
+| :--- | :--- | :--- |
+| `summary` | `llmUsageApi.getSummary(days)` | `GET /api/v1/llm-usage/summary` |
+| `timeseries` | `llmUsageApi.getTimeseries(days, granularity)` | `GET /api/v1/llm-usage/timeseries` |
+| `modelUsage` | `llmUsageApi.getByModel(days)` | `GET /api/v1/llm-usage/by-model` |
+| `pricing` | `llmUsageApi.getPricing()` | `GET /api/v1/llm-usage/pricing` |
+
+`pricing` is fetched once on mount (doesn't change with period). Others re-fetch when `period` or `granularity` changes.
+
+### Local State
+
+| Variable | Type | Initial | Description |
+| :--- | :--- | :--- | :--- |
+| `period` | `Period` | `"month"` | Selected time period |
+| `granularity` | `Granularity` | `"daily"` | Chart resolution |
+| `loading` | `boolean` | `true` | Loading state |
+| `error` | `string \| null` | `null` | Error message |
+
+
+## Period & Days Mapping
+
+```typescript
+type Period = "day" | "week" | "month" | "3-month" | "6-month" | "year" | "all";
+
+const PERIOD_DAYS: Record<Period, number> = {
+  day: 1, week: 7, month: 30,
+  "3-month": 90, "6-month": 180, year: 365, all: 3650,
+};
+```
+
+
+## Validation & Conditions
+
+### Render Conditions
+
+| Condition | What Shows |
+| :--- | :--- |
+| `loading` | Skeleton |
+| `error !== null` | Alert with error description + ExternalLink to provider docs |
+| `modelUsage.length === 0` | Empty state in model table |
+| `granularity === "hourly"` | More granular chart; only useful for `period="day"` or `"week"` |
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Backend API | [API-LLM-Usage](/en/docs/llmsystemtrading/api/llmusage/api-llm-usage) |
+| DB Schema | [DB - llm_calls](/en/docs/llmsystemtrading/database/db-llm-calls) |

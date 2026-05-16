@@ -14,8 +14,10 @@ export default async function HomePage({
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('nav')
-  const featuredProjects = getAllContent('projects', locale).filter(p => p.featured).slice(0, 3)
-  const recentPosts = getAllContent('blog', locale).slice(0, 3)
+  const allProjects = getAllContent('projects', locale)
+  const featuredProjects = allProjects.filter(p => p.featured).slice(0, 3)
+  const allPosts = getAllContent('blog', locale)
+  const recentPosts = allPosts.slice(0, 3)
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
@@ -36,9 +38,17 @@ export default async function HomePage({
 
       {featuredProjects.length > 0 && (
         <section className="mb-16">
-          <h2 className="mb-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            Projects
-          </h2>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              Projects
+            </h2>
+            <Link
+              href={`/${locale}/projects`}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              See all ({allProjects.length})
+            </Link>
+          </div>
           <div className="space-y-6">
             {featuredProjects.map(project => {
               const images = getProjectImages(project.slug)
@@ -85,9 +95,17 @@ export default async function HomePage({
 
       {recentPosts.length > 0 && (
         <section>
-          <h2 className="mb-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            Writing
-          </h2>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              Writing
+            </h2>
+            <Link
+              href={`/${locale}/blog`}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              See all ({allPosts.length})
+            </Link>
+          </div>
           <div className="space-y-6">
             {recentPosts.map(post => {
               const images = getBlogImages(post.slug)

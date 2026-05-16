@@ -1,0 +1,58 @@
+---
+title: Page - Signals
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Live and historical AI signal feed — shows every LLM-generated trading signal (BUY/SELL/HOLD) with confidence score, rationale, and which trade was executed (if any).
+</Callout>
+
+## Route
+
+| Property | Value |
+| :--- | :--- |
+| **Path** | `/signals` |
+| **File** | `frontend/src/app/signals/page.tsx` |
+| **Auth Required** | No |
+| **Layout** | Root layout with sidebar |
+| **Dynamic Segment** | None |
+
+
+## Component Tree
+
+```
+SignalsPage (page.tsx)
+├── AppHeader (title="AI Signals")
+├── Filters: symbol, signal type (BUY/SELL/HOLD), date range
+├── Signal Feed Table
+│   └── SignalRow × N
+│       ├── Time (relative + absolute)
+│       ├── Symbol + Timeframe badge
+│       ├── Signal badge (BUY=green, SELL=red, HOLD=gray)
+│       ├── Confidence bar (0-100%)
+│       ├── Rationale (truncated, expandable)
+│       ├── Model used (provider + model name)
+│       └── Trade link (if trade_id != null)
+└── WebSocket live indicator (new signals pulse animation)
+```
+
+
+## Data Layer
+
+| Call | API | Triggered When |
+| :--- | :--- | :--- |
+| Initial load | `GET /api/v1/signals?limit=50` | On mount |
+| New signal | WebSocket `new_signal` message | Real-time via `useTradingStore` |
+
+New signals from the WebSocket are prepended via `store.addSignal(signal)` (capped at 50 in store).
+
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Backend API | [API-GET-v1-Signals](/en/docs/llmsystemtrading/api/signals/api-get-v1-signals) |
+| Backend API | [API-WS-Dashboard](/en/docs/llmsystemtrading/api/ws/api-ws-dashboard) |
+| DB Schema | [DB - ai_journal](/en/docs/llmsystemtrading/database/db-ai-journal) |
+| Store | [Store - TradingStore](/en/docs/llmsystemtrading/frontend/stores/store-tradingstore) |

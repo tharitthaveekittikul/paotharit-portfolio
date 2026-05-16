@@ -1,0 +1,90 @@
+---
+title: News Endpoints
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Manage economic calendar events — fetch from external source, view, and trigger LLM impact analysis to determine whether trading should be paused during high-impact events.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## Endpoints in this group (7 total)
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/news` | List all economic events (with filters) |
+| `GET` | `/api/v1/news/{event_id}` | Get single event detail |
+| `PATCH` | `/api/v1/news/{event_id}` | Update event fields (e.g., mark as reviewed) |
+| `POST` | `/api/v1/news/fetch` | Fetch fresh events from external calendar API |
+| `POST` | `/api/v1/news/{event_id}/analyze` | LLM analyze event impact |
+| `POST` | `/api/v1/news/{event_id}/analyze-debug` | LLM analyze with full debug output |
+| `POST` | `/api/v1/news/analyze-today` | Batch analyze all today's events |
+
+---
+
+## GET /api/v1/news
+
+> Returns economic calendar events (e.g., NFP, CPI, Fed rate decisions) filtered by date and impact level.
+
+### Request
+
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `from_date` | Query | `string` | No | Start date filter |
+| `to_date` | Query | `string` | No | End date filter |
+| `impact` | Query | `string` | No | `high` \| `medium` \| `low` |
+
+**200 OK example:**
+```json
+[
+  {
+    "id": 12,
+    "title": "Non-Farm Payrolls",
+    "currency": "USD",
+    "impact": "high",
+    "event_time": "2026-05-02T12:30:00Z",
+    "actual": "200K",
+    "forecast": "185K",
+    "previous": "175K",
+    "llm_verdict": "bullish_usd",
+    "llm_analyzed": true
+  }
+]
+```
+
+**Pydantic Schema:** `backend/api/routes/news.py :: EconomicEventResponse`
+
+---
+
+## POST /api/v1/news/fetch
+
+> Calls an external economic calendar API to pull fresh events for the next N days. Deduplicates by event time + title.
+
+**Response:** `{ "fetched": 24, "new": 8, "updated": 3 }`
+
+---
+
+## POST /api/v1/news/{event_id}/analyze
+
+> Sends event data to LLM to determine trading impact: bullish/bearish/neutral, which pairs to avoid, and whether to halt trading.
+
+---
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/news.py` |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - News](/en/docs/llmsystemtrading/frontend/pages/page-news) |

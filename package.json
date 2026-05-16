@@ -13,7 +13,8 @@
     "sync": "tsx scripts/obsidian-sync.ts",
     "sync:docs:zentri": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/Zentri\" --project zentri --output content/en/docs",
     "sync:docs:docrag": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/DocRAG\" --project docrag --output content/en/docs",
-    "sync:docs:utiliship": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/Utiliship\" --project utiliship --output content/en/docs"
+    "sync:docs:utiliship": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/Utiliship\" --project utiliship --output content/en/docs",
+    "sync:docs:llmsystemtrading": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/LLMSystemTrading\" --project llmsystemtrading --output content/en/docs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

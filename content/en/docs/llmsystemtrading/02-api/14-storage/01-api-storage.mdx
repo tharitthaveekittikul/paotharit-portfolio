@@ -1,0 +1,97 @@
+---
+title: Storage Endpoints
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Developer/admin database browser — inspect PostgreSQL tables, browse QuestDB time-series data, view Redis cache stats, and perform dangerous destructive operations (purge/truncate/flush) for maintenance.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No (⚠️ **should be protected in production**) |
+
+## Endpoints in this group (10 total)
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/storage/postgres/overview` | PostgreSQL DB size + table count |
+| `GET` | `/api/v1/storage/postgres/tables` | All tables with row count + size |
+| `GET` | `/api/v1/storage/postgres/tables/{table}/rows` | Browse rows in a table (paginated) |
+| `DELETE` | `/api/v1/storage/postgres/tables/{table}/purge` | Delete rows older than N days |
+| `DELETE` | `/api/v1/storage/postgres/tables/{table}/truncate` | ⚠️ TRUNCATE table (irreversible) |
+| `GET` | `/api/v1/storage/questdb/tables` | QuestDB tables with row count |
+| `GET` | `/api/v1/storage/questdb/tables/{table}/rows` | Browse QuestDB rows (paginated) |
+| `DELETE` | `/api/v1/storage/questdb/tables/{table}` | ⚠️ DROP QuestDB table (irreversible) |
+| `GET` | `/api/v1/storage/redis/info` | Redis memory, keys, hit rate |
+| `DELETE` | `/api/v1/storage/redis/flush` | ⚠️ Flush entire Redis cache |
+
+---
+
+## GET /api/v1/storage/postgres/overview
+
+**200 OK example:**
+```json
+{
+  "db_size_mb": 145.2,
+  "table_count": 16,
+  "connection_count": 4,
+  "postgres_version": "16.2"
+}
+```
+
+---
+
+## GET /api/v1/storage/postgres/tables
+
+**200 OK example:**
+```json
+[
+  { "table": "trades", "row_count": 12450, "size_mb": 8.4, "last_updated": "2026-05-16T14:00:00Z" },
+  { "table": "llm_calls", "row_count": 45200, "size_mb": 22.1, "last_updated": "2026-05-16T14:30:00Z" }
+]
+```
+
+---
+
+## DELETE /api/v1/storage/postgres/tables/{table}/truncate
+
+> **IRREVERSIBLE** — removes ALL rows from the table. Used in development to reset state.
+
+<Callout type="warning">
+`TRUNCATE` cannot be undone. There is no confirmation dialog on the API. The frontend should show a confirmation prompt before calling this endpoint.
+</Callout>
+
+---
+
+## GET /api/v1/storage/redis/info
+
+**200 OK example:**
+```json
+{
+  "used_memory_mb": 12.4,
+  "total_keys": 384,
+  "hit_rate_pct": 94.2,
+  "evicted_keys": 0,
+  "uptime_hours": 72
+}
+```
+
+---
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/storage.py` |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - Storage](/en/docs/llmsystemtrading/frontend/pages/page-storage) |
+| Infrastructure | [DevOps - LLMSystemTrading](/en/docs/llmsystemtrading/devops/devops-llmsystemtrading) |

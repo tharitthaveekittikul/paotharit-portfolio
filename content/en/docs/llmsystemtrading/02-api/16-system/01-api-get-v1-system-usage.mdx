@@ -1,0 +1,57 @@
+---
+title: GET System Usage
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Returns server resource metrics — CPU, memory, disk, GPU (if available), and process info — for the System Usage page.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## 🛠️ Technical Specification
+
+### Request
+
+No parameters.
+
+### 📤 Responses
+
+**200 OK example:**
+```json
+{
+  "cpu_pct": 12.4,
+  "memory_total_gb": 32.0,
+  "memory_used_gb": 14.2,
+  "memory_pct": 44.4,
+  "disk_total_gb": 512.0,
+  "disk_used_gb": 180.5,
+  "disk_pct": 35.3,
+  "gpu_name": "NVIDIA GeForce RTX 4060 Ti",
+  "gpu_memory_total_gb": 16.0,
+  "gpu_memory_used_gb": 4.2,
+  "process_count": 84,
+  "uptime_hours": 48.2
+}
+```
+
+**Pydantic Schema:** `backend/api/routes/system.py :: SystemUsage`
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/system.py` |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - System Usage](/en/docs/llmsystemtrading/frontend/pages/page-system-usage) |
+| Infrastructure | [DevOps - LLMSystemTrading](/en/docs/llmsystemtrading/devops/devops-llmsystemtrading) |

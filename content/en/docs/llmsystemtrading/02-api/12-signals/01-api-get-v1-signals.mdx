@@ -1,0 +1,64 @@
+---
+title: GET Signals
+description: ""
+type: doc
+---
+
+<Callout type="abstract">
+Returns recent AI trading signals from `ai_journal` — the live feed of LLM decisions, used by the Signals page and WebSocket broadcast.
+</Callout>
+
+## 🔒 Authentication
+
+| Property | Value |
+| :--- | :--- |
+| **Mechanism** | None |
+| **Required** | No |
+
+## 🛠️ Technical Specification
+
+### Request
+
+| Parameter | Location | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `account_id` | Query | `integer` | No | Filter by account |
+| `symbol` | Query | `string` | No | Filter by symbol |
+| `limit` | Query | `integer` | No | Max results (default: 50) |
+
+### 📤 Responses
+
+**200 OK example:**
+```json
+[
+  {
+    "id": 4821,
+    "account_id": 42,
+    "symbol": "EURUSD",
+    "timeframe": "H1",
+    "signal": "BUY",
+    "confidence": 0.82,
+    "rationale": "RSI oversold + bullish engulfing + H4 uptrend intact",
+    "llm_provider": "anthropic",
+    "model_name": "claude-opus-4-7",
+    "created_at": "2026-05-16T14:00:00Z",
+    "trade_id": 1001
+  }
+]
+```
+
+**Pydantic Schema:** `backend/api/routes/signals.py :: SignalResponse`
+
+### 🗂️ Related Files
+
+| Role | Path |
+| :--- | :--- |
+| Router | `backend/api/routes/signals.py` |
+| DB Table | [DB - ai_journal](/en/docs/llmsystemtrading/database/db-ai-journal) |
+
+## 🗂️ Related
+
+| Role | Link |
+| :--- | :--- |
+| Frontend Page | [Page - Signals](/en/docs/llmsystemtrading/frontend/pages/page-signals) |
+| DB Schema | [DB - ai_journal](/en/docs/llmsystemtrading/database/db-ai-journal) |
+| Related Endpoint | [API-WS-Dashboard](/en/docs/llmsystemtrading/api/ws/api-ws-dashboard) |
