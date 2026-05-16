@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getAllContent } from '@/lib/content'
-import { getProjectImages } from '@/lib/project-images'
+import { getProjectImages, getBlogImages } from '@/lib/project-images'
 import { Badge } from '@/components/ui/badge'
 import { ResumeLink } from '@/components/shared/ResumeLink'
 import { ProjectImageStrip } from '@/components/shared/ProjectImageStrip'
@@ -76,24 +76,33 @@ export default async function HomePage({
           <h2 className="mb-6 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Writing
           </h2>
-          <div className="space-y-4">
-            {recentPosts.map(post => (
-              <Link
-                key={post.slug}
-                href={`/${locale}/blog/${post.slug}`}
-                className="group flex flex-wrap items-baseline justify-between gap-2"
-              >
-                <span className="text-foreground group-hover:text-foreground">
-                  {post.title}
-                </span>
-                <span className="shrink-0 text-sm text-muted-foreground">
-                  {new Date(post.date).toLocaleDateString(
-                    locale === 'th' ? 'th-TH' : 'en-US',
-                    { year: 'numeric', month: 'short' }
-                  )}
-                </span>
-              </Link>
-            ))}
+          <div className="space-y-6">
+            {recentPosts.map(post => {
+              const images = getBlogImages(post.slug)
+              return (
+                <Link
+                  key={post.slug}
+                  href={`/${locale}/blog/${post.slug}`}
+                  className="group block overflow-hidden rounded-lg border border-border transition-colors hover:border-input"
+                >
+                  <div className="p-5">
+                    <h3 className="mb-1 font-semibold text-foreground">
+                      {post.title}
+                    </h3>
+                    <p className="mb-2 text-sm text-muted-foreground">
+                      {post.description}
+                    </p>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(post.date).toLocaleDateString(
+                        locale === 'th' ? 'th-TH' : 'en-US',
+                        { year: 'numeric', month: 'short' }
+                      )}
+                    </span>
+                  </div>
+                  <ProjectImageStrip images={images} />
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}

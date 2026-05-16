@@ -1,0 +1,105 @@
+---
+title: "RTK: วิธีที่ผมประหยัด Token ไปได้ 67% ตอนใช้ Claude Code"
+description: "ไม่รู้ตัวเลยว่า output จาก CLI กิน token เยอะขนาดนี้ จนกระทั่งมาเจอ RTK"
+date: 2026-05-16
+type: blog
+status: published
+featured: false
+tags: [ai, claude-code, developer-tools, tokens, productivity]
+techStack: [rtk, claude-code]
+coverImage: /blog/rtk/rtk-gain.png
+---
+
+ตอนใช้ Claude Code อยู่ดีๆ ก็สังเกตว่า ทุกครั้งที่รัน `grep`, `lint`, หรือแม้แต่ `ls` — Claude อ่าน output กลับมาเป็นร้อยบรรทัด ทั้งๆ ที่ไม่ได้ต้องการข้อมูลทั้งหมดนั้นเลย
+
+Token หมดเร็วกว่าที่คิดมากเลย
+
+## RTK คืออะไร?
+
+RTK ย่อมาจาก Rust Token Killer เป็น CLI proxy ที่นั่งอยู่ระหว่าง shell command กับ Claude Code มันจะ filter และ compress output ที่ยาวเกินความจำเป็นออกก่อนที่จะส่งเข้า context window
+
+เราไม่ต้องเปลี่ยนวิธีทำงานเลย RTK ทำงานอยู่เบื้องหลังผ่าน hook ของ Claude Code
+
+open source เขียนด้วย Rust ดูได้ที่ [github.com/rtk-ai/rtk](https://github.com/rtk-ai/rtk)
+
+## ตัวเลขจริงๆ
+
+หลังใช้ไปสักพัก ลองรัน `rtk gain --graph` ดู:
+
+![rtk gain output แสดง 157.9K tokens ที่ประหยัดได้ที่ efficiency 67.8%](/blog/rtk/rtk-gain.png)
+
+**ประหยัดไป 157.9K token หรือ 67.8%** จาก 490 commands ที่รัน `rtk lint eslint` อย่างเดียวก็ประหยัดได้ถึง 98% แล้ว `rtk grep` ก็ประหยัดไป 45%
+
+ไม่ใช่แค่เศษเล็กน้อย — นั่นคือ output ส่วนใหญ่ที่หายไปเลย
+
+## มันทำงานยังไง?
+
+เวลารัน command RTK จะ intercept ไว้ รัน command จริง แล้ว trim output ออก — เอา empty lines, redundant paths, pattern ซ้ำๆ ออก — ก่อนส่ง compact version กลับให้ Claude
+
+```
+git status  →  rtk git status  →  output กระชับขึ้น  →  Claude อ่านน้อยลง  →  จ่ายน้อยลง
+```
+
+hook ทำให้มันอัตโนมัติทั้งหมด เราแค่พิมพ์ command ตามปกติ ไม่ต้องเปลี่ยนอะไรเลย
+
+## วิธีติดตั้ง
+
+**1. ติดตั้ง RTK**
+
+**macOS**
+```bash
+brew install rtk-ai/tap/rtk
+```
+
+**Linux**
+```bash
+curl -sSf https://raw.githubusercontent.com/rtk-ai/rtk/main/install.sh | sh
+```
+
+**Windows**
+```powershell
+# ดาวน์โหลด binary ล่าสุดจาก releases page แล้วเพิ่มเข้า PATH
+# https://github.com/rtk-ai/rtk/releases
+```
+
+ทุก platform ใช้วิธี install จาก source ได้เหมือนกัน ถ้ามี Rust อยู่แล้ว:
+```bash
+cargo install rtk
+```
+
+**2. ตรวจสอบว่า install ถูกต้อง**
+
+```bash
+rtk --version   # ควรขึ้น: rtk X.Y.Z
+which rtk       # ตรวจสอบว่าได้ binary ถูกตัว
+```
+
+<Callout type="warning">
+  ถ้ารัน `rtk gain` แล้วขึ้น error ให้ check ดูก่อนว่าไม่ได้ install rtk ตัวอื่นที่ชื่อซ้ำอยู่ (reachingforthejack/rtk — Rust Type Kit) รัน `which rtk` แล้วดูว่าเป็นตัวที่ถูกต้องไหม
+</Callout>
+
+**3. เชื่อมกับ Claude Code**
+
+ทำตาม hook setup ใน [RTK README](https://github.com/rtk-ai/rtk) ทำครั้งเดียวใน `.claude/settings.json` หลังจากนั้น ทุก Bash command ที่ Claude รันจะผ่าน RTK โดยอัตโนมัติ
+
+**4. ใช้ Claude Code ตามปกติ**
+
+เท่านี้เลย RTK ทำงานเองอยู่เบื้องหลัง หลัง session ค่อยมาดู:
+
+```bash
+rtk gain            # สรุปภาพรวม
+rtk gain --graph    # กราฟแยกตาม command
+rtk gain --history  # ประวัติการใช้งาน
+```
+
+นี่คือตัวอย่าง daily breakdown หลังใช้ไปสัก 1 อาทิตย์:
+
+![rtk gain --daily แสดงยอดประหยัดแยกตามวัน](/blog/rtk/rtk-gain-daily.png)
+
+## ลองดูสิ
+
+ติดตั้งแล้วใช้ Claude Code ตามปกติสัก 1 อาทิตย์ ไม่ต้องเปลี่ยนอะไรทั้งนั้น แล้วค่อยรัน `rtk gain --graph` ดู
+
+ตัวเลขที่ขึ้นมา ผมว่าน่าจะทำให้ตกใจได้เหมือนกัน
+
+อย่างน้อยก็ตกใจแบบที่ผมตกใจอยู่

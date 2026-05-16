@@ -15,3 +15,16 @@ export function getProjectImages(slug: string): string[] {
     return []
   }
 }
+
+export function getBlogImages(slug: string): string[] {
+  const dir = path.join(process.cwd(), 'public', 'blog', slug)
+  try {
+    return fs
+      .readdirSync(dir)
+      .filter(f => IMAGE_EXTENSIONS.has(path.extname(f).toLowerCase()))
+      .sort()
+      .map(f => `/blog/${slug}/${f}`)
+  } catch {
+    return []
+  }
+}

@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllContent } from '@/lib/content'
 import { Badge } from '@/components/ui/badge'
+import { ProjectImageStrip } from '@/components/shared/ProjectImageStrip'
+import { getBlogImages } from '@/lib/project-images'
 
 export async function generateMetadata({
   params,
@@ -28,32 +30,41 @@ export default async function BlogListPage({
       {posts.length === 0 ? (
         <p className="text-zinc-500 dark:text-zinc-400">No posts yet.</p>
       ) : (
-        <div className="space-y-8">
-          {posts.map(post => (
-            <article key={post.slug}>
-              <Link href={`/${locale}/blog/${post.slug}`} className="group block">
-                <time className="mb-1 block text-sm text-zinc-400 dark:text-zinc-500">
-                  {new Date(post.date).toLocaleDateString(
-                    locale === 'th' ? 'th-TH' : 'en-US',
-                    { year: 'numeric', month: 'long', day: 'numeric' }
-                  )}
-                </time>
-                <h2 className="mb-2 text-xl font-semibold text-zinc-900 group-hover:text-black dark:text-zinc-50 dark:group-hover:text-white">
-                  {post.title}
-                </h2>
-                <p className="mb-3 text-zinc-600 dark:text-zinc-400">
-                  {post.description}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {post.tags.map(tag => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </Link>
-            </article>
-          ))}
+        <div className="space-y-6">
+          {posts.map(post => {
+            const images = getBlogImages(post.slug)
+            return (
+              <article key={post.slug}>
+                <Link
+                  href={`/${locale}/blog/${post.slug}`}
+                  className="group block overflow-hidden rounded-lg border border-border transition-colors hover:border-input"
+                >
+                  <div className="p-5">
+                    <time className="mb-1 block text-sm text-muted-foreground">
+                      {new Date(post.date).toLocaleDateString(
+                        locale === 'th' ? 'th-TH' : 'en-US',
+                        { year: 'numeric', month: 'long', day: 'numeric' }
+                      )}
+                    </time>
+                    <h2 className="mb-2 text-xl font-semibold text-foreground">
+                      {post.title}
+                    </h2>
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      {post.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {post.tags.map(tag => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <ProjectImageStrip images={images} />
+                </Link>
+              </article>
+            )
+          })}
         </div>
       )}
     </div>
