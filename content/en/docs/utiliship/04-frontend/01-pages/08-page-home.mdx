@@ -1,0 +1,70 @@
+---
+title: Page - Home
+description: ""
+type: doc
+---
+
+**Screen:** Root screen (no `AppRoute` case — entry point of `NavigationStack`)
+**File:** `Utiliship/Features/Home/HomeView.swift`
+
+## Purpose
+
+The app's entry point. Displays the full utility grid and a pinned favourites row so users can reach any tool in one tap. Hosts the `NavigationStack` that drives all feature navigation via `AppRoute`.
+
+## Component Tree
+
+```
+HomeView
+├── NavigationStack(path: $navigationPath)
+│   └── ScrollView
+│       └── VStack
+│           ├── headerSection          — greeting + Pro badge
+│           │   └── .centerOnLargeScreens()
+│           ├── utilitiesGrid          — AdaptiveGrid of UtilityCard
+│           │   └── .centerOnLargeScreens()
+│           └── Spacer
+│   └── .withBannerAd(placement: .home)
+│   └── .navigationDestination(for: AppRoute.self) { destinationView }
+│   └── toolbar → ToolbarItem(.navigationBarTrailing) → settings Button
+```
+
+## State
+
+`HomeView` uses `@State` directly (no dedicated ViewModel):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `navigationPath` | `NavigationPath` | Drives `NavigationStack`; append `AppRoute` to navigate |
+| `favoriteItems` | `[FavoriteItem]` | Pinned tools shown in the favourites strip |
+| `currentRoutes` | `[AppRoute]` | Mirrors the live path for guard against duplicate pushes |
+| `deepLinkRoute` | `Binding<AppRoute?>` | Deep-link destination injected from parent; consumed on appear |
+
+Environment objects injected:
+- `@Environment(\.appEnvironment)` — DI container
+- `@EnvironmentObject SettingsViewModel` — Pro status + nav title
+- `@EnvironmentObject LocalizationManager` — locale
+
+## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant HomeView
+    participant NavigationStack
+    participant FeatureView
+
+    User->>HomeView: tap UtilityCard
+    HomeView->>NavigationStack: navigationPath.append(AppRoute.x)
+    NavigationStack->>FeatureView: navigationDestination resolves route
+    FeatureView-->>User: feature screen appears
+
+    User->>HomeView: deep link fires
+    HomeView->>NavigationStack: navigationPath.append(deepLinkRoute)
+    Note over HomeView: deepLinkRoute set to nil after consume
+```
+
+## Related
+
+- [Architecture](Architecture)
+- [Page - Currency Converter](/en/docs/utiliship/frontend/pages/page-currency-converter)
+- [Page - Settings](/en/docs/utiliship/frontend/pages/page-settings)

@@ -1,0 +1,86 @@
+---
+title: API POST /thing-translator
+description: ""
+type: doc
+---
+
+**Method:** `POST`
+**Path:** `/thing-translator`
+**Controller:** `src/modules/thing-translator/thing-translator.controller.ts`
+**Service:** `src/modules/thing-translator/thing-translator.service.ts`
+
+## Purpose
+
+Accepts a base64-encoded image and a target language code, runs Google Cloud Vision label detection on the image to identify the primary object, then returns the detected label translated into the target language. Used by the **Currency Lens** and **Thing Translator** features in the iOS app.
+
+## Request
+
+**Body** (`ThingTranslateRequestDto`):
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `imageBase64` | `string` | Yes | Base64-encoded image bytes (no data-URL prefix) |
+| `targetLang` | `string` | No | BCP-47 language code (e.g. `"th"`, `"ja"`); defaults to `"en"` from config |
+
+**Validation:** `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`, `transform: true` — applied globally in `main.ts`.
+
+## Response
+
+**200 OK:**
+
+```json
+{
+  "label": "Coffee cup",
+  "confidence": 0.9721,
+  "translated": "แก้วกาแฟ"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `label` | `string` | Primary label from Google Vision (English) |
+| `confidence` | `number` | Vision confidence score 0–1 |
+| `translated` | `string` | `label` translated to `targetLang` |
+
+**Error:** Throws the raw error from Google Cloud SDK — no custom HTTP status mapping; NestJS default exception filter returns 500.
+
+## Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant iOS as iOS App
+    participant Ctrl as ThingTranslatorController
+    participant Svc as ThingTranslatorService
+    participant Vision as GoogleVisionClient
+    participant Translate as GoogleTranslateClient
+    participant GCV as Google Cloud Vision API
+    participant GCT as Google Cloud Translate API
+
+    iOS->>Ctrl: POST /thing-translator { imageBase64, targetLang }
+    Ctrl->>Svc: translateThing(dto)
+    Svc->>Svc: Buffer.from(imageBase64, 'base64')
+    Svc->>Vision: detectPrimaryLabel(imageBuffer)
+    Vision->>GCV: labelDetection(image)
+    GCV-->>Vision: labelAnnotations[0] { description, score }
+    Vision-->>Svc: { label, confidence }
+    Svc->>Translate: translateText(label, targetLang)
+    Translate->>GCT: translateText({ contents: [label], targetLanguageCode })
+    GCT-->>Translate: translations[0].translatedText
+    Translate-->>Svc: translated string
+    Svc-->>Ctrl: { label, confidence, translated }
+    Ctrl-->>iOS: 200 { label, confidence, translated }
+```
+
+## External Dependencies
+
+| Service | Client | Key call |
+|---------|--------|---------|
+| Google Cloud Vision | `GoogleVisionClient` (`@google-cloud/vision`) | `client.labelDetection(imageBuffer)` → first annotation |
+| Google Cloud Translate | `GoogleTranslateClient` (`@google-cloud/translate`) | `client.translateText({ parent, contents, targetLanguageCode })` |
+
+GCP credentials are resolved via Application Default Credentials (ADC) — no API key in code. `projectId` and `location` read from `ConfigService` (`gcp.projectId`, `gcp.location`).
+
+## Related
+
+- [Architecture](Architecture)
+- [Page - Currency Lens](/en/docs/utiliship/frontend/pages/page-currency-lens)
