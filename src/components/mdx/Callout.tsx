@@ -18,7 +18,7 @@ interface CalloutProps {
 
 export function Callout({ type, children }: CalloutProps) {
   return (
-    <div className={`my-4 rounded-lg border-l-4 px-4 py-3 ${styles[type]}`}>
+    <div className={`my-4 overflow-x-auto rounded-lg border-l-4 px-4 py-3 ${styles[type]}`}>
       <span className="mb-1 block text-xs font-semibold uppercase tracking-widest opacity-70">
         {type}
       </span>

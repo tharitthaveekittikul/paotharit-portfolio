@@ -14,6 +14,8 @@ export const mdxComponents: MDXComponents = {
   TradingChart,
   ZoomableImage,
   img: ZoomableImage as MDXComponents['img'],
+  table: (props) => React.createElement('div', { className: 'overflow-x-auto' }, React.createElement('table', props)),
+  code: ({ className, ...props }) => React.createElement('code', { className: `${className ?? ''} break-all`, ...props }),
   pre: (props) => {
     if ((props as Record<string, unknown>)['data-mermaid']) {
       const child = props.children as React.ReactElement<{ children?: string }>
