@@ -47,8 +47,7 @@ Every utility app on my phone did one thing: a currency converter here, a bill s
 
 ## System Architecture
 
-<Mermaid
-  chart={`
+```mermaid
 graph TD
   App["UtilishipApp\nAppEnvironment (DI)"] --> Features
   App --> Domain
@@ -90,8 +89,7 @@ graph TD
   API --> GV
   API --> GT
   Net -->|"GET /latest"| EXR
-`}
-/>
+```
 
 ## Key Technical Decisions
 

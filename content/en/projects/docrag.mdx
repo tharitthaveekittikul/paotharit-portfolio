@@ -39,7 +39,7 @@ DocRAG is a self-hosted RAG engine that handles PDFs, Excel sheets, PlantUML dia
 
 ## System Architecture
 
-<Mermaid chart={`
+```mermaid
 graph TD
   Browser[User Browser]
   Frontend[Next.js Frontend :3000]
@@ -49,14 +49,14 @@ graph TD
   Ollama[Ollama local optional]
   Cloud[OpenAI / Anthropic / Gemini]
 
-Browser --> Frontend
-Browser --> Backend
-Frontend --> Backend
-Backend --> Qdrant
-Backend --> Postgres
-Backend -.-> Ollama
-Backend -.-> Cloud
-`} />
+  Browser --> Frontend
+  Browser --> Backend
+  Frontend --> Backend
+  Backend --> Qdrant
+  Backend --> Postgres
+  Backend -.-> Ollama
+  Backend -.-> Cloud
+```
 
 ## Key Technical Decisions
 

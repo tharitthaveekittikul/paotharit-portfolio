@@ -55,8 +55,7 @@ question using LLMs. It runs entirely on your machine via Docker — your data n
 
 ## System Architecture
 
-<Mermaid
-  chart={`
+```mermaid
 graph TD
   UI[Next.js Frontend] --> API[FastAPI Backend]
   API --> Redis[Redis Queue]
@@ -66,8 +65,7 @@ graph TD
   Worker --> LLM[LLM Provider]
   LLM --> Ollama[Ollama local]
   LLM --> Cloud[OpenAI / Claude / Gemini]
-`}
-/>
+```
 
 ## Key Technical Decisions
 
