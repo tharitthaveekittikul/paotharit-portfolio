@@ -1,0 +1,117 @@
+---
+title: "POMPKINS Merchant Portal"
+description: "B2B merchant dashboard for POMPKINS — giving restaurant operators real-time order management, financial analytics, customer insights, and menu editing with drag-and-drop, built with Next.js 15 and TanStack Query."
+date: 2026-05-16
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, dashboard, saas, restaurant, tanstack, recharts]
+techStack: [nextjs, react, typescript, tailwind, tanstack-query, tanstack-table, recharts, next-intl, leaflet]
+role: "Sole Frontend Developer"
+duration: "Professional Work"
+projectStatus: "In Production"
+metrics:
+  - { label: "Pages", value: "25+" }
+  - { label: "Locales", value: "2" }
+  - { label: "Financial Modules", value: "4" }
+  - { label: "React Version", value: "19" }
+---
+
+## My Role
+
+Sole frontend developer — designed and built the entire merchant portal from scratch. The portal is the primary B2B interface for restaurant operators on the POMPKINS platform, covering order operations, financial reporting, customer analytics, and store configuration in one dashboard.
+
+## What I Built
+
+- **Dashboard** — real-time overview of orders, revenue, and activity
+- **Order management** — live order queue, delivery order tracking, and order detail drill-down
+- **Financial suite** — four views: overview, analytics charts, payout management, and profit breakdown
+- **Customer intelligence** — customer insight metrics and a location heatmap for delivery coverage
+- **Menu management** — full menu editor with drag-and-drop item reordering
+- **Store configuration** — merchant settings, open hours, employee management, and plugin toggles
+- **Operations & compliance** — contracts, bank account setup, invoice history, transactions, and review management
+- **Help center** — in-portal support page
+
+## Technical Highlights
+
+- **TanStack Query v5** — server state management for all data fetching, mutations, and cache invalidation; replaces SWR for finer-grained cache control in a data-heavy dashboard
+- **TanStack Table v8** — powers complex paginated data tables across orders, transactions, customers, and invoices with sorting and filtering
+- **Recharts** — financial analytics charts (revenue trends, order volume, profit breakdown)
+- **@dnd-kit** — drag-and-drop menu item reordering with sortable list, modifier constraints, and optimistic UI updates
+- **react-leaflet** — customer delivery location heatmap; Leaflet chosen over Google Maps for offline tile flexibility and zero per-request cost
+- **pino** — structured JSON logging with pino-pretty for readable development output; consistent log levels across API calls and user actions
+
+## Screenshots
+
+<ScreenshotGrid>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-merchant-portal/dashboard-page.png"
+      alt="Main dashboard overview"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Dashboard
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-merchant-portal/order-management-page.png"
+      alt="Order management queue"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Order Management
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-merchant-portal/order-details-page.png"
+      alt="Order detail view"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Order Details
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-merchant-portal/finance-overview-page.png"
+      alt="Financial overview"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Finance Overview
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-merchant-portal/finance-analysis-page.png"
+      alt="Financial analytics charts"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Finance Analytics
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-merchant-portal/customer-insight-page.png"
+      alt="Customer insight metrics"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Customer Insights
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-merchant-portal/customer-location-page.png"
+      alt="Customer delivery location heatmap"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Customer Location Map
+    </figcaption>
+  </figure>
+</ScreenshotGrid>

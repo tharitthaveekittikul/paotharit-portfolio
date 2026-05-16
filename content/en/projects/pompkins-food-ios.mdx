@@ -1,0 +1,120 @@
+---
+title: "POMPKINS Food iOS"
+description: "Native iOS food ordering app built with SwiftUI and Clean Architecture — featuring real-time order tracking via SSE, Live Activity Widget for Dynamic Island and lock screen, PompkinsShorts short-video feed, and an AI chatbot."
+date: 2026-05-16
+type: project
+status: published
+featured: true
+tags: [swift, swiftui, ios, food, ordering, saas, restaurant, firebase]
+techStack: [swift, swiftui, firebase, google-maps, alamofire, lottie, widgetkit]
+role: "Sole iOS Developer"
+duration: "Professional Work"
+projectStatus: "In Production"
+metrics:
+  - { label: "Feature Modules", value: "15+" }
+  - { label: "Auth Methods", value: "4" }
+  - { label: "Cache Policies", value: "5" }
+  - { label: "App Store", value: "Published" }
+---
+
+[View on App Store →](https://apps.apple.com/th/app/pompkins-food/id6749675101)
+
+## My Role
+
+Sole iOS developer — designed and built the entire native app from scratch. The app is the consumer-facing mobile client for the POMPKINS food ordering platform, published on the App Store and handling the full ordering lifecycle from discovery to delivery.
+
+## What I Built
+
+- **Home & discovery** — merchant feed with categories, spotlight sections, and nearby merchant map (Google Maps)
+- **Ordering flow** — merchant detail, menu browsing with item options, cart management, checkout, and Reservepay payment integration
+- **Real-time order tracking** — live status updates via SSE with automatic reconnection and exponential backoff
+- **Live Activity Widget** — order status on the Dynamic Island and lock screen throughout the delivery lifecycle
+- **Multi-auth** — OTP (phone + SMS), LINE, Google, and Apple Sign In
+- **PompkinsShorts** — short vertical video feed (TikTok-style) embedded in the food discovery experience
+- **Pomp Pomp chatbot** — in-app AI assistant for order help and FAQs
+- **Address management** — saved addresses with Google Maps location picker
+- **User features** — order history with pagination, favorites, reviews, notifications inbox, profile
+
+## Technical Highlights
+
+- **Clean Architecture + MVVM** — features organized into domain modules with protocol-based repositories; `@MainActor` ViewModels with `@EnvironmentObject` injection for app-wide state (location, address, session)
+- **SSE real-time tracking** — `SSEManager` with automatic reconnection and exponential backoff; properly tears down connections during app lifecycle transitions
+- **Live Activity Widget** — WidgetKit integration for Dynamic Island and lock screen order tracking, updating through each delivery stage
+- **Multi-level API cache** — five cache policies (`cacheFirst`, `networkFirst`, `cacheOnly`, `networkOnly`, `networkAndCache`) with memory + 7-day disk cache; `CachedAsyncImage` for image caching throughout
+- **Auth interceptor** — `AuthIntercepter` automatically refreshes expired JWT tokens on 401 responses, transparent to the rest of the app
+- **Secure storage** — all tokens and sensitive data stored in Keychain via `KeychainService`; `CryptoService` encrypts sensitive API payloads; certificate pinning in production
+
+## Screenshots
+
+<ScreenshotGrid>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/landing-app-1.png"
+      alt="Home feed and merchant discovery"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Home
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/merchant-view-1.png"
+      alt="Merchant detail and menu"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Merchant & Menu
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/checkout-view.png"
+      alt="Checkout flow"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Checkout
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/order-status-cooking.png"
+      alt="Real-time order status"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Order Status
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/live-activity-widget-1.png"
+      alt="Live Activity Widget on Dynamic Island and lock screen"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Live Activity Widget
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/shorts-view.png"
+      alt="PompkinsShorts short video feed"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      PompkinsShorts
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-ios/pomp-pomp-chat-bot-view-1.png"
+      alt="Pomp Pomp AI chatbot"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Pomp Pomp Chatbot
+    </figcaption>
+  </figure>
+</ScreenshotGrid>

@@ -1,0 +1,95 @@
+---
+title: "POMPKINS Food"
+description: "Consumer food ordering platform for POMPKINS — handling delivery, QR table dine-in, and QR hotel room service in a single Next.js application with real-time order tracking and bilingual support."
+date: 2026-05-16
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, food, ordering, saas, restaurant, firebase]
+techStack: [nextjs, react, typescript, tailwind, firebase, next-auth, framer-motion, zustand, swr, next-intl, google-maps]
+role: "Sole Frontend Developer"
+duration: "Professional Work"
+projectStatus: "In Production"
+metrics:
+  - { label: "Pages", value: "40+" }
+  - { label: "Order Flows", value: "3" }
+  - { label: "Locales", value: "2" }
+  - { label: "React Version", value: "19" }
+---
+
+## My Role
+
+Sole frontend developer — built the consumer food ordering platform from scratch. The platform handles three distinct ordering contexts — standard delivery/pickup, QR-based table dine-in, and QR-based hotel room service — each with its own layout, flow, and UX requirements.
+
+## What I Built
+
+- **Food discovery** — landing page, nearby merchant map with Google Maps, merchant pages with menu browsing and search
+- **Order flows** — cart, checkout, payment, real-time order status tracking, and order history
+- **QR table ordering** — scan QR at table → browse menu → add to cart → checkout → check bill
+- **QR hotel room service** — scan QR in room → set room number → browse menu → place order → track status
+- **User features** — profile, favorites, membership, push notification testing, bill export as image
+- Mobile-first responsive layouts across all ordering flows
+
+## Technical Highlights
+
+- **Three ordering contexts** — delivery/pickup, table QR (`/table-merchant/`), and hotel QR (`/hotel-service/`) each with independent layout trees via Next.js route groups, sharing cart and order logic
+- **axios-cache-interceptor** layered over SWR for aggressive caching on high-read menu and merchant data
+- **QR code generation** for table and hotel order entry links
+- **html2canvas** for client-side bill and receipt export as downloadable image
+- **Firebase + next-auth** dual auth — Firebase for identity, next-auth for session management
+- React 19 + Next.js 15 in production — an early adoption of this stack at the time of deployment
+
+## Screenshots
+
+<ScreenshotGrid>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/landing-page-1.png"
+      alt="Food ordering landing page"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Landing
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/landing-page-2.png"
+      alt="Food discovery"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Food Discovery
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/merchant-page-1.png"
+      alt="Merchant and menu page"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Merchant & Menu
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/checkout-page.png"
+      alt="Checkout flow"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Checkout
+    </figcaption>
+  </figure>
+  <figure>
+    <ZoomableImage
+      src="/projects/pompkins-food-web/order-status-pending.png"
+      alt="Real-time order status"
+      className="border border-zinc-200 dark:border-zinc-800"
+    />
+    <figcaption className="mt-1 text-center text-xs text-zinc-500">
+      Order Status
+    </figcaption>
+  </figure>
+</ScreenshotGrid>
