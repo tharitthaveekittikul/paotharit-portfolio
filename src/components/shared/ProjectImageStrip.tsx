@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 interface ProjectImageStripProps {
   images: string[]
 }
@@ -15,8 +17,14 @@ export function ProjectImageStrip({ images }: ProjectImageStripProps) {
         const isOverflowTile = showOverlay && i === 3
         return (
           <div key={src} className="relative flex-1 overflow-hidden rounded-md" style={{ height: '80px' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt="" className="h-full w-full object-cover" />
+            <Image
+              src={src}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 25vw, 200px"
+              className="object-cover"
+              priority={i === 0}
+            />
             {isOverflowTile && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/60">
                 <span className="text-sm font-medium text-white">+{overflowCount}</span>

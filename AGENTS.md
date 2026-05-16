@@ -50,6 +50,7 @@ Read `DESIGN.md` before writing any UI code. It defines:
 - Do not use `next/router` — use `next/navigation` (App Router)
 - Do not add `"use client"` unless the component genuinely needs browser APIs or event handlers
 - Do not add `console.log` to production code
+- Do not use native `<img>` — always use `Image` from `next/image`. It automatically serves WebP/AVIF and lazy-loads. Use `fill` + relative container for fixed-height thumbnails; use `width={0} height={0} sizes="100vw" style={{ width: '100%', height: 'auto' }}` when natural dimensions are unknown. Only exception: lightbox overlays that require CSS `max-h`/`max-w` behaviour.
 
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph

@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import Image from 'next/image'
 
 interface ZoomableImageProps {
   src?: string
   alt?: string
   className?: string
-  [key: string]: unknown
 }
 
-export function ZoomableImage({ src, alt = '', className, ...props }: ZoomableImageProps) {
+export function ZoomableImage({ src, alt = '', className }: ZoomableImageProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
@@ -24,14 +24,16 @@ export function ZoomableImage({ src, alt = '', className, ...props }: ZoomableIm
 
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={src}
         alt={alt}
+        width={0}
+        height={0}
+        sizes="100vw"
+        style={{ width: '100%', height: 'auto' }}
         className={`cursor-zoom-in rounded-lg${className ? ` ${className}` : ''}`}
         onClick={() => setIsOpen(true)}
         title="Click to enlarge"
-        {...(props as React.ImgHTMLAttributes<HTMLImageElement>)}
       />
       {isOpen && createPortal(
         <div
