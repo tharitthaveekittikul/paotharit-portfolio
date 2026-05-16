@@ -1,0 +1,57 @@
+---
+title: "claude-mem: Claude Code ที่จำได้ข้ามทุก Session"
+description: "Claude ลืมทุกอย่างระหว่าง session claude-mem แก้ปัญหานี้ได้ — แถมยังประหยัด token ด้วย"
+date: 2026-05-16
+type: blog
+status: published
+featured: false
+tags: [claude-code, developer-tools, tokens, productivity, ai]
+techStack: [claude-mem, claude-code]
+---
+
+ทุกครั้งที่เปิด Claude Code session ใหม่ คุณต้องเริ่มต้นจากศูนย์ ไม่มีความจำเรื่องที่ build ไปเมื่อวาน ไม่รู้ว่า bug ไหนแก้ไปแล้ว ไม่จำได้ว่าตัดสินใจอะไรไว้บ้าง งานเล็กๆ อาจไม่เป็นไร แต่ถ้าเป็น project ที่ทำต่อเนื่อง มันเหมือนเสียภาษีทุก session เลย
+
+claude-mem แก้ปัญหานี้
+
+## claude-mem คืออะไร?
+
+มันคือ memory layer แบบถาวรสำหรับ Claude Code ระหว่าง session มันจะจับทุกอย่าง — สิ่งที่คุณ build, สิ่งที่พัง, การตัดสินใจที่ทำ พอเปิด session ใหม่ มันจะ inject context ที่เกี่ยวข้องกลับเข้าไปอัตโนมัติ Claude จะเดินเข้ามาแบบรู้จัก project อยู่แล้ว
+
+มีอีก feature นึงคือ web interface ที่ `localhost:37777` ให้ browse observation ข้ามทุก session ได้ด้วย
+
+## ตัวเลขจริงๆ
+
+นี่คือตัวอย่าง session หลังจากติดตั้ง claude-mem:
+
+![claude-mem TUI แสดง context index ที่ประหยัด token ไปได้ 94%](/blog/claude-mem/tui-claude-mem.png)
+
+ประหยัดได้ 94% จากการ reuse context ไม่ใช่ตัวเลขการตลาด — มาจาก context index ใน session จริงของผม แทนที่จะต้องอธิบาย codebase ใหม่ทุกครั้ง Claude หยิบงานต่อจากจุดที่หยุดไปได้เลย
+
+## Web Interface
+
+ได้ UI ในเบราว์เซอร์มาด้วยสำหรับ explore และค้นหา memory:
+
+![claude-mem web interface แสดง observation browser พร้อม status tags](/blog/claude-mem/gui-claude-mem.png)
+
+แต่ละ observation มี tag, ค้นหาได้, และลิงก์กันอยู่ ถ้าอีกสองอาทิตย์มีอะไรพัง คุณย้อนกลับมาดูได้ว่าตอนนั้นทำอะไรอยู่กับไฟล์นั้น
+
+## วิธีติดตั้ง
+
+**Option 1 — จาก terminal**
+
+```bash
+npx claude-mem install
+```
+
+**Option 2 — จากใน Claude Code**
+
+```
+/plugin marketplace add thedotmack/claude-mem
+/plugin install claude-mem
+```
+
+Restart Claude Code เท่านั้นเลย Memory เริ่มสะสมตั้งแต่ session ถัดไป
+
+## ลองดูสิ
+
+[github.com/thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) — 76k stars, ดูแลอยู่ตลอด เป็นหนึ่งในเครื่องมือที่ติดตั้งครั้งเดียวแล้วไม่ต้องคิดถึงอีก ยกเว้นตอนที่สังเกตว่า session ไวขึ้นแค่ไหน
