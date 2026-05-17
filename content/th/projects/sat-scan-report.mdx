@@ -1,0 +1,126 @@
+---
+title: "SAT Scan Report: Security Vulnerability Reporting Pipeline"
+description: "เครื่องมือภายในที่พัฒนาที่ SCB Tech X สำหรับแปลงผลสแกนจาก Blackduck, Coverity และ Aquasec ใน Jenkins pipeline ให้เป็นรายงาน Excel พร้อมส่งอนุมัติ HQ อัตโนมัติ"
+date: 2023-01-01
+type: project
+status: published
+featured: false
+tags: [security, blackduck, coverity, aquasec, jenkins, excel, internship, scb]
+techStack: [react, jenkins, blackduck, coverity, aquasec]
+role: "Intern Developer"
+duration: "2023"
+projectStatus: "Internal Tool / Completed"
+---
+
+## ปัญหา
+
+ทุกครั้งที่ SCB Tech X จะปล่อย release ซอฟต์แวร์ต้องผ่านด่านตรวจสอบด้านความปลอดภัยก่อนที่ SCB สำนักงานใหญ่จะอนุมัติ Jenkins pipeline รัน scanner 3 ตัวอยู่แล้ว ได้แก่ Blackduck, Coverity และ Aquasec แต่ละตัวสร้าง output ในรูปแบบ PDF, CSV และ HTML ปัญหาคือขั้นตอนถัดไป — ต้องมีคนนั่งคัดลอกข้อมูลจากไฟล์เหล่านั้นมาใส่ spreadsheet ด้วยมือ จัดระดับความรุนแรงแต่ละรายการ แล้วจัดรูปแบบเป็น Excel เพียงไฟล์เดียวให้ทีม HQ ดำเนินการ ด้วยหลายโปรเจกต์และรอบ release ที่ถี่ ขั้นตอนนี้ช้า เกิดข้อผิดพลาดง่าย และทำให้กระบวนการอนุมัติติดขัด
+
+## Pipeline การสแกน
+
+การสแกนความปลอดภัยรันอัตโนมัติเป็นส่วนหนึ่งของ Jenkins deployment pipeline ทุก build เมื่อสิ้นสุด scanner 3 ตัวจะสร้างไฟล์รายงานของตัวเอง:
+
+| Scanner | ตรวจสอบอะไร | รูปแบบ output |
+|---------|------------|--------------|
+| Blackduck | ช่องโหว่ใน open-source dependencies (CVEs) | PDF / CSV |
+| Coverity | Static analysis — จุดอ่อนในโค้ด (CWEs) | HTML |
+| Aquasec | ช่องโหว่ใน container image (CVEs) | PDF |
+
+ไฟล์เหล่านี้คือวัตถุดิบ และ SAT Scan Report จะรับช่วงต่อจากนั้น
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/cve-report-example.png"
+    alt="Aquasec CVE scan report showing vulnerability severity levels"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Aquasec container scan — แบ่งระดับ Critical, High, Medium, Low, Negligible ต่อ resource
+  </figcaption>
+</figure>
+
+## วิธีการทำงาน
+
+วิศวกรล็อกอิน (email/password หรือ Microsoft SSO) เลือกโปรเจกต์และเวอร์ชัน release แล้วอัปโหลดไฟล์ output จาก scanner แอปจะ parse แต่ละไฟล์ — ดึง CVE ID, CWE ID, ชื่อ library, เวอร์ชัน, คะแนน severity — แล้วเติมข้อมูลลงตารางโดยอัตโนมัติ ไม่ต้องคัดลอกด้วยมือ
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/authenticate-page.png"
+    alt="SAT Scan Report sign-in page with Microsoft SSO option"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    หน้า Sign in — ล็อกอินด้วย email/password หรือ Microsoft SSO
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/extraction-pdf-example.png"
+    alt="Example of PDF report file being uploaded and extracted"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    PDF จาก scanner — แอปดึงแถวช่องโหว่ออกมาอัตโนมัติ
+  </figcaption>
+</figure>
+
+## Scanner 3 ตัว มุมมองเดียว
+
+ตารางหลักแบ่งเป็น tab ตาม scanner แต่ละ tab แสดงผลที่ดึงมาจากไฟล์รายงานของเครื่องมือนั้น พร้อม column สำหรับ image name, library/version, ชื่อช่องโหว่, severity, status, remark และ compensation control
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/table-scan.png"
+    alt="SAT scan main table showing Blackduck CVE findings with severity classification"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Tab Blackduck — CVE ที่ดึงจาก scan report พร้อมสำหรับการ triage
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/dependencies-report-example.png"
+    alt="Dependencies report showing library vulnerabilities"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Blackduck dependency scan — CVE ของ open-source library จัดกลุ่มตาม component
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/cwe-report-example.png"
+    alt="Coverity CWE report showing static analysis findings"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Coverity static analysis — CWE ที่พบจากการสแกน source code
+  </figcaption>
+</figure>
+
+## การจัดระดับความรุนแรง
+
+แต่ละรายการถูกจัดระดับเป็นหนึ่งใน 4 ระดับ: **Critical**, **High**, **Medium** หรือ **Low** ทีมใช้ข้อมูลนี้ตัดสินใจว่าช่องโหว่ไหนต้องแก้ก่อน release จะได้รับอนุมัติ, ยอมรับได้โดยมี compensation control ที่บันทึกไว้ หรือเลื่อนไปได้ column remark และ compensation control แก้ไขได้โดยตรงในตาราง — วิศวกรกรอกระหว่างการ review ไม่ต้องทำใน spreadsheet แยก
+
+## สร้าง Excel และการอนุมัติ HQ
+
+เมื่อทีม review ช่องโหว่ทุกรายการจากทุก scanner tab แล้ว กด "Generate Excel" จะ export การ review ทั้งหมดเป็นไฟล์ XLSX ไฟล์นั้นคือสิ่งที่ส่งต่อ — senior ตรวจสอบก่อน แล้วจึงส่งไปยังทีมความปลอดภัยของ SCB สำนักงานใหญ่เพื่ออนุมัติขั้นสุดท้าย
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/user-diagram.png"
+    alt="Use case diagram showing all user actions in SAT Scan Report System"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Use case diagram — ขอบเขตการใช้งานทั้งหมดตั้งแต่ authentication จนถึง Excel export
+  </figcaption>
+</figure>
+
+## สิ่งที่ได้เรียนรู้
+
+นี่คือโปรเจกต์ internship แรกที่มีข้อจำกัดเชิง enterprise จริงๆ — ผู้ใช้ภายในองค์กร, ขั้นตอนการอนุมัติที่เป็นทางการ, และรายงานที่มีผลกระทบด้าน compliance โดยตรง ส่วนที่น่าสนใจที่สุดคือ layer การ parse ไฟล์ แต่ละ scanner มีรูปแบบและโครงสร้าง output ต่างกัน ดังนั้น logic การดึงข้อมูลต้องรองรับหลาย layout โดยไม่มี schema กลาง การสร้างให้ทำงานได้อย่างน่าเชื่อถือและไม่มีข้อมูลหลุดโดยไม่รู้ตัว ต้องใช้ความระมัดระวังมากกว่าการทำ UI เสียอีก
