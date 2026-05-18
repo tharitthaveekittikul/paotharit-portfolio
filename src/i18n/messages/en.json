@@ -31,6 +31,25 @@
     "download": "Download PDF",
     "mobileNote": "PDF preview isn't available on mobile. Download to view."
   },
+  "education": {
+    "title": "Education",
+    "university": {
+      "name": "King Mongkut's University of Technology North Bangkok",
+      "degree": "Bachelor of Computer Engineering",
+      "years": "2020 – 2024",
+      "gpa": "GPA 3.58",
+      "honors": "Second Class Honors",
+      "ta": "Teaching Assistant, Programming Fundamental (C, Python)",
+      "volunteer": "Volunteer Lead — Computer lab setup at Ban Yang Pao School, led 25+ students",
+      "volunteerLink": "See photos →"
+    },
+    "highschool": {
+      "name": "Debsirin School",
+      "program": "Science and Mathematics Program",
+      "years": "2016 – 2019",
+      "gpa": "GPA 3.58"
+    }
+  },
   "notFound": {
     "heading": "Lost in the void",
     "body": "This page doesn't exist — but the rest of the site does.",

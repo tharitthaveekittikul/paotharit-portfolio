@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { ResumeDownloadButton } from '@/components/shared/ResumeDownloadButton'
 
@@ -9,6 +10,7 @@ export default async function ResumePage({
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('resume')
+  const edu = await getTranslations('education')
 
   return (
     <div className="mx-auto max-w-3xl px-6 pt-16 pb-8">
@@ -21,6 +23,62 @@ export default async function ResumePage({
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
         />
       </div>
+
+      <section className="mb-8">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          {edu('title')}
+        </h2>
+        <div className="space-y-4">
+          <div className="rounded-lg border border-border p-5">
+            <div className="mb-1 flex items-start justify-between gap-4">
+              <h3 className="font-semibold text-foreground">
+                {edu('university.name')}
+              </h3>
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {edu('university.years')}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {edu('university.degree')}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {edu('university.gpa')} · {edu('university.honors')}
+            </p>
+            <ul className="mt-3 list-disc space-y-1 pl-4">
+              <li className="text-sm text-muted-foreground">
+                {edu('university.ta')}
+              </li>
+              <li className="text-sm text-muted-foreground">
+                {edu('university.volunteer')}{' '}
+                <Link
+                  href={`/${locale}/blog/ban-yang-pao-volunteer`}
+                  className="text-primary hover:underline"
+                >
+                  {edu('university.volunteerLink')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-lg border border-border p-5">
+            <div className="mb-1 flex items-start justify-between gap-4">
+              <h3 className="font-semibold text-foreground">
+                {edu('highschool.name')}
+              </h3>
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {edu('highschool.years')}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {edu('highschool.program')}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {edu('highschool.gpa')}
+            </p>
+          </div>
+        </div>
+      </section>
+
       <embed
         src="/resume.pdf"
         type="application/pdf"
