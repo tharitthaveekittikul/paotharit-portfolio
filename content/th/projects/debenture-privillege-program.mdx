@@ -1,0 +1,107 @@
+---
+title: "Debenture Privilege Program: SCB Easy App Coupon Integration"
+description: "เว็บแอป full-stack ที่ฝังใน SCB Easy App ผ่าน WebView มอบสิทธิพิเศษและคูปองแก่ผู้ถือหุ้นกู้ SCB — รองรับด้วย Node.js Express API และ Spring Boot cron job ที่ migrate ผู้ใช้จาก Azure ไป AWS สำหรับระบบ Primo coupon"
+date: 2023-12-01
+type: project
+status: published
+featured: false
+tags: [react, nodejs, express, springboot, aws, azure, scb, internship, fintech, coupon]
+techStack: [react, nodejs, express, springboot, aws, azure]
+role: "Intern Developer"
+duration: "2023 – 2024"
+projectStatus: "Internal App / Status Unknown"
+---
+
+## ปัญหา
+
+ผู้ถือหุ้นกู้ SCB — ผู้ลงทุนในพันธบัตรที่ออกโดย SCB — ไม่มีช่องทางดิจิทัลในการเข้าถึงสิทธิประโยชน์และคูปองที่ผูกกับการลงทุนของตน ธนาคารต้องการส่งมอบสิทธิประโยชน์เหล่านี้ผ่าน SCB Easy App แพลตฟอร์มมือถือหลักของธนาคาร และให้ Primo บริษัทคูปองภายนอกเป็นผู้ให้บริการคูปอง ความท้าทายคือการเชื่อมต่อสามระบบที่ไม่ได้ถูกออกแบบมาเพื่อทำงานร่วมกัน ได้แก่ หน้าแอป, backend ของ SCB, และระบบ AWS ของ Primo
+
+## สถาปัตยกรรมระบบ
+
+ระบบประกอบด้วยสามบริการ:
+
+- **React web app** — ฝังใน SCB Easy App ผ่าน WebView ผู้ถือหุ้นกู้เข้าใช้งานโดยไม่ต้องออกจากแอป จากมุมมองของผู้ใช้คือหน้าจอ native ปกติ
+- **Node.js Express API** — จัดการ business logic, session management และสื่อสารกับ API ของ Primo เพื่อดึงและใช้คูปองตาม tier ของผู้ใช้แต่ละราย
+- **Spring Boot cron job** — ทำงานตามกำหนดเวลาเพื่อ migrate ผู้ถือหุ้นกู้จากระบบ Azure ของ SCB ไปยังแพลตฟอร์ม AWS ของ Primo แบ่งตาม tier
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/architecture-diagram.png"
+    alt="System architecture diagram showing React WebView, Node.js Express API, and Spring Boot cron job"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    สถาปัตยกรรมระบบ — React WebView, Express API และ Spring Boot migration job
+  </figcaption>
+</figure>
+
+## ตัวแอปพลิเคชัน
+
+ผู้ถือหุ้นกู้เปิด SCB Easy App แล้วเข้าสู่หน้า Debenture Privilege Program ซึ่งแสดงสิทธิพิเศษที่มีอยู่ตาม tier ของตน จากนั้นสามารถเรียกดูและแลกคูปองจากคาตาล็อกของ Primo ได้
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/uxui-debenture-program.png"
+    alt="Debenture Privilege Program main screen inside SCB Easy App"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Debenture Privilege Program — หน้าหลักใน SCB Easy App
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/uxui-coupon-redeem.png"
+    alt="Coupon redeem screen showing available privileges"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ขั้นตอนการแลกคูปอง — ผู้ถือหุ้นกู้เลือกรับสิทธิพิเศษจากคาตาล็อกของ Primo
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/user-diagram.png"
+    alt="Use case diagram showing stakeholder and admin interactions with the system"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Use case diagram — การโต้ตอบของผู้ถือหุ้นกู้และระบบ
+  </figcaption>
+</figure>
+
+## Migration ผู้ใช้: จาก Azure ไป AWS
+
+Primo รันบน AWS แต่ข้อมูลผู้ใช้ของ SCB อยู่บน Azure เพื่อให้ผู้ถือหุ้นกู้แต่ละรายเข้าถึงคูปองตาม tier บน Primo ได้ จำเป็นต้อง migrate บัญชีข้ามระบบ cloud และซิงก์อย่างต่อเนื่องเมื่อมีผู้ถือหุ้นกู้รายใหม่เข้ามา
+
+Spring Boot cron job จัดการส่วนนี้โดยอัตโนมัติ โดยอ่านข้อมูลผู้ถือหุ้นกู้จากระบบ Azure ของ SCB แบ่งตาม tier และสร้างบัญชีที่สอดคล้องกันบนแพลตฟอร์ม AWS ของ Primo การรันตามกำหนดเวลาทำให้ผู้ถือรายใหม่ถูก onboard โดยไม่ต้องดำเนินการด้วยมือ
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/flow-diagram-migration-user-1.png"
+    alt="User migration flow diagram part 1 — reading from Azure and segmenting by tier"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Migration flow — อ่านข้อมูลผู้ถือจาก Azure แบ่งตาม tier
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/flow-diagram-migration-user-2.png"
+    alt="User migration flow diagram part 2 — provisioning accounts on Primo AWS"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Migration flow — สร้างบัญชีผู้ถือบนแพลตฟอร์ม AWS ของ Primo
+  </figcaption>
+</figure>
+
+## สิ่งที่ได้เรียนรู้
+
+ผมสร้างทั้งสามบริการตั้งแต่ต้น — เลือก library, ตั้งค่าโครงสร้างโปรเจกต์ และเขียนโค้ดเริ่มต้นทั้งใน React app, Express API และ Spring Boot job นักพัฒนาระดับกลางสองคนในทีมมีความชำนาญด้าน backend มากกว่า ผมจึงนำด้าน frontend architecture และประสานงานระหว่างทั้งสองชั้น
+
+การทำงานที่ขอบเขตระหว่างสามระบบ (SCB, Primo และ WebView integration) หมายความว่าทุกการตัดสินใจต้องคำนึงถึงข้อจำกัดที่บางครั้งควบคุมไม่ได้ Cross-cloud user migration เป็นส่วนที่ท้าทายที่สุดจากมุมเทคนิค: การซิงก์ข้อมูล identity ระหว่าง Azure และ AWS อย่างน่าเชื่อถือโดยไม่สูญหายหรือซ้ำซ้อน ต้องการการออกแบบที่รอบคอบกว่า feature ใน service เดียวที่ผมเคยสร้างมาก่อน

@@ -1,12 +1,12 @@
 ---
 title: "SAT Scan Report: Security Vulnerability Reporting Pipeline"
 description: "เครื่องมือภายในที่พัฒนาที่ SCB Tech X สำหรับแปลงผลสแกนจาก Blackduck, Coverity และ Aquasec ใน Jenkins pipeline ให้เป็นรายงาน Excel พร้อมส่งอนุมัติ HQ อัตโนมัติ"
-date: 2023-01-01
+date: 2023-06-01
 type: project
 status: published
 featured: false
 tags: [security, blackduck, coverity, aquasec, jenkins, excel, internship, scb]
-techStack: [react, jenkins, blackduck, coverity, aquasec]
+techStack: [react, springboot, jenkins, blackduck, coverity, aquasec]
 role: "Intern Developer"
 duration: "2023"
 projectStatus: "Internal Tool / Completed"
@@ -20,11 +20,11 @@ projectStatus: "Internal Tool / Completed"
 
 การสแกนความปลอดภัยรันอัตโนมัติเป็นส่วนหนึ่งของ Jenkins deployment pipeline ทุก build เมื่อสิ้นสุด scanner 3 ตัวจะสร้างไฟล์รายงานของตัวเอง:
 
-| Scanner | ตรวจสอบอะไร | รูปแบบ output |
-|---------|------------|--------------|
-| Blackduck | ช่องโหว่ใน open-source dependencies (CVEs) | PDF / CSV |
-| Coverity | Static analysis — จุดอ่อนในโค้ด (CWEs) | HTML |
-| Aquasec | ช่องโหว่ใน container image (CVEs) | PDF |
+| Scanner   | ตรวจสอบอะไร                                | รูปแบบ output |
+| --------- | ------------------------------------------ | ------------- |
+| Blackduck | ช่องโหว่ใน open-source dependencies (CVEs) | PDF / CSV     |
+| Coverity  | Static analysis — จุดอ่อนในโค้ด (CWEs)     | HTML          |
+| Aquasec   | ช่องโหว่ใน container image (CVEs)          | PDF           |
 
 ไฟล์เหล่านี้คือวัตถุดิบ และ SAT Scan Report จะรับช่วงต่อจากนั้น
 
@@ -35,7 +35,8 @@ projectStatus: "Internal Tool / Completed"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Aquasec container scan — แบ่งระดับ Critical, High, Medium, Low, Negligible ต่อ resource
+    Aquasec container scan — แบ่งระดับ Critical, High, Medium, Low, Negligible
+    ต่อ resource
   </figcaption>
 </figure>
 
@@ -87,7 +88,8 @@ projectStatus: "Internal Tool / Completed"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Blackduck dependency scan — CVE ของ open-source library จัดกลุ่มตาม component
+    Blackduck dependency scan — CVE ของ open-source library จัดกลุ่มตาม
+    component
   </figcaption>
 </figure>
 
@@ -117,7 +119,8 @@ projectStatus: "Internal Tool / Completed"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Use case diagram — ขอบเขตการใช้งานทั้งหมดตั้งแต่ authentication จนถึง Excel export
+    Use case diagram — ขอบเขตการใช้งานทั้งหมดตั้งแต่ authentication จนถึง Excel
+    export
   </figcaption>
 </figure>
 

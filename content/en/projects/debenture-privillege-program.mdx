@@ -1,0 +1,107 @@
+---
+title: "Debenture Privilege Program: SCB Easy App Coupon Integration"
+description: "Full-stack web app embedded in SCB Easy App via WebView that delivers coupon and privilege benefits to SCB debenture holders — backed by a Node.js Express API and a Spring Boot cron job that migrates users from Azure to AWS for Primo coupon fulfillment."
+date: 2023-12-01
+type: project
+status: published
+featured: false
+tags: [react, nodejs, express, springboot, aws, azure, scb, internship, fintech, coupon]
+techStack: [react, nodejs, express, springboot, aws, azure]
+role: "Intern Developer"
+duration: "2023 – 2024"
+projectStatus: "Internal App / Status Unknown"
+---
+
+## The Problem
+
+SCB debenture holders — stakeholders who had invested in SCB-issued bonds — had no digital way to access the coupon and privilege benefits tied to their holdings. The bank wanted to deliver those benefits through SCB Easy App, the bank's primary mobile platform, and fulfil the coupons through Primo, a third-party coupon provider running its own user platform. The challenge was connecting three moving parts that were never designed to talk to each other: the app interface, the SCB backend, and Primo's AWS-based system.
+
+## System Architecture
+
+Three services make up the system:
+
+- **React web app** — embedded inside SCB Easy App via WebView. Stakeholders access the program without leaving the app; from their perspective it is a native screen.
+- **Node.js Express API** — handles business logic, session management, and communicates with Primo's APIs to fetch and redeem coupons based on each user's tier.
+- **Spring Boot cron job** — runs on a schedule to migrate debenture holders from SCB's Azure environment into Primo's AWS-based platform, segmented by tier level.
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/architecture-diagram.png"
+    alt="System architecture diagram showing React WebView, Node.js Express API, and Spring Boot cron job"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    System architecture — React WebView, Express API, and Spring Boot migration job
+  </figcaption>
+</figure>
+
+## The App
+
+Stakeholders open SCB Easy App and land on the Debenture Privilege Program screen, which shows their available privileges based on their holding tier. From there they can browse and redeem coupons through Primo's catalogue.
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/uxui-debenture-program.png"
+    alt="Debenture Privilege Program main screen inside SCB Easy App"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Debenture Privilege Program — main screen inside SCB Easy App
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/uxui-coupon-redeem.png"
+    alt="Coupon redeem screen showing available privileges"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Coupon redeem flow — stakeholders claim privileges from Primo's catalogue
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/user-diagram.png"
+    alt="Use case diagram showing stakeholder and admin interactions with the system"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Use case diagram — stakeholder and system interactions
+  </figcaption>
+</figure>
+
+## User Migration: Azure to AWS
+
+Primo runs on AWS, but SCB's user data lives in Azure. To give each debenture holder access to their tier-appropriate coupons on Primo, their accounts had to be migrated across cloud environments and kept in sync as new holders joined.
+
+The Spring Boot cron job handles this automatically: it reads debenture holder records from SCB's Azure environment, segments them by tier, and provisions the corresponding accounts on Primo's AWS platform. Running on a schedule, new holders are onboarded without manual intervention.
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/flow-diagram-migration-user-1.png"
+    alt="User migration flow diagram part 1 — reading from Azure and segmenting by tier"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Migration flow — reading holder records from Azure, segmenting by tier
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/flow-diagram-migration-user-2.png"
+    alt="User migration flow diagram part 2 — provisioning accounts on Primo AWS"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Migration flow — provisioning holder accounts on Primo's AWS platform
+  </figcaption>
+</figure>
+
+## What I Learned
+
+I bootstrapped all three services from scratch — choosing the libraries, setting up the project structure, and writing the initial code across the React app, the Express API, and the Spring Boot job. The two mid-level developers on the team had stronger backend backgrounds, so I led on the frontend architecture and coordinated across both layers.
+
+Working at the boundary between three separate systems (SCB, Primo, and the WebView integration) meant every design decision had to account for constraints I didn't always control. Cross-cloud user migration was the most technically demanding part: reliably syncing identity data between Azure and AWS without losing records or creating duplicates required more careful design than any single-service feature I had built before.
