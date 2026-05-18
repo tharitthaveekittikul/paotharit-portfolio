@@ -31,6 +31,29 @@
     "download": "ดาวน์โหลด PDF",
     "mobileNote": "ไม่สามารถแสดงตัวอย่าง PDF บนมือถือได้ กรุณาดาวน์โหลดเพื่อดู"
   },
+  "workExperience": {
+    "title": "ประสบการณ์ทำงาน",
+    "scb": {
+      "company": "SCB Tech X",
+      "role": "Software Developer Intern",
+      "years": "มิ.ย. 2566 – มี.ค. 2567",
+      "bullet1": "พัฒนาระบบ SAT Scan Report — เครื่องมือสแกนความปลอดภัยอัตโนมัติและวิเคราะห์ dependencies",
+      "bullet1Link": "SAT Scan Report →",
+      "bullet2": "พัฒนา Debenture Privilege Program — ฟีเจอร์ลงทุนหุ้นกู้สำหรับลูกค้า SCB",
+      "bullet2Link": "Debenture Privilege Program →"
+    },
+    "pompkins": {
+      "company": "POMPKINS",
+      "role": "Software Developer",
+      "years": "ก.ค. 2567 – พ.ย. 2568",
+      "bullet1": "พัฒนาแอป POMPKINS Food iOS — สั่งอาหารแบบเรียลไทม์พร้อม Live Activity widgets",
+      "bullet1Link": "POMPKINS Food iOS →",
+      "bullet2": "พัฒนาเว็บแพลตฟอร์มและ merchant portal สำหรับจัดการร้านอาหาร",
+      "bullet2Link1": "POMPKINS Web →",
+      "bullet2Link2": "POMPKINS Food Web →",
+      "bullet2Link3": "Merchant Portal →"
+    }
+  },
   "education": {
     "title": "การศึกษา",
     "university": {

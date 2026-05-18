@@ -31,6 +31,29 @@
     "download": "Download PDF",
     "mobileNote": "PDF preview isn't available on mobile. Download to view."
   },
+  "workExperience": {
+    "title": "Work Experience",
+    "scb": {
+      "company": "SCB Tech X",
+      "role": "Software Developer Intern",
+      "years": "Jun 2023 – Mar 2024",
+      "bullet1": "Built SAT Scan Report — automated security scanning and dependency analysis",
+      "bullet1Link": "SAT Scan Report →",
+      "bullet2": "Developed Debenture Privilege Program — bond investment feature for SCB customers",
+      "bullet2Link": "Debenture Privilege Program →"
+    },
+    "pompkins": {
+      "company": "POMPKINS",
+      "role": "Software Developer",
+      "years": "Jul 2024 – Nov 2025",
+      "bullet1": "Built POMPKINS Food iOS — real-time food ordering app with Live Activity widgets",
+      "bullet1Link": "POMPKINS Food iOS →",
+      "bullet2": "Developed web platforms and merchant portal for restaurant management",
+      "bullet2Link1": "POMPKINS Web →",
+      "bullet2Link2": "POMPKINS Food Web →",
+      "bullet2Link3": "Merchant Portal →"
+    }
+  },
   "education": {
     "title": "Education",
     "university": {
