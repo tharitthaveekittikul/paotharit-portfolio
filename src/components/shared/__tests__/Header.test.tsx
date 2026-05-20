@@ -27,6 +27,13 @@ describe('Header', () => {
     expect(screen.getByText('projects').closest('a')).toHaveAttribute('href', '/en/projects')
   })
 
+  it('renders the docs nav link', async () => {
+    const { Header } = await import('../Header')
+    const jsx = await Header()
+    render(jsx)
+    expect(screen.getByText('docs').closest('a')).toHaveAttribute('href', '/en/docs')
+  })
+
   it('renders email mailto link', async () => {
     const { Header } = await import('../Header')
     const jsx = await Header()

@@ -137,9 +137,19 @@ export function createDocsUtils(docsRoot: string) {
     return findFirst(buildSidebarTree(project, locale))
   }
 
-  return { buildSidebarTree, getDocBySlug, getDocContent, getFirstDocSlug }
+  function getDocsProjects(locale: string): string[] {
+    const localeDir = join(docsRoot, locale, 'docs')
+    const dir = existsSync(localeDir) ? localeDir : join(docsRoot, 'en', 'docs')
+    if (!existsSync(dir)) return []
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .sort()
+  }
+
+  return { buildSidebarTree, getDocBySlug, getDocContent, getFirstDocSlug, getDocsProjects }
 }
 
 const DOCS_ROOT = join(process.cwd(), 'content')
-export const { buildSidebarTree, getDocBySlug, getDocContent, getFirstDocSlug } =
+export const { buildSidebarTree, getDocBySlug, getDocContent, getFirstDocSlug, getDocsProjects } =
   createDocsUtils(DOCS_ROOT)

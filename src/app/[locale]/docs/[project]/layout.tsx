@@ -1,11 +1,7 @@
 import { setRequestLocale } from 'next-intl/server'
 import { buildSidebarTree } from '@/lib/docs'
+import { getDocsMeta } from '@/lib/docs-meta'
 import { Sidebar } from '@/components/docs'
-
-const PROJECT_TITLES: Record<string, string> = {
-  zentri: 'Zentri',
-  docrag: 'DocRAG',
-}
 
 export default async function ProjectDocsLayout({
   children,
@@ -17,7 +13,7 @@ export default async function ProjectDocsLayout({
   const { locale, project } = await params
   setRequestLocale(locale)
   const tree = buildSidebarTree(project, locale)
-  const title = PROJECT_TITLES[project] ?? project
+  const title = getDocsMeta(project).title
 
   return (
     <div className="flex gap-10 py-12">

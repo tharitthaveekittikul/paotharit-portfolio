@@ -3,8 +3,14 @@
     "home": "Home",
     "blog": "Blog",
     "projects": "Projects",
+    "docs": "Docs",
     "resume": "Resume",
     "about": "About"
+  },
+  "docsPage": {
+    "title": "Documentation",
+    "description": "Technical write-ups for selected projects.",
+    "empty": "No documentation available yet."
   },
   "blog": {
     "title": "Blog",

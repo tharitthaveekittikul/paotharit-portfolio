@@ -60,3 +60,19 @@ describe('getDocBySlug', () => {
     expect(getDocBySlug('testproject', ['nonexistent'], 'en')).toBeNull()
   })
 })
+
+describe('getDocsProjects', () => {
+  const { getDocsProjects } = createDocsUtils(FIXTURES)
+
+  it('returns directory names for a locale that has docs', () => {
+    expect(getDocsProjects('en')).toEqual(['testproject'])
+  })
+
+  it('returns en projects for a locale with no docs directory', () => {
+    expect(getDocsProjects('ja')).toEqual(['testproject'])
+  })
+
+  it('falls back to en docs when locale-specific dir is missing', () => {
+    expect(getDocsProjects('th')).toEqual(['testproject'])
+  })
+})
