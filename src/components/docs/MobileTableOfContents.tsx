@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { List } from 'lucide-react'
 import type { Heading } from '@/lib/docs'
+import { Button } from '@/components/ui/button'
 
 export function MobileTableOfContents({ headings }: { headings: Heading[] }) {
   const [open, setOpen] = useState(false)
@@ -48,14 +49,16 @@ export function MobileTableOfContents({ headings }: { headings: Heading[] }) {
 
   return (
     <div className="fixed top-24 right-4 z-40 lg:hidden" ref={ref}>
-      <button
+      <Button
+        variant="outline"
+        size="icon"
         onClick={() => setOpen(o => !o)}
         aria-label="Table of contents"
         aria-expanded={open}
-        className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50"
+        className="h-11 w-11 rounded-full bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 dark:hover:text-zinc-50 dark:hover:bg-zinc-900"
       >
         <List className="h-5 w-5" />
-      </button>
+      </Button>
 
       {open && (
         <div className="absolute right-0 top-full mt-2 w-64 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">

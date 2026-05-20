@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement>) {
   const preRef = useRef<HTMLPreElement>(null)
@@ -16,13 +17,14 @@ export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement>) {
   return (
     <div className="group relative">
       <pre ref={preRef} {...props} />
-      <button
+      <Button
+        variant="ghost"
         onClick={handleCopy}
-        className="cursor-pointer absolute right-2 top-2 z-10 rounded border border-white/20 bg-zinc-800/80 px-2 py-1 font-mono text-xs text-zinc-100 opacity-0 backdrop-blur-sm transition-opacity duration-150 hover:bg-zinc-700/90 group-hover:opacity-100"
         aria-label="Copy code"
+        className="absolute right-2 top-2 z-10 h-auto rounded border border-white/20 bg-zinc-800/80 px-2 py-1 font-mono text-xs text-zinc-100 opacity-0 backdrop-blur-sm transition-opacity duration-150 hover:bg-zinc-700/90 hover:text-zinc-100 group-hover:opacity-100"
       >
         {copied ? 'Copied!' : 'Copy'}
-      </button>
+      </Button>
     </div>
   )
 }

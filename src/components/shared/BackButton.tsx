@@ -1,12 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 export function BackButton({ label }: { label: string }) {
   const router = useRouter()
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={() => {
         if (window.history.length > 1) {
           router.back()
@@ -14,9 +16,8 @@ export function BackButton({ label }: { label: string }) {
           router.push('/')
         }
       }}
-      className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
     >
       {label}
-    </button>
+    </Button>
   )
 }

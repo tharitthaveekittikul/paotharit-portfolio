@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 interface MermaidProps {
   chart?: string
@@ -75,15 +76,17 @@ function MermaidModal({ chart, onClose }: { chart: string; onClose: () => void }
       className="cursor-pointer fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-8 backdrop-blur-sm"
       onClick={onClose}
     >
-      <button
-        className="cursor-pointer absolute right-5 top-5 rounded-full bg-black/40 p-1.5 text-white/80 transition-colors hover:text-white"
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={onClose}
         aria-label="Close"
+        className="absolute right-5 top-5 h-auto w-auto rounded-full bg-black/40 p-1.5 text-white/80 hover:bg-black/60 hover:text-white [&_svg]:size-auto"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
-      </button>
+      </Button>
       <div
         className="flex h-[88vh] w-[88vw] flex-col rounded-xl bg-white p-8 shadow-2xl dark:bg-zinc-900"
         onClick={e => e.stopPropagation()}

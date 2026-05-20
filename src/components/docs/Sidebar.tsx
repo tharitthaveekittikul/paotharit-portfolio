@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { SidebarNode, DocGroup, DocItem } from '@/lib/docs'
+import { Button } from '@/components/ui/button'
 
 function hasActiveDescendant(children: (DocItem | DocGroup)[], pathname: string): boolean {
   return children.some(child =>
@@ -20,13 +21,14 @@ function GroupNode({ group, depth }: { group: DocGroup; depth: number }) {
 
   return (
     <li>
-      <button
+      <Button
+        variant="ghost"
         onClick={() => setOpen(o => !o)}
-        className="cursor-pointer flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400"
+        className="h-auto w-full justify-between px-0 py-1 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400"
       >
         {group.label}
         <span>{open ? '−' : '+'}</span>
-      </button>
+      </Button>
       {open && (
         <ul className="ml-3 space-y-0.5 border-l border-zinc-200 pl-3 dark:border-zinc-800">
           {group.children.map((child, i) => (
