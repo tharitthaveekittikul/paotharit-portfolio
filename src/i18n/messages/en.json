@@ -79,6 +79,28 @@
       "gpa": "GPA 3.58"
     }
   },
+  "about": {
+    "title": "About",
+    "openToWork": "Open to new opportunities",
+    "bio": "I'm Tharit — I build AI systems, trading tools, and the kind of productivity infrastructure most people just talk about. I care about how things work under the hood and how the tools I build change the way people operate.",
+    "systems": {
+      "title": "How I operate",
+      "obsidian": {
+        "title": "Knowledge OS",
+        "description": "I run my thinking through Obsidian — 1,000+ notes organized with PARA (Projects, Areas, Resources, Archives), with Kanban boards for active projects. The graph view makes it obvious: every idea connects to something else."
+      },
+      "ai": {
+        "title": "AI Workflow",
+        "description": "Claude Code is my primary development environment. I've built custom skills, hooks, and workflows that integrate LLMs into how I write, plan, and ship code every day."
+      },
+      "homelab": {
+        "title": "Home Infrastructure",
+        "description": "I run a Synology NAS at home with Docker containers, n8n for automations, and a handful of self-hosted services. If I can automate it or self-host it, I probably have."
+      }
+    },
+    "closing": "I'm looking for a team that moves fast, cares about craft, and builds things worth building. If that sounds like your team, I'd like to talk.",
+    "linkedin": "LinkedIn →"
+  },
   "notFound": {
     "heading": "Lost in the void",
     "body": "This page doesn't exist — but the rest of the site does.",

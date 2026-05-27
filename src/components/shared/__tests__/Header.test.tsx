@@ -34,6 +34,15 @@ describe('Header', () => {
     expect(screen.getByText('docs').closest('a')).toHaveAttribute('href', '/en/docs')
   })
 
+  it('renders the About nav link', async () => {
+    const { Header } = await import('../Header')
+    const jsx = await Header()
+    render(jsx)
+    const aboutLink = screen.getByRole('link', { name: /about|เกี่ยวกับ/i })
+    expect(aboutLink).toBeInTheDocument()
+    expect(aboutLink).toHaveAttribute('href', expect.stringContaining('/about'))
+  })
+
   it('renders email mailto link', async () => {
     const { Header } = await import('../Header')
     const jsx = await Header()

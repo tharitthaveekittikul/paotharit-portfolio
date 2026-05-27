@@ -39,6 +39,12 @@ export async function Header() {
           >
             {t('docs')}
           </Link>
+          <Link
+            href={`/${locale}/about`}
+            className="hidden sm:inline-flex px-2 py-1 text-sm text-zinc-400 hover:text-zinc-50 sm:px-3 dark:text-zinc-500 dark:hover:text-zinc-900"
+          >
+            {t('about')}
+          </Link>
           <ResumeLink
             label={t('resume')}
             href={`/${locale}/resume`}
