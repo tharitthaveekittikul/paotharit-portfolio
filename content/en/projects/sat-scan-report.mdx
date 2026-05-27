@@ -12,30 +12,54 @@ duration: "2023"
 projectStatus: "Internal Tool / Completed"
 ---
 
+## Context
+
+SAT Scan is one of the internal tools built at SCB Tech X — the technology arm of SCB Group. It sits alongside internal systems like Timesheet and OT System, separate from the customer-facing products (SCB Easy, Just4U, SCB Connect) deployed under SCB X.
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/overview-SCBx.png"
+    alt="SCB X organization overview showing SAT SCAN as an internal SCB Tech X tool"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    SCB X ecosystem — SAT SCAN sits within SCB Tech X's internal tooling
+  </figcaption>
+</figure>
+
 ## The Problem
 
 Every software release at SCB Tech X had to pass a security gate before deployment could be signed off by SCB headquarters. Jenkins pipelines already ran three scanner tools — Blackduck, Coverity, and Aquasec — and each produced its own output in PDF, CSV, and HTML formats. The problem was what happened next: someone had to manually sift through all those files, copy rows into a spreadsheet, classify each finding by severity, and format everything into a single Excel report the HQ team could act on. With multiple projects and frequent release cycles, that manual step was slow, error-prone, and blocked the approval process.
 
 ## The Pipeline
 
-The security scan runs automatically as part of every Jenkins deployment pipeline. At the end of the build, three scan tools each produce their own report files:
+Every deployment starts with code. Developers push changes, the Jenkins pipeline runs, and at the end of the build three scanners each produce their own report files — the raw material that SAT Scan Report picks up from there.
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/flow-diagram-system-pre-data.png"
+    alt="Flow showing development to Jenkins pipeline deployment to scan reports"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Development → Jenkins pipeline → Coverity, Blackduck, and Aquasec reports
+  </figcaption>
+</figure>
 
 | Scanner | What it checks | Output format |
 |---------|---------------|---------------|
 | Blackduck | Open-source dependency vulnerabilities (CVEs) | PDF / CSV |
 | Coverity | Static analysis — code weaknesses (CWEs) | HTML |
-| Aquasec | Container image vulnerabilities (CVEs) | PDF |
-
-Those files are the raw material. SAT Scan Report picks up from there.
+| Aquasec | Container image vulnerabilities (CVEs) | JSON / HTML |
 
 <figure>
   <ZoomableImage
-    src="/projects/sat-scan-report/cve-report-example.png"
-    alt="Aquasec CVE scan report showing vulnerability severity levels"
+    src="/projects/sat-scan-report/data-flow.png"
+    alt="Data flow: Coverity PDF, Blackduck PDF/CSV, Aquasec JSON/HTML as inputs to Excel report sent to Security Team SCB"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Aquasec container scan — Critical, High, Medium, Low, Negligible breakdown per resource
+    Input: three scanner formats → Output: single Excel → Security Team SCB
   </figcaption>
 </figure>
 
@@ -56,12 +80,23 @@ Engineers log in (email/password or Microsoft SSO), select a project and release
 
 <figure>
   <ZoomableImage
-    src="/projects/sat-scan-report/extraction-pdf-example.png"
-    alt="Example of PDF report file being uploaded and extracted"
+    src="/projects/sat-scan-report/sat-scan-flow-1.png"
+    alt="Flow showing project selection then Coverity file upload dialog and parsed table"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Raw scanner PDF — the app parses and extracts the vulnerability rows automatically
+    Select project and release, then upload scanner files — one tab per scanner
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/sat-scan-flow-2.png"
+    alt="Flow showing Blackduck tab with suggested available fix and editable remark column"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Blackduck tab — suggested fix versions surface inline; remarks are editable directly in the table
   </figcaption>
 </figure>
 
@@ -71,12 +106,47 @@ The main table is split into tabs — one per scanner. Each tab shows the findin
 
 <figure>
   <ZoomableImage
-    src="/projects/sat-scan-report/table-scan.png"
-    alt="SAT scan main table showing Blackduck CVE findings with severity classification"
+    src="/projects/sat-scan-report/table-scan-example.png"
+    alt="SAT Scan Coverity tab showing file upload dialog and parsed CWE findings table"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Blackduck tab — CVE findings extracted from the scan report, ready for triage
+    Coverity tab — upload the scan file and findings populate the table automatically
+  </figcaption>
+</figure>
+
+### Blackduck
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/extraction-pdf-example.png"
+    alt="Example of PDF report file being uploaded and extracted"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Raw scanner PDF — the app parses and extracts the vulnerability rows automatically
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/blackduck-output-example.png"
+    alt="Blackduck output table showing hundreds of library/version/severity rows extracted"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Blackduck output — 200+ library rows extracted and ready for review
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/blackduck-report-example.png"
+    alt="How Blackduck scan data maps to Excel report columns showing component, version and severity"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Blackduck → Excel mapping — component, version, severity (C/H/M/L) mapped to report columns
   </figcaption>
 </figure>
 
@@ -91,6 +161,30 @@ The main table is split into tabs — one per scanner. Each tab shows the findin
   </figcaption>
 </figure>
 
+### Coverity
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/coverity-output-example.png"
+    alt="Coverity output showing CWE findings extracted from static analysis"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Coverity output — CWE findings extracted from static analysis
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/coverity-report-example.png"
+    alt="How Coverity CWE data maps to Excel report columns showing CWE ID and technical impact"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Coverity → Excel mapping — CWE ID and technical impact mapped to report columns
+  </figcaption>
+</figure>
+
 <figure>
   <ZoomableImage
     src="/projects/sat-scan-report/cwe-report-example.png"
@@ -102,9 +196,67 @@ The main table is split into tabs — one per scanner. Each tab shows the findin
   </figcaption>
 </figure>
 
+### Aquasec
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/aquasec-output-example.png"
+    alt="Aquasec output showing container image CVE findings extracted"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Aquasec output — container image CVE findings extracted
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/aquasec-report-example.png"
+    alt="How Aquasec scan data maps to Excel report columns"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Aquasec → Excel mapping — CVE severity and container details mapped to report columns
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/cve-report-example.png"
+    alt="Aquasec CVE scan report showing vulnerability severity levels"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Aquasec container scan — Critical, High, Medium, Low, Negligible breakdown per resource
+  </figcaption>
+</figure>
+
 ## Severity Triage
 
 Each finding is classified into one of four severity levels: **Critical**, **High**, **Medium**, or **Low**. The team uses this to decide whether a vulnerability must be fixed before the release is approved, can be accepted with a documented compensation control, or can be deferred. The remark and compensation control columns are editable directly in the table — the engineer fills them in as part of the review, not separately in a spreadsheet.
+
+## Performance
+
+Before this system existed, filling in a security report meant copying each finding by hand — roughly 20 seconds per row. With average row counts per scanner, that added up fast:
+
+| Scanner | Avg rows/sheet | Manual time/sheet |
+|---------|---------------|------------------|
+| Coverity | 50 | ~20 minutes |
+| Blackduck | 250 | ~1 hour 40 minutes |
+| Aquasec | 10 | ~3 minutes |
+
+SAT Scan Report eliminates that entirely — upload the files, the table fills automatically, then export. All three scanners done in minutes. For bulk processing, the system handles 100 Blackduck files in approximately 16 seconds.
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/100-bulk-blackduck-files-show-performance.png"
+    alt="Performance test showing 100 Blackduck files processed in approximately 16 seconds"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    100 Blackduck files bulk-mapped in ~16 seconds
+  </figcaption>
+</figure>
 
 ## Excel Generation and HQ Approval
 

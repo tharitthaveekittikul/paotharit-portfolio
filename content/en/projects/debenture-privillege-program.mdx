@@ -12,6 +12,21 @@ duration: "2023 – 2024"
 projectStatus: "Internal App / Status Unknown"
 ---
 
+## Context
+
+Debenture is one of the external products under SCB Easy, the digital banking platform within the SCB X ecosystem. It sits alongside other SCB Easy products like Just4U and SCB Connect — all served through SCB Tech X.
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/overview-SCBx.png"
+    alt="SCB X organization overview showing Debenture under SCB Easy external products"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    SCB X ecosystem — Debenture sits within SCB Easy as an external-facing product
+  </figcaption>
+</figure>
+
 ## The Problem
 
 SCB debenture holders — stakeholders who had invested in SCB-issued bonds — had no digital way to access the coupon and privilege benefits tied to their holdings. The bank wanted to deliver those benefits through SCB Easy App, the bank's primary mobile platform, and fulfil the coupons through Primo, a third-party coupon provider running its own user platform. The challenge was connecting three moving parts that were never designed to talk to each other: the app interface, the SCB backend, and Primo's AWS-based system.
@@ -23,6 +38,17 @@ Three services make up the system:
 - **React web app** — embedded inside SCB Easy App via WebView. Stakeholders access the program without leaving the app; from their perspective it is a native screen.
 - **Node.js Express API** — handles business logic, session management, and communicates with Primo's APIs to fetch and redeem coupons based on each user's tier.
 - **Spring Boot cron job** — runs on a schedule to migrate debenture holders from SCB's Azure environment into Primo's AWS-based platform, segmented by tier level.
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/overview-debenture.png"
+    alt="Debenture system overview showing SCB Easy App connected to Primo coupon provider and SCB AVS Partner ECO for authentication"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    System overview — SCB Easy App connects to Primo (coupon provider) and SCB AVS Partner ECO (authentication)
+  </figcaption>
+</figure>
 
 <figure>
   <ZoomableImage
@@ -38,6 +64,97 @@ Three services make up the system:
 ## The App
 
 Stakeholders open SCB Easy App and land on the Debenture Privilege Program screen, which shows their available privileges based on their holding tier. From there they can browse and redeem coupons through Primo's catalogue.
+
+### Flow 1 — Entry and Registration
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-flow-1.png"
+    alt="Entry flow showing navigation from SCB Easy App home to Debenture Club registration screen"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Entry flow — user taps Debenture from SCB Easy App home and registers for the Debenture Club
+  </figcaption>
+</figure>
+
+### Flow 2 — E-Coupon Browsing and Collection
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-e-coupon-flow-2.png"
+    alt="E-coupon flow showing available coupons list and collection screen inside SCB Debenture Club"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    E-coupon flow — stakeholders browse and collect digital coupons from Primo's catalogue
+  </figcaption>
+</figure>
+
+### Flow 3 — Customer Survey
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-survey-flow-3.png"
+    alt="Survey flow showing customer survey form and submission confirmation screen"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Survey flow — stakeholders complete customer surveys for product and service feedback
+  </figcaption>
+</figure>
+
+### Flow 4 — News and Promotions
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-news-flow-4.png"
+    alt="News flow showing news and promotion content for debenture holders"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    News flow — stakeholders view news and promotions relevant to their debenture program
+  </figcaption>
+</figure>
+
+### Flow 5 — Redeem Code
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-redeem-code-flow-5.png"
+    alt="Redeem code flow showing coupon code entry and confirmation screen"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Redeem code flow — stakeholders enter a coupon code to claim a privilege
+  </figcaption>
+</figure>
+
+### Flow 6 — Merchandise Coupon
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-coupon-merchandise-flow-6.png"
+    alt="Merchandise coupon flow showing physical product privilege claim with mailing address requirement"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Merchandise coupon flow — stakeholders claim physical goods privileges requiring a delivery address
+  </figcaption>
+</figure>
+
+### Flow 7 — Confirm Merchandise Delivery
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-confirm-coupon-merchandise-flow-7.png"
+    alt="Confirm merchandise delivery flow showing address confirmation form before order placement"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Delivery confirmation — stakeholders verify their mailing address before the order is placed
+  </figcaption>
+</figure>
 
 <figure>
   <ZoomableImage
@@ -97,6 +214,45 @@ The Spring Boot cron job handles this automatically: it reads debenture holder r
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
     Migration flow — provisioning holder accounts on Primo's AWS platform
+  </figcaption>
+</figure>
+
+## Batch Schedule Cron Job
+
+Beyond user migration, a daily batch schedule handles two-way data exchange between the Business Unit and Primo.
+
+The Business Unit pushes an `Active_User.xlsx` file to Azure Blob Storage every 6 months when a new active user list is available. The batch job reads this file, processes it, and exports user reference IDs to Amazon S3 for Primo to consume. Primo uses those IDs to generate `Cusref.xlsx` — the customer reference file that drives coupon eligibility. A second cron job runs the other direction: it exports `Coupon_Merchandise.xlsx` from the system back to Azure Blob Storage so the Business Unit receives the latest merchandise coupon data.
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/batch-schedule-flow-cron.png"
+    alt="Batch schedule diagram showing daily cron: BU sends Active_User to Azure Blob, batch exports to Amazon S3 for Primo Cusref, and Coupon_Merchandise exported back to BU"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Batch schedule (daily) — BU → Azure Blob → batch → Amazon S3 → Primo (Cusref.xlsx); batch → Azure Blob → BU (Coupon_Merchandise.xlsx)
+  </figcaption>
+</figure>
+
+## QA Testing
+
+Before release, the system went through SIT (System Integration Testing) across all three service layers. 452 test cases were executed with a 100% pass rate.
+
+| Test Cycle | Plan | Passed | % Pass |
+|------------|------|--------|--------|
+| SIT - Backend | 76 | 76 | 100% |
+| SIT - Batch | 36 | 36 | 100% |
+| SIT - Frontend | 340 | 340 | 100% |
+| **Total** | **452** | **452** | **100%** |
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/qa-testing-pass-example.png"
+    alt="QA test results showing 452 test cases with 100% pass rate across SIT Backend, Batch, and Frontend"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    SIT results — 452 test cases, 100% pass rate across Backend, Batch, and Frontend
   </figcaption>
 </figure>
 

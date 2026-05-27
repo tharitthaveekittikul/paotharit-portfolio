@@ -12,31 +12,54 @@ duration: "2023"
 projectStatus: "Internal Tool / Completed"
 ---
 
+## บริบท
+
+SAT Scan เป็นหนึ่งในเครื่องมือภายในที่พัฒนาโดย SCB Tech X ซึ่งเป็นหน่วยงานเทคโนโลยีของกลุ่ม SCB โดยอยู่ร่วมกับระบบภายในอื่นๆ เช่น Timesheet และ OT System แยกจากผลิตภัณฑ์สำหรับลูกค้า (SCB Easy, Just4U, SCB Connect) ที่อยู่ภายใต้ SCB X
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/overview-SCBx.png"
+    alt="SCB X organization overview showing SAT SCAN as an internal SCB Tech X tool"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    SCB X ecosystem — SAT SCAN อยู่ในกลุ่มเครื่องมือภายในของ SCB Tech X
+  </figcaption>
+</figure>
+
 ## ปัญหา
 
 ทุกครั้งที่ SCB Tech X จะปล่อย release ซอฟต์แวร์ต้องผ่านด่านตรวจสอบด้านความปลอดภัยก่อนที่ SCB สำนักงานใหญ่จะอนุมัติ Jenkins pipeline รัน scanner 3 ตัวอยู่แล้ว ได้แก่ Blackduck, Coverity และ Aquasec แต่ละตัวสร้าง output ในรูปแบบ PDF, CSV และ HTML ปัญหาคือขั้นตอนถัดไป — ต้องมีคนนั่งคัดลอกข้อมูลจากไฟล์เหล่านั้นมาใส่ spreadsheet ด้วยมือ จัดระดับความรุนแรงแต่ละรายการ แล้วจัดรูปแบบเป็น Excel เพียงไฟล์เดียวให้ทีม HQ ดำเนินการ ด้วยหลายโปรเจกต์และรอบ release ที่ถี่ ขั้นตอนนี้ช้า เกิดข้อผิดพลาดง่าย และทำให้กระบวนการอนุมัติติดขัด
 
 ## Pipeline การสแกน
 
-การสแกนความปลอดภัยรันอัตโนมัติเป็นส่วนหนึ่งของ Jenkins deployment pipeline ทุก build เมื่อสิ้นสุด scanner 3 ตัวจะสร้างไฟล์รายงานของตัวเอง:
+ทุก deployment เริ่มจากโค้ด นักพัฒนา push การเปลี่ยนแปลง Jenkins pipeline รัน และเมื่อสิ้นสุด build scanner 3 ตัวจะสร้างไฟล์รายงานของตัวเอง — ซึ่งเป็นวัตถุดิบที่ SAT Scan Report รับช่วงต่อ
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/flow-diagram-system-pre-data.png"
+    alt="Flow showing development to Jenkins pipeline deployment to scan reports"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Development → Jenkins pipeline → รายงานจาก Coverity, Blackduck และ Aquasec
+  </figcaption>
+</figure>
 
 | Scanner   | ตรวจสอบอะไร                                | รูปแบบ output |
 | --------- | ------------------------------------------ | ------------- |
 | Blackduck | ช่องโหว่ใน open-source dependencies (CVEs) | PDF / CSV     |
 | Coverity  | Static analysis — จุดอ่อนในโค้ด (CWEs)     | HTML          |
-| Aquasec   | ช่องโหว่ใน container image (CVEs)          | PDF           |
-
-ไฟล์เหล่านี้คือวัตถุดิบ และ SAT Scan Report จะรับช่วงต่อจากนั้น
+| Aquasec   | ช่องโหว่ใน container image (CVEs)          | JSON / HTML   |
 
 <figure>
   <ZoomableImage
-    src="/projects/sat-scan-report/cve-report-example.png"
-    alt="Aquasec CVE scan report showing vulnerability severity levels"
+    src="/projects/sat-scan-report/data-flow.png"
+    alt="Data flow: Coverity PDF, Blackduck PDF/CSV, Aquasec JSON/HTML as inputs to Excel report sent to Security Team SCB"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Aquasec container scan — แบ่งระดับ Critical, High, Medium, Low, Negligible
-    ต่อ resource
+    Input: สามรูปแบบ scanner → Output: Excel ไฟล์เดียว → Security Team SCB
   </figcaption>
 </figure>
 
@@ -57,12 +80,23 @@ projectStatus: "Internal Tool / Completed"
 
 <figure>
   <ZoomableImage
-    src="/projects/sat-scan-report/extraction-pdf-example.png"
-    alt="Example of PDF report file being uploaded and extracted"
+    src="/projects/sat-scan-report/sat-scan-flow-1.png"
+    alt="Flow showing project selection then Coverity file upload dialog and parsed table"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    PDF จาก scanner — แอปดึงแถวช่องโหว่ออกมาอัตโนมัติ
+    เลือกโปรเจกต์และ release แล้วอัปโหลดไฟล์ scanner — แยก tab ต่อ scanner
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/sat-scan-flow-2.png"
+    alt="Flow showing Blackduck tab with suggested available fix and editable remark column"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Tab Blackduck — เวอร์ชันที่แนะนำแสดง inline; remark แก้ไขได้โดยตรงในตาราง
   </figcaption>
 </figure>
 
@@ -72,12 +106,47 @@ projectStatus: "Internal Tool / Completed"
 
 <figure>
   <ZoomableImage
-    src="/projects/sat-scan-report/table-scan.png"
-    alt="SAT scan main table showing Blackduck CVE findings with severity classification"
+    src="/projects/sat-scan-report/table-scan-example.png"
+    alt="SAT Scan Coverity tab showing file upload dialog and parsed CWE findings table"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Tab Blackduck — CVE ที่ดึงจาก scan report พร้อมสำหรับการ triage
+    Tab Coverity — อัปโหลดไฟล์ scan แล้วผลลัพธ์จะเติมลงตารางอัตโนมัติ
+  </figcaption>
+</figure>
+
+### Blackduck
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/extraction-pdf-example.png"
+    alt="Example of PDF report file being uploaded and extracted"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    PDF จาก scanner — แอปดึงแถวช่องโหว่ออกมาอัตโนมัติ
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/blackduck-output-example.png"
+    alt="Blackduck output table showing hundreds of library/version/severity rows extracted"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Blackduck output — ดึง library มากกว่า 200 แถวพร้อม review
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/blackduck-report-example.png"
+    alt="How Blackduck scan data maps to Excel report columns showing component, version and severity"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Blackduck → Excel mapping — component, version, severity (C/H/M/L) map ลงใน column ของรายงาน
   </figcaption>
 </figure>
 
@@ -88,8 +157,31 @@ projectStatus: "Internal Tool / Completed"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Blackduck dependency scan — CVE ของ open-source library จัดกลุ่มตาม
-    component
+    Blackduck dependency scan — CVE ของ open-source library จัดกลุ่มตาม component
+  </figcaption>
+</figure>
+
+### Coverity
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/coverity-output-example.png"
+    alt="Coverity output showing CWE findings extracted from static analysis"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Coverity output — CWE ที่ดึงจาก static analysis
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/coverity-report-example.png"
+    alt="How Coverity CWE data maps to Excel report columns showing CWE ID and technical impact"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Coverity → Excel mapping — CWE ID และ technical impact map ลง column ของรายงาน
   </figcaption>
 </figure>
 
@@ -104,9 +196,67 @@ projectStatus: "Internal Tool / Completed"
   </figcaption>
 </figure>
 
+### Aquasec
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/aquasec-output-example.png"
+    alt="Aquasec output showing container image CVE findings extracted"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Aquasec output — CVE ของ container image ที่ดึงออกมา
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/aquasec-report-example.png"
+    alt="How Aquasec scan data maps to Excel report columns"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Aquasec → Excel mapping — severity CVE และรายละเอียด container map ลง column ของรายงาน
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/cve-report-example.png"
+    alt="Aquasec CVE scan report showing vulnerability severity levels"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Aquasec container scan — แบ่งระดับ Critical, High, Medium, Low, Negligible ต่อ resource
+  </figcaption>
+</figure>
+
 ## การจัดระดับความรุนแรง
 
 แต่ละรายการถูกจัดระดับเป็นหนึ่งใน 4 ระดับ: **Critical**, **High**, **Medium** หรือ **Low** ทีมใช้ข้อมูลนี้ตัดสินใจว่าช่องโหว่ไหนต้องแก้ก่อน release จะได้รับอนุมัติ, ยอมรับได้โดยมี compensation control ที่บันทึกไว้ หรือเลื่อนไปได้ column remark และ compensation control แก้ไขได้โดยตรงในตาราง — วิศวกรกรอกระหว่างการ review ไม่ต้องทำใน spreadsheet แยก
+
+## ประสิทธิภาพ
+
+ก่อนที่ระบบนี้จะมี การกรอกรายงานความปลอดภัยจากต้นทางหมายถึงการคัดลอกแต่ละรายการด้วยมือ — ประมาณ 20 วินาทีต่อแถว เมื่อนับจำนวนแถวเฉลี่ยต่อ scanner จะได้:
+
+| Scanner   | แถวเฉลี่ย/sheet | เวลาที่ใช้ด้วยมือ/sheet |
+| --------- | --------------- | ----------------------- |
+| Coverity  | 50              | ~20 นาที                |
+| Blackduck | 250             | ~1 ชั่วโมง 40 นาที       |
+| Aquasec   | 10              | ~3 นาที                 |
+
+SAT Scan Report กำจัดขั้นตอนนั้นออกทั้งหมด — อัปโหลดไฟล์ ตารางเติมอัตโนมัติ แล้ว export ได้เลย ทั้งสาม scanner เสร็จภายในไม่กี่นาที สำหรับการประมวลผลแบบ bulk ระบบรองรับ 100 ไฟล์ Blackduck ในประมาณ 16 วินาที
+
+<figure>
+  <ZoomableImage
+    src="/projects/sat-scan-report/100-bulk-blackduck-files-show-performance.png"
+    alt="Performance test showing 100 Blackduck files processed in approximately 16 seconds"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    100 ไฟล์ Blackduck bulk-mapped ในประมาณ 16 วินาที
+  </figcaption>
+</figure>
 
 ## สร้าง Excel และการอนุมัติ HQ
 
@@ -119,8 +269,7 @@ projectStatus: "Internal Tool / Completed"
     className="border border-zinc-200 dark:border-zinc-800"
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
-    Use case diagram — ขอบเขตการใช้งานทั้งหมดตั้งแต่ authentication จนถึง Excel
-    export
+    Use case diagram — ขอบเขตการใช้งานทั้งหมดตั้งแต่ authentication จนถึง Excel export
   </figcaption>
 </figure>
 

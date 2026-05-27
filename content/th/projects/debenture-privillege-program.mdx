@@ -12,6 +12,21 @@ duration: "2023 – 2024"
 projectStatus: "Internal App / Status Unknown"
 ---
 
+## บริบท
+
+Debenture เป็นหนึ่งในผลิตภัณฑ์ภายนอกภายใต้ SCB Easy แพลตฟอร์มธนาคารดิจิทัลของ SCB X โดยอยู่ร่วมกับผลิตภัณฑ์ SCB Easy อื่นๆ เช่น Just4U และ SCB Connect — ทั้งหมดให้บริการโดย SCB Tech X
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/overview-SCBx.png"
+    alt="SCB X organization overview showing Debenture under SCB Easy external products"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    SCB X ecosystem — Debenture อยู่ใน SCB Easy ในฐานะผลิตภัณฑ์สำหรับลูกค้าภายนอก
+  </figcaption>
+</figure>
+
 ## ปัญหา
 
 ผู้ถือหุ้นกู้ SCB — ผู้ลงทุนในพันธบัตรที่ออกโดย SCB — ไม่มีช่องทางดิจิทัลในการเข้าถึงสิทธิประโยชน์และคูปองที่ผูกกับการลงทุนของตน ธนาคารต้องการส่งมอบสิทธิประโยชน์เหล่านี้ผ่าน SCB Easy App แพลตฟอร์มมือถือหลักของธนาคาร และให้ Primo บริษัทคูปองภายนอกเป็นผู้ให้บริการคูปอง ความท้าทายคือการเชื่อมต่อสามระบบที่ไม่ได้ถูกออกแบบมาเพื่อทำงานร่วมกัน ได้แก่ หน้าแอป, backend ของ SCB, และระบบ AWS ของ Primo
@@ -23,6 +38,17 @@ projectStatus: "Internal App / Status Unknown"
 - **React web app** — ฝังใน SCB Easy App ผ่าน WebView ผู้ถือหุ้นกู้เข้าใช้งานโดยไม่ต้องออกจากแอป จากมุมมองของผู้ใช้คือหน้าจอ native ปกติ
 - **Node.js Express API** — จัดการ business logic, session management และสื่อสารกับ API ของ Primo เพื่อดึงและใช้คูปองตาม tier ของผู้ใช้แต่ละราย
 - **Spring Boot cron job** — ทำงานตามกำหนดเวลาเพื่อ migrate ผู้ถือหุ้นกู้จากระบบ Azure ของ SCB ไปยังแพลตฟอร์ม AWS ของ Primo แบ่งตาม tier
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/overview-debenture.png"
+    alt="Debenture system overview showing SCB Easy App connected to Primo coupon provider and SCB AVS Partner ECO for authentication"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    System overview — SCB Easy App เชื่อมต่อกับ Primo (ผู้ให้บริการคูปอง) และ SCB AVS Partner ECO (การยืนยันตัวตน)
+  </figcaption>
+</figure>
 
 <figure>
   <ZoomableImage
@@ -38,6 +64,97 @@ projectStatus: "Internal App / Status Unknown"
 ## ตัวแอปพลิเคชัน
 
 ผู้ถือหุ้นกู้เปิด SCB Easy App แล้วเข้าสู่หน้า Debenture Privilege Program ซึ่งแสดงสิทธิพิเศษที่มีอยู่ตาม tier ของตน จากนั้นสามารถเรียกดูและแลกคูปองจากคาตาล็อกของ Primo ได้
+
+### Flow 1 — เข้าใช้งานและลงทะเบียน
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-flow-1.png"
+    alt="Entry flow showing navigation from SCB Easy App home to Debenture Club registration screen"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Entry flow — ผู้ใช้กด Debenture จากหน้าหลัก SCB Easy App และลงทะเบียน Debenture Club
+  </figcaption>
+</figure>
+
+### Flow 2 — เรียกดูและเก็บ E-Coupon
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-e-coupon-flow-2.png"
+    alt="E-coupon flow showing available coupons list and collection screen inside SCB Debenture Club"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    E-coupon flow — ผู้ถือหุ้นกู้เรียกดูและเก็บคูปองดิจิทัลจากคาตาล็อกของ Primo
+  </figcaption>
+</figure>
+
+### Flow 3 — แบบสำรวจลูกค้า
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-survey-flow-3.png"
+    alt="Survey flow showing customer survey form and submission confirmation screen"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Survey flow — ผู้ถือหุ้นกู้ทำแบบสำรวจเพื่อให้ feedback เกี่ยวกับผลิตภัณฑ์และบริการ
+  </figcaption>
+</figure>
+
+### Flow 4 — ข่าวสารและโปรโมชัน
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-news-flow-4.png"
+    alt="News flow showing news and promotion content for debenture holders"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    News flow — ผู้ถือหุ้นกู้ดูข่าวสารและโปรโมชันที่เกี่ยวข้องกับโปรแกรม
+  </figcaption>
+</figure>
+
+### Flow 5 — กรอกรหัสแลกของรางวัล
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-redeem-code-flow-5.png"
+    alt="Redeem code flow showing coupon code entry and confirmation screen"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Redeem code flow — ผู้ถือหุ้นกู้กรอกรหัสคูปองเพื่อรับสิทธิพิเศษ
+  </figcaption>
+</figure>
+
+### Flow 6 — คูปองของรางวัลสินค้า
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-coupon-merchandise-flow-6.png"
+    alt="Merchandise coupon flow showing physical product privilege claim with mailing address requirement"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Merchandise coupon flow — ผู้ถือหุ้นกู้เลือกรับสิทธิ์สินค้าที่ต้องระบุที่อยู่จัดส่ง
+  </figcaption>
+</figure>
+
+### Flow 7 — ยืนยันที่อยู่จัดส่งสินค้า
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/debenture-confirm-coupon-merchandise-flow-7.png"
+    alt="Confirm merchandise delivery flow showing address confirmation form before order placement"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ยืนยันการจัดส่ง — ผู้ถือหุ้นกู้ตรวจสอบที่อยู่ก่อนยืนยันคำสั่ง
+  </figcaption>
+</figure>
 
 <figure>
   <ZoomableImage
@@ -97,6 +214,45 @@ Spring Boot cron job จัดการส่วนนี้โดยอัต�
   />
   <figcaption className="mt-1 text-center text-xs text-zinc-500">
     Migration flow — สร้างบัญชีผู้ถือบนแพลตฟอร์ม AWS ของ Primo
+  </figcaption>
+</figure>
+
+## Batch Schedule Cron Job
+
+นอกจาก user migration แล้ว batch schedule รายวันยังจัดการการแลกเปลี่ยนข้อมูลสองทิศทางระหว่าง Business Unit และ Primo
+
+Business Unit ส่งไฟล์ `Active_User.xlsx` ไปยัง Azure Blob Storage ทุก 6 เดือนเมื่อมีรายชื่อผู้ใช้งานชุดใหม่ Batch job จะอ่านไฟล์นี้ ประมวลผล และส่งออก user reference ID ไปยัง Amazon S3 เพื่อให้ Primo นำไปใช้งาน Primo ใช้ ID เหล่านั้นสร้าง `Cusref.xlsx` ซึ่งเป็นไฟล์อ้างอิงลูกค้าที่ขับเคลื่อนสิทธิ์การรับคูปอง อีก cron job หนึ่งทำงานย้อนกลับ โดยส่งออก `Coupon_Merchandise.xlsx` จากระบบกลับไปยัง Azure Blob Storage เพื่อให้ Business Unit ได้รับข้อมูลคูปองสินค้าล่าสุด
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/batch-schedule-flow-cron.png"
+    alt="Batch schedule diagram showing daily cron: BU sends Active_User to Azure Blob, batch exports to Amazon S3 for Primo Cusref, and Coupon_Merchandise exported back to BU"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Batch schedule (ทุกวัน) — BU → Azure Blob → batch → Amazon S3 → Primo (Cusref.xlsx); batch → Azure Blob → BU (Coupon_Merchandise.xlsx)
+  </figcaption>
+</figure>
+
+## QA Testing
+
+ก่อน release ระบบผ่านการทดสอบ SIT (System Integration Testing) ครอบคลุมทั้งสาม service layer โดยมีการรันทั้งหมด 452 test cases และผ่าน 100%
+
+| รอบทดสอบ | แผน | ผ่าน | % ผ่าน |
+|----------|-----|------|--------|
+| SIT - Backend | 76 | 76 | 100% |
+| SIT - Batch | 36 | 36 | 100% |
+| SIT - Frontend | 340 | 340 | 100% |
+| **รวม** | **452** | **452** | **100%** |
+
+<figure>
+  <ZoomableImage
+    src="/projects/debenture-privillege-program/qa-testing-pass-example.png"
+    alt="QA test results showing 452 test cases with 100% pass rate across SIT Backend, Batch, and Frontend"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ผล SIT — 452 test cases ผ่านทั้งหมด 100% ใน Backend, Batch และ Frontend
   </figcaption>
 </figure>
 
