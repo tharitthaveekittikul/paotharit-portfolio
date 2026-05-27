@@ -25,4 +25,11 @@ describe('EmailLink', () => {
       'mailto:tharit.thaveekittikul@gmail.com'
     )
   })
+
+  it('renders inline variant without pill background', () => {
+    render(<EmailLink variant="inline" />)
+    const link = screen.getByRole('link')
+    expect(link.className).toContain('text-muted-foreground')
+    expect(link.className).not.toContain('rounded-full')
+  })
 })

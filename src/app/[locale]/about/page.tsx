@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import { EmailLink } from "@/components/shared/EmailLink";
+import { ZoomableImage } from "@/components/mdx/ZoomableImage";
 
 export async function generateMetadata({
   params,
@@ -27,13 +27,12 @@ export default async function AboutPage({
     <div className="mx-auto max-w-3xl px-6 py-16">
       <section className="mb-20">
         <div className="flex items-start gap-6">
-          <Image
-            src="/about/profile.png"
-            alt="Tharit Thaveekittikul"
-            width={96}
-            height={96}
-            className="rounded-lg object-cover shrink-0"
-          />
+          <div className="w-[136px] h-[136px] shrink-0 overflow-hidden rounded-lg">
+            <ZoomableImage
+              src="/about/profile.png"
+              alt="Tharit Thaveekittikul"
+            />
+          </div>
           <div>
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-foreground">
@@ -53,14 +52,10 @@ export default async function AboutPage({
         </h2>
         <div className="space-y-6">
           <div className="overflow-hidden rounded-lg border border-border">
-            <div className="relative aspect-video w-full">
-              <Image
-                src="/about/obsidian-graph.png"
-                alt="Obsidian knowledge graph"
-                fill
-                className="object-cover"
-              />
-            </div>
+            <ZoomableImage
+              src="/about/obsidian-graph.png"
+              alt="Obsidian knowledge graph"
+            />
             <div className="p-5">
               <h3 className="mb-2 font-semibold text-foreground">
                 {t("systems.obsidian.title")}
@@ -76,7 +71,7 @@ export default async function AboutPage({
       <section>
         <p className="mb-6 max-w-xl text-muted-foreground">{t("closing")}</p>
         <div className="flex items-center gap-4">
-          <EmailLink />
+          <EmailLink variant="inline" />
           <a
             href="https://www.linkedin.com/in/paotharit/"
             target="_blank"
