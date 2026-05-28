@@ -5,7 +5,8 @@
     "projects": "Projects",
     "docs": "Docs",
     "resume": "Resume",
-    "about": "About"
+    "about": "About",
+    "moreLinks": "More navigation links"
   },
   "docsPage": {
     "title": "Documentation",

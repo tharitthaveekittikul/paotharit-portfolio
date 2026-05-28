@@ -9,6 +9,11 @@ vi.mock('next-intl/server', () => ({
 vi.mock('../SearchButton', () => ({ SearchButton: () => <button>Search</button> }))
 vi.mock('../LocaleSwitcher', () => ({ LocaleSwitcher: () => <button>Locale</button> }))
 vi.mock('../ThemeToggle', () => ({ ThemeToggle: () => <button>Theme</button> }))
+vi.mock('../MobileMenu', () => ({
+  MobileMenu: ({ labels }: { labels: { docs: string; about: string; resume: string; moreLinks: string } }) => (
+    <button aria-label="More navigation links">{labels.docs}</button>
+  ),
+}))
 
 describe('Header', () => {
   it('renders the logo link pointing to locale root', async () => {
@@ -31,7 +36,7 @@ describe('Header', () => {
     const { Header } = await import('../Header')
     const jsx = await Header()
     render(jsx)
-    expect(screen.getByText('docs').closest('a')).toHaveAttribute('href', '/en/docs')
+    expect(screen.getByRole('link', { name: /docs/i })).toHaveAttribute('href', '/en/docs')
   })
 
   it('renders the About nav link', async () => {
@@ -49,5 +54,12 @@ describe('Header', () => {
     render(jsx)
     const emailLink = screen.getByRole('link', { name: /tharit\.thaveekittikul@gmail\.com/i })
     expect(emailLink).toHaveAttribute('href', 'mailto:tharit.thaveekittikul@gmail.com')
+  })
+
+  it('renders MobileMenu with correct labels and locale', async () => {
+    const { Header } = await import('../Header')
+    const jsx = await Header()
+    render(jsx)
+    expect(screen.getByRole('button', { name: /more navigation links/i })).toBeInTheDocument()
   })
 })
