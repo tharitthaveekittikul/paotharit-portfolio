@@ -5,8 +5,8 @@ import { LocaleSwitcher } from './LocaleSwitcher'
 import { SearchButton } from "./SearchButton"
 import { SocialLinks } from './SocialLinks'
 import { EmailLink } from './EmailLink'
-import { ResumeLink } from './ResumeLink'
 import { MobileMenu } from './MobileMenu'
+import { NavLinks } from './NavLinks'
 
 export async function Header() {
   const locale = await getLocale()
@@ -21,43 +21,22 @@ export async function Header() {
         >
           paotharit
         </Link>
-        <div className="flex items-center">
-          <Link
-            href={`/${locale}/blog`}
-            className="px-1.5 py-1 text-sm text-zinc-400 hover:text-zinc-50 sm:px-3 dark:text-zinc-500 dark:hover:text-zinc-900"
-          >
-            {t('blog')}
-          </Link>
-          <Link
-            href={`/${locale}/projects`}
-            className="px-1.5 py-1 text-sm text-zinc-400 hover:text-zinc-50 sm:px-3 dark:text-zinc-500 dark:hover:text-zinc-900"
-          >
-            {t('projects')}
-          </Link>
-          <Link
-            href={`/${locale}/docs`}
-            className="hidden sm:inline-flex px-2 py-1 text-sm text-zinc-400 hover:text-zinc-50 sm:px-3 dark:text-zinc-500 dark:hover:text-zinc-900"
-          >
-            {t('docs')}
-          </Link>
-          <Link
-            href={`/${locale}/about`}
-            className="hidden sm:inline-flex px-2 py-1 text-sm text-zinc-400 hover:text-zinc-50 sm:px-3 dark:text-zinc-500 dark:hover:text-zinc-900"
-          >
-            {t('about')}
-          </Link>
-          <ResumeLink
-            label={t('resume')}
-            href={`/${locale}/resume`}
-            location="nav"
-            className="hidden px-2 py-1 text-sm text-zinc-400 hover:text-zinc-50 sm:inline-flex sm:px-3 dark:text-zinc-500 dark:hover:text-zinc-900"
-          />
-          <MobileMenu
-            locale={locale}
-            labels={{ docs: t('docs'), about: t('about'), resume: t('resume'), moreLinks: t('moreLinks') }}
-            resumeHref={`/${locale}/resume`}
-          />
-        </div>
+        <NavLinks
+          locale={locale}
+          labels={{
+            blog: t('blog'),
+            projects: t('projects'),
+            docs: t('docs'),
+            about: t('about'),
+            resume: t('resume'),
+          }}
+          resumeHref={`/${locale}/resume`}
+        />
+        <MobileMenu
+          locale={locale}
+          labels={{ docs: t('docs'), about: t('about'), resume: t('resume'), moreLinks: t('moreLinks') }}
+          resumeHref={`/${locale}/resume`}
+        />
         <div data-testid="social-links" className="hidden lg:flex items-center">
           <SocialLinks className="p-2 text-zinc-400 hover:text-zinc-50 dark:text-zinc-500 dark:hover:text-zinc-900" />
         </div>

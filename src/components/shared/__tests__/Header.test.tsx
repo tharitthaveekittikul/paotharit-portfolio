@@ -15,6 +15,17 @@ vi.mock('../MobileMenu', () => ({
   ),
 }))
 
+vi.mock('../NavLinks', () => ({
+  NavLinks: ({ labels }: { labels: Record<string, string> }) => (
+    <div data-testid="nav-links">
+      <a href="/en/blog">{labels.blog}</a>
+      <a href="/en/projects">{labels.projects}</a>
+      <a href="/en/docs">{labels.docs}</a>
+      <a href="/en/about">{labels.about}</a>
+    </div>
+  ),
+}))
+
 describe('Header', () => {
   it('renders the logo link pointing to locale root', async () => {
     const { Header } = await import('../Header')
