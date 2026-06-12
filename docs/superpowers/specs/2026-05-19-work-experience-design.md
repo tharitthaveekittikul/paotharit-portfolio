@@ -1,6 +1,6 @@
 # Work Experience Section — Design Spec
 
-**Date:** 2026-05-19  
+**Date:** 2026-05-19
 **Status:** Approved
 
 ## Overview
@@ -15,27 +15,27 @@ Add a Work Experience section to the resume page (`/resume`) above the existing 
 
 ### SCB Tech X
 
-| Field | Value |
-|-------|-------|
-| Company | SCB Tech X |
-| Role | Software Developer Intern |
-| Dates | Jun 2023 – Mar 2024 |
+| Field    | Value                                                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------- |
+| Company  | SCB Tech X                                                                                                          |
+| Role     | Software Developer Intern                                                                                           |
+| Dates    | Jun 2023 – Mar 2024                                                                                                 |
 | Bullet 1 | Built SAT Scan Report — automated security scanning and dependency analysis → linked to `/projects/sat-scan-report` |
-| Bullet 2 | Developed Debenture Privilege Program — bond investment feature → linked to `/projects/debenture-privillege-program` |
-| Photos | 3 team/workplace photos at `public/work/scb/1.JPG`, `2.JPG`, `3.JPG` |
+| Bullet 2 | Developed Debenture Privilege Program — bond investment feature → linked to `/projects/debenture-privilege-program` |
+| Photos   | 3 team/workplace photos at `public/work/scb/1.JPG`, `2.JPG`, `3.JPG`                                                |
 
 Photo strip: horizontal row of `next/image` thumbnails, `h-24 w-auto object-cover rounded`, rendered below bullets.
 
 ### POMPKINS
 
-| Field | Value |
-|-------|-------|
-| Company | POMPKINS |
-| Role | Software Developer |
-| Dates | Jul 2024 – Nov 2025 |
-| Bullet 1 | Built POMPKINS Food iOS — real-time food ordering with Live Activity widgets → linked to `/projects/pompkins-food-ios` |
+| Field    | Value                                                                                                                                              |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Company  | POMPKINS                                                                                                                                           |
+| Role     | Software Developer                                                                                                                                 |
+| Dates    | Jul 2024 – Nov 2025                                                                                                                                |
+| Bullet 1 | Built POMPKINS Food iOS — real-time food ordering with Live Activity widgets → linked to `/projects/pompkins-food-ios`                             |
 | Bullet 2 | Developed web platform and merchant portal for restaurant management → linked to `/projects/pompkins-web` and `/projects/pompkins-merchant-portal` |
-| Photos | None |
+| Photos   | None                                                                                                                                               |
 
 ## Card HTML/JSX structure
 
@@ -65,6 +65,7 @@ Mirrors Education exactly:
 New `workExperience` namespace added to both `src/i18n/messages/en.json` and `src/i18n/messages/th.json`.
 
 Key structure:
+
 ```json
 "workExperience": {
   "title": "Work Experience",
@@ -94,12 +95,12 @@ Thai translations use the same keys with Thai text.
 
 ## Files changed
 
-| File | Change |
-|------|--------|
-| `src/i18n/messages/en.json` | Add `workExperience` namespace |
-| `src/i18n/messages/th.json` | Add `workExperience` namespace (Thai) |
-| `src/app/[locale]/resume/page.tsx` | Add Work Experience section above Education |
-| `public/work/scb/1.JPG`, `2.JPG`, `3.JPG` | Intern team photos (already present) |
+| File                                      | Change                                      |
+| ----------------------------------------- | ------------------------------------------- |
+| `src/i18n/messages/en.json`               | Add `workExperience` namespace              |
+| `src/i18n/messages/th.json`               | Add `workExperience` namespace (Thai)       |
+| `src/app/[locale]/resume/page.tsx`        | Add Work Experience section above Education |
+| `public/work/scb/1.JPG`, `2.JPG`, `3.JPG` | Intern team photos (already present)        |
 
 ## Out of scope
 

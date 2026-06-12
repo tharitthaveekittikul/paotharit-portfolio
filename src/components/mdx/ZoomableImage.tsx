@@ -9,9 +9,10 @@ interface ZoomableImageProps {
   src?: string
   alt?: string
   className?: string
+  priority?: boolean
 }
 
-export function ZoomableImage({ src, alt = '', className }: ZoomableImageProps) {
+export function ZoomableImage({ src, alt = '', className, priority }: ZoomableImageProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export function ZoomableImage({ src, alt = '', className }: ZoomableImageProps) 
         width={0}
         height={0}
         sizes="100vw"
+        priority={priority}
         style={{ width: '100%', height: 'auto' }}
         className={`cursor-zoom-in rounded-lg${className ? ` ${className}` : ''}`}
         onClick={() => setIsOpen(true)}

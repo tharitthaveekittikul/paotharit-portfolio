@@ -56,7 +56,7 @@ export default async function ResumePage({
               <li className="text-sm text-muted-foreground">
                 {work('scb.bullet2')}{' '}
                 <Link
-                  href={`/${locale}/projects/debenture-privillege-program`}
+                  href={`/${locale}/projects/debenture-privilege-program`}
                   className="text-primary hover:underline"
                 >
                   {work('scb.bullet2Link')}
@@ -70,6 +70,7 @@ export default async function ResumePage({
                     src={`/work/scb/${n}.JPG`}
                     alt={`SCB Tech X intern photo ${n}`}
                     fill
+                    sizes="128px"
                     className="object-cover"
                   />
                 </div>

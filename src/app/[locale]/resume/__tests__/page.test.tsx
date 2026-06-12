@@ -56,7 +56,7 @@ describe('ResumePage', () => {
     const satLink = screen.getByText('workExperience.scb.bullet1Link')
     expect(satLink.closest('a')?.getAttribute('href')).toBe('/en/projects/sat-scan-report')
     const debLink = screen.getByText('workExperience.scb.bullet2Link')
-    expect(debLink.closest('a')?.getAttribute('href')).toBe('/en/projects/debenture-privillege-program')
+    expect(debLink.closest('a')?.getAttribute('href')).toBe('/en/projects/debenture-privilege-program')
   })
 
   it('renders project links in POMPKINS entry', async () => {
