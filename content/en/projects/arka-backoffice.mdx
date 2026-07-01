@@ -1,0 +1,226 @@
+---
+title: "ARKA Backoffice"
+description: "Full-stack web backoffice for ARKA Bangkok — real-time stock tracking with QR fulfillment, purchase orders, cost analysis, RBAC, and an immutable audit trail. Replaced spreadsheets for a live clothing business."
+date: 2026-06-24
+type: project
+status: published
+featured: true
+tags:
+  [next-js, supabase, typescript, tailwind, shadcn-ui, pwa, rbac, postgresql]
+techStack: [next-js, supabase, typescript, shadcn-ui, pwa, vercel]
+role: "Solo Developer"
+duration: "2026"
+projectStatus: "Active / Internal Tool"
+---
+
+ARKA's Bangkok clothing store ran on spreadsheets. Stock counts were unreliable, purchase orders lived in chat threads, and product returns were handled manually in LINE. I built ARKA Backoffice to replace all of it — a full-stack web system with real-time stock tracking, QR-code fulfillment for warehouse staff, supplier purchase orders, cost analysis, and a role-based access system with an immutable audit trail.
+
+## About ARKA
+
+[ARKA](https://www.instagram.com/arka.bkk/) is a Bangkok women's clothing store selling across Instagram, Shopee, TikTok, and Lazada. The store is run by a small team and as order volume grew, spreadsheet-based operations started introducing errors — stock counts nobody trusted, purchase orders tracked in chat, returns handled by hand.
+
+## The Problem
+
+Before the backoffice existed, everything was manual:
+
+- **Stock**: Counts lived in spreadsheets, updated by hand after each sale or restock. No history, no audit trail.
+- **Purchase orders**: Created in chat messages and documents. No structured tracking, no shipment status.
+- **Product returns**: Customers messaged LINE, staff recorded exchanges manually.
+- **Employees**: No access control — whoever had the spreadsheet link could edit everything.
+- **Financials**: COGS, landed costs, and cashflow had to be calculated separately after the fact.
+
+## Dashboard
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/dashboard-overview.png"
+    alt="ARKA Backoffice dashboard overview"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Dashboard — at-a-glance view of stock levels, recent transactions, and
+    business activity.
+  </figcaption>
+</figure>
+
+## Products
+
+Every style in the store has a product record with one or more variants — each variant represents a unique color and size combination. Each variant gets a SKU in the format `{StyleCode}-{ColorCode}-{Size}` (e.g., `JN02-DF-M`) and a printable QR-code label generated server-side.
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/products-list-view-mode.png"
+    alt="Products page in list view mode"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Products list — toggle between list and card view. Filter by style, color,
+    or size.
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/products-card-view-mode.png"
+    alt="Products page in card view mode"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Card view — visual overview of product images with stock status at a glance.
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/edit-product.png"
+    alt="Edit product page with variant management"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Edit product — manage variants, generate SKU labels, and print QR codes for
+    the warehouse.
+  </figcaption>
+</figure>
+
+## Stock Management
+
+The core feature. Every variant's current stock is computed as the sum of its `stock_transactions` — an append-only ledger where each row records a quantity movement. No row is ever updated or deleted; Supabase RLS enforces this at the database level.
+
+For fulfillment staff on the warehouse floor, stock-in and stock-out run through a mobile-optimized PWA — installable from the browser, no app store required. The stock-in flow:
+
+1. Open `/stock/in` on mobile
+2. Scan the QR code on the product label → SKU auto-fills
+3. Enter quantity → submit
+4. A `stock_transaction` row is created immediately
+
+Stock out follows the same pattern on `/stock/sale`. The QR code encodes the SKU directly so staff can also type it manually if scanning fails.
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/stocks-list-view-mode.png"
+    alt="Stock management in list view mode"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Stock list — current stock per variant, computed from the transaction
+    ledger.
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/stocks-card-view-mode.png"
+    alt="Stock management in card view mode"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Card view — visual stock overview, useful for quick warehouse checks.
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/stock-details.png"
+    alt="Stock detail page showing transaction history"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Stock detail — full transaction history for one variant. Every movement is
+    timestamped and attributed.
+  </figcaption>
+</figure>
+
+<Callout type="note">
+  Stock-in and stock-out demonstration GIFs are coming soon.
+</Callout>
+
+## Supplier Orders & Shipment Batches
+
+Purchase orders record what was ordered from each supplier — style, color, size, quantity, and unit price. When goods arrive, a shipment batch captures the actual quantities received against the PO. Discrepancies (short shipment, overdelivery) are flagged for review.
+
+Landed cost calculation rolls in the supplier price, freight, and import/export tax duties to produce a true COGS per unit. This feeds directly into the cost analysis view.
+
+<Callout type="note">
+  Purchase order flow, shipment batches, and export tax screenshots are coming
+  soon.
+</Callout>
+
+## Product Returns
+
+When a customer needs to return or exchange an item, they fill out a Tally form. A webhook fires to `/api/webhooks/tally-return`, which parses the submission and creates a return record in Supabase. Staff can print a return label directly from the return detail page.
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/return-product.png"
+    alt="Product return management page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Return management — Tally form submissions land here automatically. Print
+    labels from this page.
+  </figcaption>
+</figure>
+
+## Financial Overview
+
+Cash flow tracking logs every money movement at the business level — supplier payments, operating expenses, and revenue. Cost analysis combines landed COGS with cash flow data to show the owner real margin per product line.
+
+<Callout type="note">
+  Cashflow and cost analysis screenshots are coming soon.
+</Callout>
+
+## Access Control
+
+Four roles govern what each user can do: **Developer Admin**, **Owner**, **Employee**, and **Fulfillment Employee**. Permissions are action-level — not just page visibility. A Fulfillment Employee can record stock-in and stock-out but cannot view financials, manage products, or access the audit log.
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/role-permission.png"
+    alt="Role and permission matrix configuration"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Permission matrix — action-level control per role. Managed by Developer
+    Admin or Owner.
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/users.png"
+    alt="User management page showing online status and last login"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    User management — see who is online now, last login time, and each user's
+    assigned role.
+  </figcaption>
+</figure>
+
+## Audit Log
+
+Every create, update, and delete action — including role changes, product edits, and stock entries — is recorded as an immutable row in `audit_log`. RLS at the database level blocks UPDATE and DELETE on the table entirely. When something goes wrong, the owner can trace exactly who did what and when.
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/audit-log.png"
+    alt="Audit log showing action history"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Audit log — immutable record of every action in the system, attributed to
+    the user who performed it.
+  </figcaption>
+</figure>
+
+## Lessons for Business Tool Builders
+
+1. **WORM audit trail from day one.** You will never regret it; you will regret not having it the first time an employee edits the wrong record. Append-only enforced at the database level, not in application code.
+
+2. **QR codes with human-readable SKUs.** Staff can read the label if the scanner fails. `JN02-DF-M` is far more useful than a UUID in a warehouse.
+
+3. **RBAC should be action-level, not page-level.** "Can see this page" is a weak guarantee. Supabase RLS plus server action checks enforce it where it actually matters — at the data layer.
+
+4. **PWA over native app for internal tools.** No app store approval, no cross-platform overhead, updates deploy instantly. Fulfillment staff just bookmark the URL and install it from the browser.
+
+5. **Append-only ledger for stock.** Derived state (current stock = SUM of transactions) is easier to audit and recover from than a mutable counter. The performance cost at this scale is zero.

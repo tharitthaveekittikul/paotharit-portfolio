@@ -1,0 +1,516 @@
+---
+title: "API Reference"
+description: "All HTTP API routes and Next.js Server Actions grouped by domain. Includes request shapes, auth requirements, and permission guards."
+type: doc
+---
+
+## HTTP Routes
+
+Route Handlers under `src/app/api/`. All require an authenticated Supabase session cookie unless noted.
+
+---
+
+### `POST /api/webhooks/tally-return`
+
+Receives Tally form submissions for product returns. Called by Tally, not the browser.
+
+**Auth:** `?secret=<TALLY_WEBHOOK_SECRET>` query param (timing-safe comparison). No session required.
+
+**Request body:**
+```json
+{
+  "data": {
+    "submissionId": "string",
+    "respondentId": "string",
+    "createdAt": "ISO timestamp",
+    "fields": [
+      { "label": "string", "type": "TEXT|FILE_UPLOAD|MULTIPLE_CHOICE", "value": "..." }
+    ]
+  }
+}
+```
+
+**Behavior:**
+1. Verifies `?secret` with `timingSafeEqual`
+2. Parses field map; resolves MULTIPLE_CHOICE option IDs to labels
+3. Detects `has_service_fee` from presence of `FILE_UPLOAD` slip fields
+4. If `has_service_fee`: calls EasySlip API to verify slip against `app_settings.service_fee_amount`
+5. Checks `submission_id` for idempotency
+6. Inserts `product_returns` row
+7. Sends LINE notification: `NEW_NO_FEE` | `NEW_SLIP_OK` | `NEW_SLIP_FAIL`
+
+**Response:** `{ "status": "ok" }` or `{ "error": "..." }` with 4xx/5xx.
+
+---
+
+### `GET /api/labels/pdf?ids=uuid1,uuid2,...`
+
+Generates printable PDF with QR-code labels for one or more product variants.
+
+**Auth:** Session + `labels:print` permission.
+
+**Query params:** `ids` — comma-separated variant UUIDs (max 200).
+
+**Response:** `Content-Type: application/pdf` — QR code encodes the SKU string, label shows SKU, product name, size, box number, and variant image.
+
+---
+
+### `GET /api/returns/[id]/label`
+
+Return shipping label PDF for one return record.
+
+**Auth:** Session + `returns:read`.
+
+**Response:** `Content-Type: application/pdf` — customer name, delivery address, return reference.
+
+---
+
+### `GET /api/returns/labels`
+
+Bulk return label PDF (multiple return records in one file).
+
+**Auth:** Session + `returns:read`.
+
+---
+
+### `GET /api/orders/[id]/po`
+
+Purchase order document PDF for a given PO.
+
+**Auth:** Session + `po:read`.
+
+---
+
+### `GET /api/orders/tax-evidence`
+
+Export tax evidence document for customs/accounting.
+
+**Auth:** Session + `po:read`.
+
+---
+
+### `GET /api/audit/export`
+
+Exports audit log entries as CSV or JSON.
+
+**Auth:** Session + `audit:read`.
+
+---
+
+### `GET /api/cron/daily-report`
+
+Vercel cron job. Sends daily summary via LINE. Protected by `Authorization: Bearer <CRON_SECRET>` header.
+
+---
+
+## Server Actions
+
+All Server Actions in `src/app/actions/`. Mutations check permission before any DB write. Reads check permission and return empty/null for unauthorized callers rather than throwing.
+
+---
+
+### Stock (`actions/stock.ts`)
+
+```ts
+getVariantBySku(sku: string): Promise<VariantInfo | null>
+// Exact match on v_current_stock. Used by QR scan.
+
+searchVariantsBySku(query: string): Promise<VariantInfo[]>
+// ilike match on sku + name_en. Input sanitised, max 64 chars.
+
+getRecentTransactions(variantId: string, limit?: number): Promise<Transaction[]>
+// Latest stock_transactions for one variant, date desc.
+
+recordStockIn(data: StockInData): Promise<{ error: string | null }>
+// Permission: stock:write
+// Inserts: transaction_type='stock_in', quantity=abs(data.quantity)
+
+recordSale(data: SaleData): Promise<{ error: string | null }>
+// Permission: stock:write
+// Inserts: transaction_type='sale'
+
+recordCorrection(data: CorrectionData): Promise<{ error: string | null }>
+// Permission: stock:correct
+// Inserts: transaction_type='correction'
+```
+
+```ts
+type VariantInfo   = { variant_id: string; style_code: string; name_en: string|null; color: string|null; size: string; sku: string; box_no: string|null; current_stock: number|null }
+type StockInData   = { variantId: string; quantity: number; date: string; note?: string }
+type SaleData      = { variantId: string; quantity: number; date: string; platform: string; note?: string }
+type CorrectionData = { variantId: string; quantity: number; date: string; note: string }
+```
+
+---
+
+### Stock Metrics (`actions/stock-metrics.ts`)
+
+```ts
+calculateVariantMetrics(
+  variantIds: string[],
+  currentStockMap: Map<string, number>,
+  settings: Pick<InventorySettings, 'lead_time_days' | 'safety_days' | 'avg_sales_window'>
+): Promise<Map<string, VariantMetrics>>
+// Computes avg_daily_sales, safety_stock, reorder_point, days_remaining per variant.
+// Permission: stock:read
+
+getRecommendedQtys(variantIds: string[]): Promise<{ variant_id: string; recommended_qty: number }[]>
+// Permission: stock:read
+// recommended_qty = max(0, target_stock - current_stock)
+// where target_stock = avg_daily_sales × target_days (from InventorySettings)
+```
+
+```ts
+type VariantMetrics = { avg_daily_sales: number; safety_stock: number; reorder_point: number; days_remaining: number|null }
+```
+
+---
+
+### Products (`actions/products.ts`)
+
+```ts
+createStyle(formData: FormData): Promise<{ message?: string; errors?: FieldErrors }>
+// Permission: products:write
+// Fields: style_code, name_en, category_id, description?, is_active
+// Also inserts product_platform_names entries if platform name fields present.
+
+updateStyle(id: string, formData: FormData): Promise<{ message?: string; errors?: FieldErrors }>
+// Permission: products:write
+// Replaces all product_platform_names for this style.
+
+createVariant(styleId: string, formData: FormData): Promise<{ message?: string }>
+// Permission: products:write
+// Fields: color_code, color_name, size, box_no?, image (File)?
+
+updateVariant(id: string, formData: FormData): Promise<{ message?: string }>
+// Permission: products:write
+
+deleteStyle(id: string): Promise<{ error: string|null }>
+// Permission: products:delete
+```
+
+---
+
+### Categories (`actions/categories.ts`)
+
+```ts
+getCategories(): Promise<CategoryRow[]>
+// All authenticated users.
+
+createCategory(nameTh: string): Promise<{ error?: string }>
+// Permission: categories:manage (products:write)
+
+updateCategoryTemplate(categoryId: string, template: MeasurementTemplate): Promise<{ error?: string }>
+// Permission: products:write
+// Stores measurement field definitions as JSONB.
+
+deleteCategory(categoryId: string): Promise<{ error?: string }>
+// Permission: products:write
+// Blocked if any product_styles still use this category.
+```
+
+```ts
+type CategoryRow = { id: string; name_th: string; measurement_template: MeasurementTemplate|null }
+```
+
+---
+
+### Suppliers (`actions/suppliers.ts`)
+
+```ts
+createSupplier(_prev, formData: FormData): Promise<SupplierFormState>
+// Permission: suppliers:manage
+// Redirects to /suppliers/[id]/edit on success.
+
+updateSupplier(id: string, _prev, formData: FormData): Promise<SupplierFormState>
+// Permission: suppliers:manage
+// Fields: name, contact_info?, is_active
+
+deleteSupplier(id: string): Promise<void>
+// Permission: suppliers:manage
+// Unlinks all product_styles before deleting.
+
+linkProductToSupplier(supplierId: string, styleId: string): Promise<void>
+// Permission: suppliers:manage
+
+unlinkProductFromSupplier(styleId: string): Promise<void>
+// Permission: suppliers:manage
+```
+
+---
+
+### Purchase Orders (`actions/orders.ts`)
+
+```ts
+createPO(formData: FormData): Promise<{ error: string|null; id?: string }>
+// Permission: po:write
+// formData: supplier_id, order_date, exchange_rate?, notes?
+//           line_items: JSON array [{ variant_id, quantity_quoted, unit_price_yuan }]
+
+updatePOStatus(id: string, newStatus: string, batchId?: string): Promise<{ error: string|null }>
+// Permission: po:write
+// Valid: draft → confirmed → in_production → ready_to_ship → shipped → arrived → completed | cancelled
+
+addPOLineItem(poId: string, formData: FormData): Promise<{ error: string|null }>
+// Permission: po:write
+
+updatePOLineItem(itemId: string, formData: FormData): Promise<{ error: string|null }>
+// Permission: po:write
+
+deletePOLineItem(itemId: string): Promise<{ error: string|null }>
+// Permission: po:write
+
+addPOPayment(poId: string, formData: FormData): Promise<{ error: string|null }>
+// Permission: po:write
+// Inserts WORM po_payments row.
+// formData: amount_thb, paid_date, notes?, slip (File)?
+```
+
+---
+
+### Shipment Batches (`actions/batches.ts`)
+
+```ts
+getBatches(): Promise<BatchListItem[]>
+// Permission: po:read
+
+getBatchDetail(id: string): Promise<BatchDetail|null>
+// Permission: po:read
+
+createBatch(formData: FormData): Promise<{ error: string|null; id?: string }>
+// Permission: po:write
+
+updateBatchStatus(id: string, status: string): Promise<{ error: string|null }>
+// Permission: po:write
+// Statuses: pending → in_transit → customs → arrived
+
+addShipmentLogistics(batchId: string, formData: FormData): Promise<{ error: string|null }>
+// Permission: po:write
+// Inserts WORM shipment_logistics row.
+// logistics_type: 'china_to_middleman' | 'middleman_to_fulfillment' | 'lalamove_local'
+// formData: logistics_type, amount_thb, paid_date, notes?, slip (File)?
+
+commitBatchStock(batchId: string, transactions: StockTxInput[]): Promise<{ error: string|null }>
+// Permission: po:write
+// Calls DB function commit_po_stock() — atomic link of stock_transactions → po_stock_links.
+```
+
+```ts
+type BatchListItem = { id: string; batch_number: string; status: string; arrived_at: string|null; purchase_orders: {id:string}[]; shipment_logistics: {amount_thb:number}[] }
+```
+
+---
+
+### Returns (`actions/returns.ts`)
+
+```ts
+getReturns(filter?: { status?: string }): Promise<ProductReturn[]>
+// Permission: returns:read
+
+getReturn(id: string): Promise<ProductReturn|null>
+// Permission: returns:read
+
+updateReturnStatus(id: string, newStatus: ReturnStatus): Promise<{ error?: string }>
+// Permission per newStatus:
+//   'received'  → returns:receive
+//   'inspected' → returns:manage
+//   'rejected'  → returns:manage
+//   'delivered' → returns:complete
+// Sends LINE notification on 'received' and 'rejected' transitions.
+```
+
+```ts
+type ReturnStatus = 'received' | 'inspected' | 'rejected' | 'delivered'
+```
+
+---
+
+### Cashflow (`actions/cashflow.ts`)
+
+```ts
+getAccounts(): Promise<Account[]>
+// Permission: finance:read
+// balance = initial_balance + SUM(income) - SUM(expense)
+
+getTransactions(filters: TransactionFilters): Promise<{ data: CashflowTransaction[]; total: number }>
+// Permission: finance:read
+// Paginated (PAGE_SIZE=20). Filters: type, category, dateFrom, dateTo, page
+
+createTransaction(formData: FormData): Promise<{ error: string|null }>
+// Permission: finance:write
+// Inserts WORM transactions row.
+// formData: account_id, type (income|expense), category, platform?, amount,
+//           transaction_date, description?, slip (File)?, slip_note?
+// Uploads slip to Supabase Storage if provided.
+
+createAccount(formData: FormData): Promise<{ error: string|null }>
+// Permission: finance:write
+// formData: name, bank_name?, account_number?, initial_balance?
+
+getMonthlyChart(): Promise<MonthlyChartData[]>
+// Permission: finance:read
+// Returns [{ month: 'YYYY-MM', income: number, expense: number }]
+```
+
+```ts
+type CashflowCategory = 'platform_payout' | 'supplier_payment' | 'logistics' | 'employee_reimbursement' | 'other'
+type TransactionFilters = { type?: 'income'|'expense'; category?: CashflowCategory; dateFrom?: string; dateTo?: string; page?: number }
+```
+
+---
+
+### Employee Advances (`actions/advances.ts`)
+
+```ts
+getAdvances(): Promise<EmployeeAdvance[]>
+// advance:own → own advances only. advance:manage → all advances.
+
+createAdvance(formData: FormData): Promise<{ error: string|null }>
+// Permission: advance:own
+// formData: amount, description, receipt (File)?, receipt_note?
+
+cancelAdvance(id: string): Promise<{ error: string|null }>
+// Own pending advances only.
+
+approveAdvance(id: string, accountId: string): Promise<{ error: string|null }>
+// Permission: advance:manage
+// Calls DB function approve_advance() — atomic: creates transactions row + marks advance 'approved'.
+
+rejectAdvance(id: string, note: string): Promise<{ error: string|null }>
+// Permission: advance:manage
+```
+
+---
+
+### Roles & Users (`actions/roles.ts`, `actions/users.ts`)
+
+```ts
+getRoles(): Promise<Role[]>
+// All authenticated users.
+
+assignRole(userId: string, roleId: string): Promise<{ error: string|null }>
+// Permission: roles:manage
+
+removeRole(userId: string, roleId: string): Promise<{ error: string|null }>
+// Permission: roles:manage
+
+getUsers(): Promise<UserWithRole[]>
+// Permission: users:manage
+
+addAllowedEmail(email: string, roleId?: string): Promise<{ error: string|null }>
+// Permission: users:manage
+
+removeAllowedEmail(id: string): Promise<{ error: string|null }>
+// Permission: users:manage
+```
+
+---
+
+### Audit Log (`actions/audit.ts`)
+
+```ts
+getAuditLogs(filters: AuditFilters): Promise<{ data: AuditLog[]; total: number }>
+// Permission: audit:read
+// Filters: userId, action, resourceType, dateFrom, dateTo, page
+```
+
+---
+
+### Dashboard (`actions/dashboard.ts`)
+
+```ts
+getDashboardStats(range: TimeRange): Promise<DashboardStats>
+// All authenticated users.
+// Returns stock_in, sale, return_in counts + total units for the given range.
+
+getRecentActivity(range: TimeRange): Promise<ActivityItem[]>
+// All authenticated users.
+// Latest stock_transactions with variant name, type, quantity, date.
+
+getPendingCounts(): Promise<PendingCounts>
+// All authenticated users.
+// Returns { advances: number, draftPOs: number }
+```
+
+```ts
+type TimeRange = '7d' | '30d' | '90d'
+type ActivityItem = { variant_id: string; sku: string; name_en: string|null; transaction_type: string; quantity: number; transaction_date: string; note: string|null; created_at: string }
+```
+
+---
+
+### Profile (`actions/profile.ts`)
+
+```ts
+getProfile(): Promise<ProfileData|null>
+// Own profile only. No permission required.
+
+updateDisplayName(displayName: string): Promise<{ error?: string }>
+// Own record only. Updates users.display_name.
+```
+
+```ts
+type ProfileData = { id: string; email: string; full_name: string|null; display_name: string|null; avatar_url: string|null; is_active: boolean; created_at: string }
+```
+
+---
+
+### Settings (`actions/app-settings.ts`, `actions/cost-config.ts`, `actions/exchange-rate.ts`)
+
+```ts
+// ── Return service fee ──────────────────────────────────────
+getServiceFeeAmount(): Promise<number>
+// Reads app_settings.service_fee_amount (default: 50 THB).
+
+updateServiceFeeAmount(amount: number): Promise<{ error?: string }>
+// Permission: users:manage
+
+// ── Inventory reorder settings ──────────────────────────────
+getInventorySettings(): Promise<InventorySettings>
+updateInventorySettings(settings: InventorySettings): Promise<{ error?: string }>
+// Permission: users:manage
+```
+
+```ts
+type InventorySettings = { lead_time_days: number; safety_days: number; avg_sales_window: number; target_days: number }
+```
+
+```ts
+// ── Packaging costs ─────────────────────────────────────────
+getPackagingCosts(): Promise<PackagingCosts>
+// Reads app_settings rows keyed 'packaging_cost:{type}'.
+
+updatePackagingCost(key: PackagingKey, price: number): Promise<{ error?: string }>
+// Permission: users:manage
+
+// ── Exchange rate ────────────────────────────────────────────
+getExchangeRateConfig(): Promise<number>
+// Reads app_settings.exchange_rate_cny_thb (manual override).
+
+updateExchangeRateConfig(rate: number): Promise<{ error?: string }>
+// Permission: users:manage
+
+getYuanToThbRate(): Promise<number|null>
+// Fetches live CNY→THB rate from Frankfurter API (revalidate: 3600s).
+// Used as fallback when no manual rate is configured.
+
+// ── Platform scenarios (cost analysis) ──────────────────────
+getPlatformScenarios(): Promise<PlatformScenario[]>
+// Returns [{ id, name, platform_rate, sort_order }].
+
+updatePlatformScenario(id: string, name: string, platformRate: number): Promise<{ error?: string }>
+// Permission: users:manage
+
+deletePlatformScenario(id: string): Promise<{ error?: string }>
+// Permission: users:manage
+
+// ── Per-style cost config ────────────────────────────────────
+updateStyleCostConfig(styleId: string, config: StyleCostConfig): Promise<{ error?: string }>
+// Permission: products:write
+// Updates product_styles: shipping_to_thailand, shipping_to_warehouse, packaging_selection.
+```
+
+```ts
+type PlatformScenario = { id: string; name: string; platform_rate: number; sort_order: number }
+type StyleCostConfig  = { shippingToThailand: number; shippingToWarehouse: number; packagingSelection: string }
+```

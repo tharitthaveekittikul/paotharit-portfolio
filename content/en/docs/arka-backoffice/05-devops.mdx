@@ -1,0 +1,109 @@
+---
+title: "DevOps & Infrastructure"
+description: "Supabase project setup, Vercel deployment, PWA configuration, and required environment variables."
+type: doc
+---
+
+## Infrastructure Overview
+
+| Service | What it provides |
+|---------|-----------------|
+| Supabase | PostgreSQL, Auth (Google OAuth), Storage |
+| Vercel | Next.js deployment, serverless functions, edge config |
+
+No Docker, no self-hosted infra. Both services run on their managed free/pro tiers.
+
+## Supabase Setup
+
+### 1. Create project
+
+Create a new Supabase project. Note the `Project URL` and `anon` key — these go into environment variables.
+
+### 2. Enable Google OAuth
+
+In Supabase dashboard → Authentication → Providers → Google:
+1. Enable Google provider
+2. Add the OAuth client ID and secret from Google Cloud Console
+3. Set the redirect URL in Google Cloud Console to `{SUPABASE_URL}/auth/v1/callback`
+
+### 3. Email whitelist hook
+
+The `before_user_creation` hook rejects sign-in attempts from emails not in `allowed_emails`. The hook is a PostgreSQL function registered in Supabase → Authentication → Hooks.
+
+### 4. Run migrations
+
+Schema is managed via SQL migration files. Apply with:
+
+```bash
+supabase db push
+```
+
+### 5. Storage buckets
+
+Create two buckets in Supabase Storage:
+- `product-images` — public read, authenticated write
+- `label-pdfs` — private (labels stream directly, never stored long-term; this bucket is for temporary staging if needed)
+
+### 6. RLS policies
+
+All tables have RLS enabled. Key policies:
+- `stock_transactions` and `audit_log`: INSERT allowed for authenticated users with correct role; UPDATE and DELETE blocked entirely
+- `products` / `product_variants`: SELECT for all authenticated users; INSERT/UPDATE restricted by role
+- `purchase_orders`, `returns`, `cashflow_transactions`: SELECT restricted by role; INSERT/UPDATE restricted by role
+
+## Vercel Deployment
+
+### Environment variables
+
+Set these in the Vercel project dashboard (or `.env.local` for local dev):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...   # server-only, not prefixed with NEXT_PUBLIC_
+TALLY_WEBHOOK_SECRET=...           # for verifying Tally HMAC signatures
+```
+
+<Callout type="warning">
+  Never expose `SUPABASE_SERVICE_ROLE_KEY` to the client. It bypasses RLS. Only used in Server Actions and API routes.
+</Callout>
+
+### Deploy
+
+Push to `main` branch triggers a Vercel production deployment automatically. Preview deployments are created for each pull request.
+
+## PWA Configuration
+
+The application is a Progressive Web App. Fulfillment staff install it on their phones from the browser — no app store required.
+
+### Manifest
+
+`public/manifest.json` defines the app name, icons, and display mode:
+
+```json
+{
+  "name": "ARKA Backoffice",
+  "short_name": "ARKA",
+  "display": "standalone",
+  "start_url": "/stock/in",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [...]
+}
+```
+
+`start_url` is set to `/stock/in` so fulfillment staff land directly on the stock-in page when they launch from their home screen.
+
+### Camera access for QR scanning
+
+The stock-in and stock-out pages request camera access to use the device camera as a QR scanner. The user grants this once on first use. Safari on iOS and Chrome on Android both support `getUserMedia` from PWA context when served over HTTPS (Vercel handles TLS automatically).
+
+## Local Development
+
+```bash
+npm install
+cp .env.example .env.local   # fill in Supabase credentials
+npm run dev
+```
+
+The dev server runs at `http://localhost:3000`. Camera-based QR scanning requires HTTPS — use `ngrok` or Vercel's preview URL to test on a real device.

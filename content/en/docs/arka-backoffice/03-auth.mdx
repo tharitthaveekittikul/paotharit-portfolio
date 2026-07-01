@@ -1,0 +1,126 @@
+---
+title: "Auth & RBAC"
+description: "Google OAuth email whitelist, five-role hierarchy, permission strings, and two-layer enforcement via Server Actions and Supabase RLS."
+type: doc
+---
+
+## Authentication: Google OAuth + Email Whitelist
+
+Supabase Auth handles the Google OAuth flow. After Google authenticates the user, a `before_user_creation` hook checks the email against `allowed_emails`. If the email is not on the list, sign-in is rejected before any account is created.
+
+- No self-registration — only emails pre-approved in the database can log in
+- `allowed_emails` is managed from `/settings/users` (requires `users:manage` permission)
+- Optionally, a `role_id` on the `allowed_emails` row auto-assigns a role on first login
+
+<Callout type="note">
+  The only sign-in method is Google OAuth. No username/password login exists.
+</Callout>
+
+## Roles
+
+Five roles are seeded as system rows (`is_system = true`) and cannot be deleted.
+
+| `name_en` | Display | Description |
+|-----------|---------|-------------|
+| `developer_admin` | Developer Admin | Full access including system config and RBAC management |
+| `owner` | Owner | Full business access; cannot modify roles |
+| `accountant` | Accountant | Finance, PO, and reporting access; no HR or RBAC |
+| `fulfillment_staff` | Fulfillment Staff | Stock-in/out, return receive, label printing only |
+| `arka_employee` | ARKA Employee | Request own advances, complete returns only |
+
+A user can hold one role at a time. Role changes are recorded in `audit_logs`.
+
+## Permission Strings
+
+All permissions follow the `domain:action` format. They are stored as text rows in `role_permissions`.
+
+| Permission | Meaning |
+|-----------|---------|
+| `products:read` | View products and variants |
+| `products:write` | Create and edit products |
+| `products:delete` | Delete products |
+| `stock:read` | View stock levels and history |
+| `stock:write` | Record stock-in, sale, return_in |
+| `stock:correct` | Record correction and adjustment entries |
+| `stock:delete` | Delete stock entries (Developer Admin only) |
+| `finance:read` | View cashflow, accounts, cost analysis |
+| `finance:write` | Create cashflow transactions and accounts |
+| `po:read` | View purchase orders and shipment batches |
+| `po:write` | Create and manage POs and batches |
+| `returns:read` | View product returns |
+| `returns:receive` | Mark return as received |
+| `returns:manage` | Manage return status (inspect, reject) |
+| `returns:complete` | Mark return as delivered |
+| `advance:own` | Request and cancel own advances |
+| `advance:manage` | Approve or reject any advance |
+| `users:manage` | Add/remove users and whitelist entries |
+| `roles:manage` | Assign roles to users (Developer Admin only) |
+| `audit:read` | View audit log |
+| `reports:read` | View reports and analytics |
+| `labels:print` | Generate and print PDF labels |
+| `platforms:manage` | Manage platform list |
+| `categories:manage` | Manage product categories |
+| `suppliers:manage` | Manage supplier list |
+
+## Permission Matrix by Role
+
+| Permission | Dev Admin | Owner | Accountant | Fulfillment | ARKA Emp |
+|-----------|:---------:|:-----:|:----------:|:-----------:|:--------:|
+| `products:read` | ✓ | ✓ | ✓ | ✓ | — |
+| `products:write` | ✓ | ✓ | — | — | — |
+| `products:delete` | ✓ | ✓ | — | — | — |
+| `stock:read` | ✓ | ✓ | ✓ | ✓ | — |
+| `stock:write` | ✓ | ✓ | — | ✓ | — |
+| `stock:correct` | ✓ | ✓ | — | ✓ | — |
+| `stock:delete` | ✓ | — | — | — | — |
+| `finance:read` | ✓ | ✓ | ✓ | — | — |
+| `finance:write` | ✓ | ✓ | ✓ | — | — |
+| `po:read` | ✓ | ✓ | ✓ | — | — |
+| `po:write` | ✓ | ✓ | ✓ | — | — |
+| `returns:read` | ✓ | ✓ | ✓ | ✓ | — |
+| `returns:receive` | ✓ | ✓ | — | ✓ | — |
+| `returns:manage` | ✓ | ✓ | ✓ | — | — |
+| `returns:complete` | ✓ | ✓ | — | — | ✓ |
+| `advance:own` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `advance:manage` | ✓ | ✓ | — | — | — |
+| `users:manage` | ✓ | ✓ | — | — | — |
+| `roles:manage` | ✓ | — | — | — | — |
+| `audit:read` | ✓ | ✓ | — | — | — |
+| `reports:read` | ✓ | ✓ | ✓ | — | — |
+| `labels:print` | ✓ | ✓ | — | ✓ | — |
+| `platforms:manage` | ✓ | ✓ | — | — | — |
+| `categories:manage` | ✓ | ✓ | — | — | — |
+| `suppliers:manage` | ✓ | ✓ | — | — | — |
+
+## Two-Layer Enforcement
+
+**Layer 1 — Server Action**
+
+Every Server Action calls `hasPermission(supabase, 'domain:action')` before touching data:
+
+```ts
+export async function recordStockIn(data: StockInData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+  if (!(await hasPermission(supabase, 'stock:write'))) return { error: 'Forbidden' }
+  // proceed with insert
+}
+```
+
+`hasPermission` calls the `get_my_permissions()` Postgres function, which reads `user_roles` → `role_permissions` for the current session user.
+
+**Layer 2 — Supabase RLS**
+
+Sensitive table policies call `has_permission(p)` directly:
+
+```sql
+CREATE POLICY "purchase_orders_insert" ON purchase_orders FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM user_roles ur
+    JOIN role_permissions rp ON rp.role_id = ur.role_id
+    WHERE ur.user_id = auth.uid() AND rp.permission = 'po:write'
+  ));
+```
+
+A crafted direct Supabase client call using a valid JWT still hits this policy and is blocked if the role does not have the permission.

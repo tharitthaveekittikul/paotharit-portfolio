@@ -1,0 +1,364 @@
+---
+title: "Database Schema"
+description: "All tables, column types, WORM enforcement, RLS policies, and key views. Derived from the live Supabase migrations."
+type: doc
+---
+
+## WORM Tables
+
+Four tables are Write Once Read Many — rows are inserted but never updated or deleted. The pattern is enforced by omitting UPDATE and DELETE RLS policies entirely (Supabase blocks any operation without a matching policy).
+
+| Table | What it records |
+|-------|----------------|
+| `stock_transactions` | Every stock movement |
+| `audit_logs` | Every system action |
+| `po_payments` | Purchase order payments |
+| `shipment_logistics` | Logistics cost entries |
+| `transactions` | Cashflow entries |
+| `po_stock_links` | PO ↔ stock_transaction links |
+
+Current stock is always derived:
+
+```sql
+-- v_current_stock view (created in migration)
+SELECT
+  pv.id                               AS variant_id,
+  ps.style_code,
+  ps.name_en,
+  pv.color_name,
+  pv.size,
+  pv.sku,
+  COALESCE(SUM(st.quantity), 0)::integer AS current_stock
+FROM product_variants pv
+JOIN product_styles ps ON ps.id = pv.style_id
+LEFT JOIN stock_transactions st ON st.variant_id = pv.id
+GROUP BY pv.id, ps.style_code, ps.name_en, pv.color_name, pv.size, pv.sku;
+```
+
+## Auth & RBAC Tables
+
+```sql
+-- Email whitelist — service role only (no direct client reads)
+CREATE TABLE allowed_emails (
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      text        UNIQUE NOT NULL,
+  role_id    uuid        REFERENCES roles(id) ON DELETE SET NULL,
+  is_active  boolean     NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE users (
+  id           uuid        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email        text        UNIQUE NOT NULL,
+  full_name    text,
+  display_name text,
+  avatar_url   text,
+  is_active    boolean     NOT NULL DEFAULT true,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  updated_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE roles (
+  id          uuid    PRIMARY KEY DEFAULT gen_random_uuid(),
+  name_th     text    NOT NULL,
+  name_en     text    NOT NULL UNIQUE,
+  description text,
+  is_system   boolean NOT NULL DEFAULT false,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- Roles: developer_admin, owner, accountant, fulfillment_staff, arka_employee
+
+CREATE TABLE role_permissions (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  role_id     uuid NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+  permission  text NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (role_id, permission)
+);
+
+CREATE TABLE user_roles (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role_id    uuid NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, role_id)
+);
+```
+
+## Products & Variants
+
+```sql
+CREATE TABLE product_styles (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  style_code  text        UNIQUE NOT NULL,   -- e.g. 'JN02'
+  name_en     text        NOT NULL,
+  name_th     text,                           -- optional
+  category_id uuid        REFERENCES categories(id),
+  description text,
+  is_active   boolean     NOT NULL DEFAULT true,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE product_variants (
+  id           uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  style_id     uuid        NOT NULL REFERENCES product_styles(id) ON DELETE CASCADE,
+  color_code   text        NOT NULL,          -- e.g. 'DF'
+  color_name   text,                          -- human-readable color name
+  size         text        NOT NULL,          -- e.g. 'M'
+  sku          text        UNIQUE NOT NULL,   -- '{style_code}-{color_code}-{size}'
+  box_no       text,                          -- warehouse box identifier
+  image_path   text,                          -- Supabase Storage path
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+-- Per-platform product name overrides
+CREATE TABLE product_platform_names (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  style_id    uuid NOT NULL REFERENCES product_styles(id) ON DELETE CASCADE,
+  platform_id uuid NOT NULL REFERENCES platforms(id) ON DELETE CASCADE,
+  name        text NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (style_id, platform_id)
+);
+```
+
+## Stock Transactions (WORM)
+
+```sql
+CREATE TABLE stock_transactions (
+  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  variant_id       uuid        NOT NULL REFERENCES product_variants(id) ON DELETE RESTRICT,
+  transaction_type text        NOT NULL
+    CHECK (transaction_type IN ('stock_in','sale','return_in','correction','adjustment')),
+  quantity         integer     NOT NULL,     -- always positive; sign is in transaction_type
+  transaction_date date        NOT NULL DEFAULT CURRENT_DATE,
+  platform         text,                     -- sales channel (sale transactions)
+  reference_type   text,                     -- 'manual' | 'po_receive'
+  reference_id     uuid,                     -- links to po_stock_links
+  performed_by     uuid        REFERENCES auth.users(id),
+  note             text,
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+-- RLS: SELECT + INSERT only. No UPDATE/DELETE policies.
+```
+
+`transaction_type` values:
+
+| Value | Meaning | Required permission |
+|-------|---------|-------------------|
+| `stock_in` | Received from supplier or manual restock | `stock:write` |
+| `sale` | Sold / dispatched | `stock:write` |
+| `return_in` | Customer return back into stock | `stock:write` |
+| `correction` | Correction by authorised user | `stock:correct` |
+| `adjustment` | Manual adjustment | `stock:correct` |
+
+## Purchase Orders & Shipments
+
+```sql
+-- Auto-numbered: PO-{YYYY}-{NNN}
+CREATE TABLE purchase_orders (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  po_number           text UNIQUE NOT NULL DEFAULT generate_po_number(),
+  supplier_id         uuid NOT NULL REFERENCES suppliers(id),
+  shipment_batch_id   uuid REFERENCES shipment_batches(id),
+  status              text NOT NULL DEFAULT 'draft'
+    CHECK (status IN (
+      'draft','confirmed','in_production',
+      'ready_to_ship','shipped','arrived','completed','cancelled'
+    )),
+  order_date          date,
+  exchange_rate       numeric(10,4),   -- CNY → THB rate at time of order
+  quoted_total_yuan   numeric(12,2),
+  invoice_gdrive_url  text,
+  notes               text,
+  created_by          uuid NOT NULL REFERENCES auth.users(id),
+  created_at          timestamptz NOT NULL DEFAULT now(),
+  updated_at          timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE po_line_items (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  po_id            uuid NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+  variant_id       uuid NOT NULL REFERENCES product_variants(id),
+  quantity_quoted  int  NOT NULL CHECK (quantity_quoted > 0),
+  quantity_actual  int,                    -- filled when shipment arrives
+  unit_price_yuan  numeric(10,2) NOT NULL,
+  notes            text,
+  UNIQUE (po_id, variant_id)
+);
+
+-- WORM
+CREATE TABLE po_payments (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  po_id            uuid NOT NULL REFERENCES purchase_orders(id),
+  amount_thb       numeric(12,2) NOT NULL CHECK (amount_thb > 0),
+  slip_gdrive_url  text,
+  paid_date        date NOT NULL,
+  notes            text,
+  created_by       uuid NOT NULL REFERENCES auth.users(id),
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+
+-- Auto-numbered: BATCH-{YYYY}-{NNN}
+CREATE TABLE shipment_batches (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  batch_number text UNIQUE NOT NULL DEFAULT generate_batch_number(),
+  status       text NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','in_transit','customs','arrived')),
+  arrived_at   date,
+  notes        text,
+  created_by   uuid NOT NULL REFERENCES auth.users(id),
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+-- WORM — logistics cost entries per batch
+CREATE TABLE shipment_logistics (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  batch_id       uuid NOT NULL REFERENCES shipment_batches(id),
+  logistics_type text NOT NULL
+    CHECK (logistics_type IN (
+      'china_to_middleman','middleman_to_fulfillment','lalamove_local'
+    )),
+  amount_thb     numeric(12,2) NOT NULL,
+  slip_gdrive_url text,
+  paid_date      date NOT NULL,
+  notes          text,
+  created_by     uuid NOT NULL REFERENCES auth.users(id),
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+
+-- WORM — links PO → stock_transaction (set on stock commit)
+CREATE TABLE po_stock_links (
+  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  po_id                uuid NOT NULL REFERENCES purchase_orders(id),
+  stock_transaction_id uuid NOT NULL REFERENCES stock_transactions(id),
+  linked_by            uuid NOT NULL REFERENCES auth.users(id),
+  linked_at            timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (stock_transaction_id)
+);
+```
+
+## Product Returns
+
+```sql
+CREATE TABLE product_returns (
+  id                uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  submission_id     text        UNIQUE NOT NULL,  -- Tally submissionId (idempotency key)
+  respondent_id     text,
+
+  customer_name     text        NOT NULL,
+  delivery_address  text        NOT NULL,
+  phone             text        NOT NULL,
+  product_condition text        NOT NULL,
+  order_channel     text        NOT NULL,
+  order_number      text        NOT NULL,
+  product_name      text        NOT NULL,
+  ordered_size      text        NOT NULL,
+  exchange_size     text        NOT NULL,
+
+  has_service_fee   boolean     NOT NULL DEFAULT false,
+  slip_urls         text[]      NOT NULL DEFAULT '{}',
+  slip_status       text        NOT NULL DEFAULT 'not_required'
+    CHECK (slip_status IN ('not_required','verified','failed')),
+
+  status            text        NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','received','inspected','rejected','delivered')),
+
+  submitted_at      timestamptz NOT NULL,
+  received_at       timestamptz,
+  inspected_at      timestamptz,
+  delivered_at      timestamptz,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
+);
+```
+
+## Cashflow & Accounts
+
+```sql
+CREATE TABLE accounts (
+  id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name            text        NOT NULL,
+  bank_name       text,
+  account_number  text,
+  initial_balance numeric(15,2) NOT NULL DEFAULT 0,
+  is_active       boolean     NOT NULL DEFAULT true,
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+
+-- WORM — no UPDATE or DELETE via RLS
+CREATE TABLE transactions (
+  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id       uuid        NOT NULL REFERENCES accounts(id),
+  type             text        NOT NULL CHECK (type IN ('income','expense')),
+  category         text        NOT NULL
+    CHECK (category IN (
+      'platform_payout','supplier_payment','logistics',
+      'employee_reimbursement','other'
+    )),
+  platform         text,
+  amount           numeric(15,2) NOT NULL CHECK (amount > 0),
+  transaction_date date        NOT NULL,
+  description      text,
+  slip_gdrive_url  text,
+  slip_note        text,
+  reference_type   text        CHECK (reference_type IN (
+    'po_payment','employee_advance','shipment_logistics'
+  )),
+  reference_id     uuid,
+  created_by       uuid        NOT NULL REFERENCES auth.users(id),
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE employee_advances (
+  id                  uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  requested_by        uuid        NOT NULL REFERENCES auth.users(id),
+  amount              numeric(12,2) NOT NULL CHECK (amount > 0),
+  description         text        NOT NULL,
+  receipt_gdrive_url  text,
+  receipt_note        text,
+  status              text        NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','approved','rejected','cancelled')),
+  reviewed_by         uuid        REFERENCES auth.users(id),
+  reviewed_at         timestamptz,
+  review_note         text,
+  transaction_id      uuid        REFERENCES transactions(id),
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+```
+
+Account balance = `initial_balance + SUM(income) - SUM(expense)` computed at query time; no mutable balance column.
+
+## Audit Logs (WORM)
+
+```sql
+CREATE TABLE audit_logs (
+  id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  user_id       uuid        REFERENCES users(id) ON DELETE SET NULL,
+  user_email    text,
+  action        text        NOT NULL,   -- e.g. 'po.create', 'stock.in', 'role.assign'
+  resource_type text,                   -- table name or domain noun
+  resource_id   uuid,
+  old_value     jsonb,
+  new_value     jsonb,
+  ip_address    inet,
+  user_agent    text,
+  session_id    text
+);
+-- RLS: INSERT for authenticated. SELECT requires audit:read permission.
+-- No UPDATE/DELETE policies = WORM.
+```
+
+## Key Database Functions
+
+| Function | Description |
+|----------|-------------|
+| `get_my_permissions()` | Returns all permission strings for the current session user |
+| `has_permission(p text)` | Returns `boolean` — used in RLS policies |
+| `commit_po_stock(po_id, tx_ids[], user_id)` | Atomic: links stock_transactions to a PO and marks it `completed` |
+| `approve_advance(advance_id, account_id, reviewer_id)` | Atomic: inserts a transaction and marks advance `approved` |
+| `generate_po_number()` | `PO-{YYYY}-{NNN}` from sequence |
+| `generate_batch_number()` | `BATCH-{YYYY}-{NNN}` from sequence |

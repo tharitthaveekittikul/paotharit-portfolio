@@ -1,0 +1,220 @@
+---
+title: "ARKA Backoffice"
+description: "ระบบ Backoffice เต็มรูปแบบสำหรับร้าน ARKA Bangkok — จัดการสต็อกแบบเรียลไทม์ด้วย QR Code, บริหาร PO ซัพพลายเออร์, วิเคราะห์ต้นทุน, RBAC, และ Audit Trail ที่แก้ไขไม่ได้ แทนที่ Spreadsheet ทั้งหมดสำหรับธุรกิจเสื้อผ้าจริง"
+date: 2026-06-24
+type: project
+status: published
+featured: true
+tags:
+  [next-js, supabase, typescript, tailwind, shadcn-ui, pwa, rbac, postgresql]
+techStack: [next-js, supabase, typescript, shadcn-ui, pwa, vercel]
+role: "Solo Developer"
+duration: "2026"
+projectStatus: "Active / Internal Tool"
+---
+
+ร้าน ARKA ในกรุงเทพฯ บริหารงานด้วย Spreadsheet มานาน นับสต็อกผิดพลาดบ่อย ใบสั่งซื้อกระจัดกระจายอยู่ในแชท และจัดการการคืนสินค้าเองผ่าน LINE ทั้งหมด ผมสร้าง ARKA Backoffice ขึ้นมาแทนที่ทั้งหมดนั้น — ระบบเว็บเต็มรูปแบบ ตรวจสต็อกแบบเรียลไทม์ด้วย QR Code, จัดการ Purchase Order, วิเคราะห์ต้นทุน, และระบบสิทธิ์แบบ RBAC พร้อม Audit Trail ที่ไม่สามารถแก้ไขย้อนหลังได้
+
+## เกี่ยวกับ ARKA
+
+[ARKA](https://www.instagram.com/arka.bkk/) คือร้านเสื้อผ้าผู้หญิงในกรุงเทพฯ ที่ขายสินค้าผ่านหลายช่องทาง ได้แก่ Instagram, Shopee, TikTok และ Lazada ทีมงานมีขนาดเล็กและเมื่อยอดออเดอร์เพิ่มขึ้น การทำงานด้วย Spreadsheet เริ่มสร้างความผิดพลาด — สต็อกที่ไม่มีใครไว้ใจได้, PO ที่ติดตามผ่านแชท, และการคืนสินค้าที่ทำเองด้วยมือ
+
+## ปัญหาก่อนมีระบบ
+
+ก่อนที่ Backoffice จะมีอยู่ ทุกอย่างทำด้วยมือ:
+
+- **สต็อก**: อยู่ใน Spreadsheet อัปเดตด้วยมือหลังขายหรือรับของ ไม่มีประวัติ ไม่มี Audit Trail
+- **ใบสั่งซื้อ**: สร้างในแชทและเอกสาร ไม่มีการติดตามเป็นระบบ ไม่รู้สถานะการขนส่ง
+- **คืนสินค้า**: ลูกค้าส่งข้อความใน LINE พนักงานบันทึกเองทั้งหมด
+- **พนักงาน**: ไม่มีการควบคุมสิทธิ์ ใครมีลิงก์ Spreadsheet ก็แก้ไขได้
+- **การเงิน**: ต้นทุนสินค้า, Landed Cost และ Cashflow คำนวณแยกออกมาเองหลังจากนั้น
+
+## แดชบอร์ด
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/dashboard-overview.png"
+    alt="แดชบอร์ดภาพรวมของ ARKA Backoffice"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    แดชบอร์ด — ดูภาพรวมสต็อก, ธุรกรรมล่าสุด และกิจกรรมธุรกิจได้ทันที
+  </figcaption>
+</figure>
+
+## สินค้า
+
+ทุก Style มีข้อมูลสินค้าพร้อม Variant หนึ่งตัวขึ้นไป แต่ละ Variant แทน Combination ของสีและไซส์ แต่ละ Variant มี SKU ในรูปแบบ `{StyleCode}-{ColorCode}-{Size}` (เช่น `JN02-DF-M`) และ Label QR Code ที่พิมพ์ได้จาก Server โดยตรง
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/products-list-view-mode.png"
+    alt="หน้าสินค้าในโหมด List View"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    รายการสินค้า — สลับระหว่าง List View และ Card View กรองตาม Style, สี
+    หรือไซส์ได้
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/products-card-view-mode.png"
+    alt="หน้าสินค้าในโหมด Card View"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Card View — ดูภาพสินค้าพร้อมสถานะสต็อกในมุมมองภาพรวม
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/edit-product.png"
+    alt="หน้าแก้ไขสินค้าพร้อมจัดการ Variant"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    แก้ไขสินค้า — จัดการ Variant, สร้าง SKU Label และพิมพ์ QR Code
+    สำหรับคลังสินค้า
+  </figcaption>
+</figure>
+
+## การจัดการสต็อก
+
+ฟีเจอร์หลักของระบบ สต็อกปัจจุบันของแต่ละ Variant คำนวณจากผลรวมของ `stock_transactions` ทั้งหมด — เป็น Append-Only Ledger ที่แต่ละ Row บันทึกการเคลื่อนไหวของจำนวน ไม่มีการแก้ไขหรือลบ Row ใดๆ โดย Supabase RLS บังคับใช้ที่ระดับฐานข้อมูล
+
+สำหรับพนักงานคลังสินค้า การรับและจ่ายสต็อกทำผ่าน PWA ที่ Optimize สำหรับมือถือ — ติดตั้งได้จากเบราว์เซอร์โดยไม่ต้องผ่าน App Store ขั้นตอนการรับสต็อก:
+
+1. เปิด `/stock/in` บนมือถือ
+2. สแกน QR Code บน Label สินค้า → SKU จะกรอกให้อัตโนมัติ
+3. ใส่จำนวน → กด Submit
+4. Row `stock_transaction` ใหม่จะถูกสร้างทันที
+
+การจ่ายสต็อกใช้ขั้นตอนเดียวกันที่ `/stock/sale` QR Code เข้ารหัส SKU โดยตรงเพื่อให้พนักงานพิมพ์เองได้หากสแกนไม่ได้
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/stocks-list-view-mode.png"
+    alt="หน้าจัดการสต็อกในโหมด List View"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    รายการสต็อก — สต็อกปัจจุบันต่อ Variant คำนวณจาก Transaction Ledger
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/stocks-card-view-mode.png"
+    alt="หน้าจัดการสต็อกในโหมด Card View"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Card View — ดูภาพรวมสต็อกได้รวดเร็ว เหมาะสำหรับตรวจสอบในคลังสินค้า
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/stock-details.png"
+    alt="หน้ารายละเอียดสต็อกแสดงประวัติธุรกรรม"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    รายละเอียดสต็อก — ประวัติธุรกรรมทั้งหมดของ Variant นั้น บันทึก Timestamp
+    และผู้ดำเนินการทุกครั้ง
+  </figcaption>
+</figure>
+
+<Callout type="note">GIF สาธิตการรับและจ่ายสต็อกกำลังจะมาเร็วๆ นี้</Callout>
+
+## Purchase Order และ Shipment Batch
+
+Purchase Order บันทึกสิ่งที่สั่งซื้อจากแต่ละซัพพลายเออร์ — Style, สี, ไซส์, จำนวน และราคาต่อหน่วย เมื่อสินค้ามาถึง Shipment Batch จะบันทึกจำนวนที่ได้รับจริงเทียบกับ PO ความไม่ตรงกัน (ขาดหรือเกิน) จะถูก Flag ไว้สำหรับตรวจสอบ
+
+การคำนวณ Landed Cost รวมราคาซัพพลายเออร์, ค่าขนส่ง และภาษีนำเข้า/ส่งออก เพื่อคำนวณต้นทุนที่แท้จริงต่อหน่วย ซึ่งใช้ในการวิเคราะห์ต้นทุนต่อไป
+
+<Callout type="note">
+  ภาพหน้า Purchase Order, Shipment Batch และภาษีส่งออกกำลังจะมาเร็วๆ นี้
+</Callout>
+
+## การคืนสินค้า
+
+เมื่อลูกค้าต้องการคืนหรือเปลี่ยนสินค้า จะกรอกแบบฟอร์ม Tally ระบบจะส่ง Webhook มาที่ `/api/webhooks/tally-return` เพื่อ Parse ข้อมูลและสร้าง Record การคืนสินค้าใน Supabase พนักงานสามารถพิมพ์ Label คืนสินค้าได้โดยตรงจากหน้ารายละเอียด
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/return-product.png"
+    alt="หน้าจัดการการคืนสินค้า"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    จัดการการคืนสินค้า — ข้อมูลจากแบบฟอร์ม Tally มาถึงที่นี่โดยอัตโนมัติ พิมพ์
+    Label ได้จากหน้านี้
+  </figcaption>
+</figure>
+
+## ภาพรวมการเงิน
+
+การติดตาม Cashflow บันทึกการเคลื่อนไหวทางการเงินทุกรายการในระดับธุรกิจ — การชำระเงินซัพพลายเออร์, ค่าใช้จ่ายดำเนินงาน และรายได้จากการขาย การวิเคราะห์ต้นทุนรวม Landed COGS กับข้อมูล Cashflow เพื่อแสดง Margin ที่แท้จริงต่อ Product Line ให้เจ้าของเห็น
+
+<Callout type="note">
+  ภาพหน้า Cashflow และการวิเคราะห์ต้นทุนกำลังจะมาเร็วๆ นี้
+</Callout>
+
+## การควบคุมสิทธิ์ (RBAC)
+
+มีสี่ Role ที่กำหนดสิ่งที่ผู้ใช้แต่ละคนทำได้: **Developer Admin**, **Owner**, **Employee** และ **Fulfillment Employee** Permission ทำงานในระดับ Action — ไม่ใช่แค่การมองเห็นหน้า Fulfillment Employee สามารถบันทึกรับ-จ่ายสต็อกได้ แต่ไม่สามารถดูข้อมูลการเงิน, จัดการสินค้า หรือเข้า Audit Log ได้
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/role-permission.png"
+    alt="หน้าตั้งค่า Role และ Permission Matrix"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Permission Matrix — ควบคุมสิทธิ์ระดับ Action ต่อ Role จัดการโดย Developer
+    Admin หรือ Owner
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/users.png"
+    alt="หน้าจัดการผู้ใช้แสดงสถานะออนไลน์และเวลาเข้าใช้ล่าสุด"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    จัดการผู้ใช้ — ดูว่าใครออนไลน์อยู่ เวลาเข้าใช้ล่าสุด และ Role
+    ที่ได้รับมอบหมายของแต่ละคน
+  </figcaption>
+</figure>
+
+## Audit Log
+
+ทุก Action ที่ Create, Update และ Delete — รวมถึงการเปลี่ยน Role, แก้ไขสินค้า และบันทึกสต็อก — จะถูกบันทึกเป็น Row ที่แก้ไขไม่ได้ใน `audit_log` RLS ที่ระดับฐานข้อมูลบล็อก UPDATE และ DELETE กับตารางนี้โดยสมบูรณ์ เมื่อมีปัญหาเกิดขึ้น เจ้าของสามารถย้อนดูได้ว่าใครทำอะไรและเมื่อไหร่
+
+<figure>
+  <ZoomableImage
+    src="/projects/arka-backoffice/audit-log.png"
+    alt="Audit Log แสดงประวัติการดำเนินการทั้งหมด"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Audit Log — บันทึกถาวรของทุก Action ในระบบ พร้อมระบุผู้ดำเนินการ
+  </figcaption>
+</figure>
+
+## บทเรียนสำหรับผู้สร้าง Business Tool
+
+1. **WORM Audit Trail ตั้งแต่วันแรก** คุณจะไม่เสียใจที่มี แต่จะเสียใจมากถ้าไม่มีในวันที่พนักงานแก้ไข Record ผิด Append-Only ที่บังคับใช้ที่ระดับฐานข้อมูล ไม่ใช่แค่ใน Application Code
+
+2. **QR Code ที่มี SKU อ่านได้ด้วยตา** พนักงานอ่าน Label ได้ถ้าสแกนไม่ได้ `JN02-DF-M` มีประโยชน์กว่า UUID มากในคลังสินค้า
+
+3. **RBAC ควรทำงานระดับ Action ไม่ใช่แค่ระดับหน้า** "มองเห็นหน้านี้ได้" เป็นการรับประกันที่อ่อนแอ Supabase RLS บวก Server Action Checks บังคับใช้ที่จุดที่สำคัญจริงๆ คือที่ Data Layer
+
+4. **PWA แทน Native App สำหรับ Internal Tool** ไม่ต้องผ่าน App Store, ไม่มี Cross-Platform Overhead, อัปเดต Deploy ได้ทันที พนักงานแค่ Bookmark URL แล้วติดตั้งจากเบราว์เซอร์
+
+5. **Append-Only Ledger สำหรับสต็อก** Derived State (สต็อกปัจจุบัน = SUM ของ Transaction) ตรวจสอบและกู้คืนได้ง่ายกว่า Counter ที่แก้ไขได้ ที่ Scale ระดับนี้ Performance Cost เป็นศูนย์
