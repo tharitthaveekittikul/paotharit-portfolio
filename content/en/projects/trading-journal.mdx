@@ -1,0 +1,172 @@
+---
+title: "Trading Journal: Self-Hosted Forex Trade Analytics"
+description: "A localhost-only Next.js app for logging Forex trades, defining per-strategy setup schemas, and predicting live win probability from a Naive Bayes model trained on your own trade history."
+date: 2026-08-23
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, prisma, sqlite, trading, forex, analytics]
+techStack:
+  [
+    nextjs,
+    typescript,
+    prisma,
+    sqlite,
+    tailwindcss,
+    shadcn-ui,
+    tanstack,
+    recharts,
+  ]
+role: "Solo Developer"
+duration: "2026 — Ongoing"
+projectStatus: "Self-hosted / Active"
+metrics:
+  - { label: "Prisma Models", value: "10" }
+  - { label: "API Endpoints", value: "18" }
+  - { label: "Frontend Pages", value: "8" }
+  - { label: "Design Decisions", value: "9 ADRs" }
+---
+
+## The Problem
+
+Broker platforms report what happened to an account — fills, P/L, balance — but nothing about why a trade was taken or how it felt to hold it. A spreadsheet can hold both, but it doesn't compute R-multiples, doesn't know a strategy's historical win rate as you fill in a form, and doesn't turn a month of trades into a session-by-session or day-of-week breakdown on its own.
+
+Trading Journal exists to be the single record of what the trader did *and* felt, not a mirror of the broker statement. That shaped the biggest early decision: no MT5 or broker auto-sync, ever. Every trade enters through a web form (or, eventually, natural language to an assistant) — deliberately manual, because journaling the trade by hand is itself the discipline the app is built to reinforce, not friction to engineer away.
+
+## Domain Model — Strategy → Setup Fields → Setup Data
+
+Every trade must reference a Strategy, and every Strategy declares its own **Setup Fields** — the strategy-specific measurements recorded at entry. A momentum strategy might track bar sizes in pips and wick ratios; a breakout strategy might track a different set entirely. Each field carries a key, label, type (`number` / `enum` / `computed`), unit, and — for computed fields — an arithmetic expression over sibling fields (e.g. `bar3Pips / bar2Pips`), evaluated by a small purpose-built parser at save time, never `eval()`.
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/strategies-page.png"
+    alt="Strategies list — each strategy declares its own setup field schema"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Strategies — each one owns its own setup schema
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/strategy-setup.png"
+    alt="Setup field schema builder showing number, enum, and computed field types"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Setup field builder — number, enum, and computed field types
+  </figcaption>
+</figure>
+
+Setup Data — the values a specific trade carries — is stored as JSON keyed by field key rather than as typed columns on the Trade table. The alternative, a nullable column per field (`bar1Pips`, `upperWick2Pips`, …), would make the Trade table grow unboundedly and tie every future strategy to a schema migration. With a single user and all analytics aggregated in JavaScript after loading closed trades, the loss of column-level typing costs nothing — and new strategies become addable entirely from the UI, with zero Prisma migrations.
+
+## Live Win Probability
+
+As Setup Data is entered on an open trade, the form shows a live-updating win probability for that specific combination of field values — computed from the strategy's own history of closed trades, not a generic model.
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/add-new-log-trade.png"
+    alt="Log a trade form with live win probability updating as setup fields are filled"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Log a trade — win probability updates as setup fields fill in
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/edit-trading-journal.png"
+    alt="Trade detail view showing the full per-field win probability breakdown"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Trade detail — full per-field win-rate breakdown behind the prediction
+  </figcaption>
+</figure>
+
+The model is binned Naive Bayes: numeric Setup Fields are bucketed into terciles or quartiles depending on sample size, enum fields are used directly, and all fields combine via Bayes' theorem with Laplace smoothing — no persisted or trained model, recomputed on demand. k-NN was rejected as too sparse to find real neighbors across nine mixed-type fields at current trade counts. Showing several models side by side was also rejected — at this sample size, competing methods would just disagree in ways nobody could validate, which invites cherry-picking rather than offering a second opinion. The prediction lives in one pure function (historical trades × setup values → probability) with no framework dependency, so a future server-side notifier can call the same function without a rewrite.
+
+## Trade Lifecycle & Analytics
+
+A trade is born OPEN at entry — symbol, account, direction, entry, stop loss, take profit, lots, thesis — and transitions to CLOSED exactly once, when an exit is supplied. There's no PLANNED state and no partial-close modeling; a partial close is logged as an edited exit or a second trade. Realized P/L is computed as `(exit − entry) × lots × contractSize`, sign-flipped for shorts; if the broker's actual close P/L is supplied it's stored separately and preferred for analytics, while the computed figure is always kept too — computed-only P/L drifts from broker truth on spread and commission, broker-only makes every entry slower to log, and keeping both gives auditable math with a trust anchor.
+
+Every closed trade's profit is also expressed in R — a multiple of money risked at entry — the common unit for comparing trades across symbols and accounts. The dashboard rolls that up into an equity curve, an R-distribution histogram, and a calendar heatmap; the analytics page breaks the same trades down by session (London Open / NY Open / Asia / Off-session, computed from open time via timezone-aware windows, never stored), by day of week, and by direction.
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/dashboard-page.png"
+    alt="Dashboard with equity curve, R distribution, and calendar P/L heatmap"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Dashboard — equity curve, R distribution, calendar heatmap
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/analytics-page.png"
+    alt="Analytics page with monthly P&L and session/day-of-week/direction breakdowns"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Analytics — session, day-of-week, and direction breakdowns
+  </figcaption>
+</figure>
+
+## Trades, Symbols & Gallery
+
+The trades list is the full OPEN/CLOSED history, filterable by symbol, strategy, and broker. Contract size and price digits are declared per symbol — they drive every P/L calculation, so brokers quoting the same instrument differently don't silently corrupt the numbers. Every trade's entry and exit chart screenshots collect automatically into a gallery, giving a visual record independent of the numeric one.
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/trades-page.png"
+    alt="Trades list showing full OPEN/CLOSED history with P/L and R per trade"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Trades — full history, filterable by symbol, strategy, broker
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/symbols-page.png"
+    alt="Symbols page with contract size and digits per instrument"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Symbols — contract size drives every P/L calculation
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/gallery-page.png"
+    alt="Gallery of entry and exit chart screenshots collected from all trades"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Gallery — entry/exit screenshots collected across every trade
+  </figcaption>
+</figure>
+
+## Key Technical Decisions
+
+| Decision | Chosen | Rejected | Why |
+|----------|--------|----------|-----|
+| Setup data storage | JSON field per strategy | Typed column per field | New strategies addable from the UI with zero Prisma migrations |
+| Win probability model | Binned Naive Bayes, one method shown | k-NN; multiple models side by side | k-NN too sparse across 9 mixed-type fields at current volume; competing models would disagree unvalidatably and invite cherry-picking |
+| Trade entry | Manual — web form or NL assistant | MT5/broker auto-sync | No Windows VM bridge or investor passwords; manual entry is the discipline being built, not overhead to remove |
+| P/L source | App-computed, broker-actual override | Computed-only or broker-only | Computed-only drifts from broker truth on spread/commission; broker-only slows every entry; keeping both gives auditable math with a trust anchor |
+| Deployment | Mac-only, 127.0.0.1, idle auto-stop after 15 min | Cloudflare Tunnel; VPS; LAN server | Zero attack surface, zero infra; matches actual usage of a few times a day |
+| Money ledger | Full cash-flow ledger in-app, migrated from Obsidian | Keep ledger in an Obsidian note | Single source of truth for tax reporting in USD and THB, no duplication |
+
+## What I'd Do Differently
+
+The trade schema distinguishes entry path — `kuromes` (natural language to an assistant) versus `web` — because the natural-language flow was meant to be the primary way trades get logged day to day. In practice every trade so far has come through the web form; the assistant path exists in the API but has never actually been used. Worth either putting real usage behind it or dropping the distinction rather than carrying a documented flow nobody exercises.
+
+Separately, `closedAt` is only ever set by the one-off historical-import script — the normal `POST /api/trades` and `/api/close` flow sets `exitTime` but never `closedAt`. The tax export's cumulative-profit curve filters on `closedAt != null`, so it's silently missing every trade entered through ordinary use, not just the imports. It only matters once a withdrawal happens, since tax there is computed on a remittance basis — but that's exactly the moment the number needs to be right, and today it isn't for anything logged the normal way.

@@ -1,0 +1,172 @@
+---
+title: "Trading Journal: Self-Hosted Forex Trade Analytics"
+description: "แอป Next.js แบบ localhost-only สำหรับบันทึกเทรด Forex, กำหนด schema setup field ต่อ strategy, และทำนาย win probability แบบ live จากโมเดล Naive Bayes ที่เทรนจากประวัติเทรดของตัวเอง"
+date: 2026-08-23
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, prisma, sqlite, trading, forex, analytics]
+techStack:
+  [
+    nextjs,
+    typescript,
+    prisma,
+    sqlite,
+    tailwindcss,
+    shadcn-ui,
+    tanstack,
+    recharts,
+  ]
+role: "Solo Developer"
+duration: "2026 — Ongoing"
+projectStatus: "Self-hosted / Active"
+metrics:
+  - { label: "Prisma Models", value: "10" }
+  - { label: "API Endpoints", value: "18" }
+  - { label: "Frontend Pages", value: "8" }
+  - { label: "Design Decisions", value: "9 ADRs" }
+---
+
+## ปัญหา
+
+แพลตฟอร์มโบรกเกอร์รายงานสิ่งที่เกิดขึ้นกับบัญชี — fill, P/L, balance — แต่ไม่บอกเหตุผลที่เข้าเทรดหรือความรู้สึกระหว่างถือ สเปรดชีตเก็บได้ทั้งสองอย่าง แต่ไม่คำนวณ R-multiple ให้ ไม่รู้ win rate ของ strategy ขณะกรอกฟอร์ม และไม่แปลงเทรดหนึ่งเดือนให้เป็นข้อมูลแยกตาม session หรือวันในสัปดาห์ได้เอง
+
+Trading Journal ถูกสร้างมาให้เป็นบันทึกเดียวของทั้งสิ่งที่เทรดเดอร์ทำและความรู้สึก ไม่ใช่กระจกสะท้อน statement ของโบรกเกอร์ นั่นคือที่มาของการตัดสินใจสำคัญที่สุดตั้งแต่ต้น: ไม่มี MT5 หรือ broker auto-sync เด็ดขาด ทุกเทรดเข้าระบบผ่านฟอร์มเว็บ (หรือในอนาคต ผ่านภาษาธรรมชาติกับผู้ช่วย) — ตั้งใจให้เป็น manual เพราะการจดบันทึกเทรดด้วยมือคือวินัยที่แอปตัวนี้ถูกสร้างมาเพื่อเสริม ไม่ใช่ friction ที่ต้องกำจัดออก
+
+## Domain Model — Strategy → Setup Fields → Setup Data
+
+ทุกเทรดต้องอ้างอิง Strategy หนึ่งตัว และทุก Strategy กำหนด **Setup Fields** ของตัวเอง — ค่าที่วัดเฉพาะของ strategy นั้นที่บันทึกตอนเข้าเทรด strategy แนว momentum อาจติดตามขนาดแท่งเทียนเป็น pips กับอัตราส่วนไส้เทียน ส่วน strategy แนว breakout อาจติดตามชุดข้อมูลคนละแบบเลย แต่ละ field มี key, label, type (`number` / `enum` / `computed`), หน่วย และสำหรับ computed field มี expression ทางคณิตศาสตร์อ้างอิง field อื่น ๆ (เช่น `bar3Pips / bar2Pips`) ที่ประมวลผลด้วย parser เล็ก ๆ ที่เขียนขึ้นเอง ไม่ใช้ `eval()`
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/strategies-page.png"
+    alt="Strategies list — each strategy declares its own setup field schema"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Strategies — แต่ละตัวมี setup schema เป็นของตัวเอง
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/strategy-setup.png"
+    alt="Setup field schema builder showing number, enum, and computed field types"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Setup field builder — รองรับ field แบบ number, enum, และ computed
+  </figcaption>
+</figure>
+
+Setup Data — ค่าที่เทรดหนึ่ง ๆ บันทึกไว้ — เก็บเป็น JSON คีย์ด้วย field key แทนที่จะเป็นคอลัมน์แบบ typed บนตาราง Trade ทางเลือกอื่นคือเพิ่มคอลัมน์ nullable ต่อ field (`bar1Pips`, `upperWick2Pips`, …) ซึ่งจะทำให้ตาราง Trade ขยายไม่มีที่สิ้นสุดและผูก strategy ใหม่ทุกตัวเข้ากับ schema migration เมื่อมีผู้ใช้คนเดียวและ analytics ทั้งหมดรวมผลด้วย JavaScript หลังโหลดเทรดที่ปิดแล้ว การเสีย column-level typing แทบไม่มีต้นทุนเลย — และ strategy ใหม่เพิ่มได้จาก UI ล้วน ๆ โดยไม่ต้อง migrate Prisma แม้แต่ครั้งเดียว
+
+## Live Win Probability
+
+ขณะกรอก Setup Data ของเทรดที่ยังเปิดอยู่ ฟอร์มจะแสดง win probability แบบ live ที่อัปเดตตามชุดค่าฟิลด์นั้น ๆ — คำนวณจากประวัติเทรดที่ปิดแล้วของ strategy นั้นเอง ไม่ใช่โมเดลทั่วไป
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/add-new-log-trade.png"
+    alt="Log a trade form with live win probability updating as setup fields are filled"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Log a trade — win probability อัปเดตตามที่กรอก setup field
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/edit-trading-journal.png"
+    alt="Trade detail view showing the full per-field win probability breakdown"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Trade detail — breakdown win rate รายฟิลด์เบื้องหลังตัวเลขทำนาย
+  </figcaption>
+</figure>
+
+โมเดลเป็น binned Naive Bayes: Setup Field แบบตัวเลขถูกแบ่งเป็น tercile หรือ quartile ตามขนาดตัวอย่าง ฟิลด์แบบ enum ใช้ค่าตรง ๆ แล้วรวมทุกฟิลด์ด้วยทฤษฎีบทของ Bayes พร้อม Laplace smoothing — ไม่มีโมเดลที่เทรนแล้วเก็บไว้ คำนวณใหม่ทุกครั้งตามต้องการ ปฏิเสธ k-NN เพราะข้อมูลกระจายเกินกว่าจะหาเพื่อนบ้านที่แท้จริงได้ข้าม 9 ฟิลด์ที่ชนิดต่างกันในจำนวนเทรดปัจจุบัน การแสดงหลายโมเดลเทียบกันก็ถูกปฏิเสธเช่นกัน — ที่ขนาดตัวอย่างนี้ โมเดลที่แข่งกันจะแค่ไม่ตรงกันในแบบที่ตรวจสอบไม่ได้ ซึ่งเป็นการเชิญชวนให้เลือกผลที่ชอบมากกว่าจะได้ความเห็นที่สอง การทำนายอยู่ในฟังก์ชัน pure function เดียว (ประวัติเทรด × ค่า setup → probability) ไม่ผูกกับ framework ใด ๆ เพื่อให้ notifier ฝั่ง server ในอนาคตเรียกฟังก์ชันเดียวกันได้โดยไม่ต้องเขียนใหม่
+
+## Trade Lifecycle & Analytics
+
+เทรดหนึ่งเกิดเป็น OPEN ตอนเข้า — symbol, account, direction, entry, stop loss, take profit, lots, thesis — แล้วเปลี่ยนเป็น CLOSED ครั้งเดียวเมื่อมีการกรอก exit ไม่มีสถานะ PLANNED และไม่มีการจำลอง partial close — การปิดบางส่วนบันทึกเป็นการแก้ exit หรือเป็นเทรดที่สอง P/L ที่รับรู้แล้วคำนวณจาก `(exit − entry) × lots × contractSize` กลับเครื่องหมายสำหรับ short ถ้ามี P/L จริงจากโบรกเกอร์ ระบบเก็บแยกไว้และใช้ค่านั้นสำหรับ analytics โดยยังเก็บค่าที่คำนวณเองไว้เสมอ — ถ้าใช้แต่ค่าคำนวณเองจะคลาดจากความจริงของโบรกเกอร์เรื่อง spread/commission ถ้าใช้แต่ค่าโบรกเกอร์จะทำให้บันทึกทุกเทรดช้าลง การเก็บทั้งคู่ให้ทั้งตัวเลขที่ตรวจสอบได้และจุดอ้างอิงที่เชื่อถือได้
+
+ทุกเทรดที่ปิดแล้วยังแสดงผลเป็น R — สัดส่วนกำไร/ขาดทุนเทียบกับเงินที่เสี่ยงตอนเข้า — หน่วยกลางสำหรับเทียบเทรดข้าม symbol และข้าม account Dashboard รวมข้อมูลเป็นเส้น equity curve, histogram การกระจายของ R, และ calendar heatmap ส่วนหน้า analytics แยกเทรดชุดเดียวกันตาม session (London Open / NY Open / Asia / Off-session คำนวณจากเวลาเปิดด้วย timezone-aware window ไม่ได้เก็บค่าไว้), ตามวันในสัปดาห์, และตาม direction
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/dashboard-page.png"
+    alt="Dashboard with equity curve, R distribution, and calendar P/L heatmap"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Dashboard — equity curve, การกระจายของ R, calendar heatmap
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/analytics-page.png"
+    alt="Analytics page with monthly P&L and session/day-of-week/direction breakdowns"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Analytics — แยกตาม session, วันในสัปดาห์, และ direction
+  </figcaption>
+</figure>
+
+## Trades, Symbols & Gallery
+
+หน้า trades คือประวัติ OPEN/CLOSED ทั้งหมด กรองได้ตาม symbol, strategy, และโบรกเกอร์ Contract size และจำนวนทศนิยมกำหนดต่อ symbol — เป็นตัวขับการคำนวณ P/L ทุกครั้ง เพื่อไม่ให้โบรกเกอร์ที่ quote instrument เดียวกันต่างกันมาทำให้ตัวเลขผิดเพี้ยนแบบเงียบ ๆ ภาพหน้าจอ entry/exit ของทุกเทรดถูกรวบรวมเข้า gallery อัตโนมัติ เป็นบันทึกภาพที่แยกอิสระจากบันทึกตัวเลข
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/trades-page.png"
+    alt="Trades list showing full OPEN/CLOSED history with P/L and R per trade"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Trades — ประวัติทั้งหมด กรองได้ตาม symbol, strategy, โบรกเกอร์
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/symbols-page.png"
+    alt="Symbols page with contract size and digits per instrument"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Symbols — contract size เป็นตัวขับการคำนวณ P/L ทุกครั้ง
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/trading-journal/gallery-page.png"
+    alt="Gallery of entry and exit chart screenshots collected from all trades"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Gallery — ภาพ entry/exit ที่รวบรวมจากทุกเทรด
+  </figcaption>
+</figure>
+
+## การตัดสินใจทางเทคนิค
+
+| การตัดสินใจ | ที่เลือก | ที่ไม่เลือก | เหตุผล |
+|-------------|---------|------------|--------|
+| การเก็บ setup data | JSON field ต่อ strategy | คอลัมน์ typed ต่อ field | เพิ่ม strategy ใหม่จาก UI ได้โดยไม่ต้อง migrate Prisma |
+| โมเดล win probability | Binned Naive Bayes แสดงวิธีเดียว | k-NN; แสดงหลายโมเดลเทียบกัน | k-NN กระจายเกินไปข้าม 9 field ที่ชนิดต่างกันในปริมาณข้อมูลปัจจุบัน; หลายโมเดลจะไม่ตรงกันแบบตรวจสอบไม่ได้ และชวนเลือกผลที่ชอบ |
+| การบันทึกเทรด | Manual — ฟอร์มเว็บหรือผู้ช่วยภาษาธรรมชาติ | MT5/broker auto-sync | ไม่ต้องมี Windows VM bridge หรือรหัสผ่าน investor; การบันทึกด้วยมือคือวินัยที่ต้องสร้าง ไม่ใช่ overhead ที่ต้องตัดออก |
+| แหล่งที่มา P/L | คำนวณเองในแอป พร้อม override ด้วยค่าจริงจากโบรกเกอร์ | ใช้ค่าคำนวณอย่างเดียว หรือค่าโบรกเกอร์อย่างเดียว | ค่าคำนวณอย่างเดียวคลาดจากความจริงเรื่อง spread/commission; ค่าโบรกเกอร์อย่างเดียวทำให้บันทึกช้าลง; เก็บทั้งคู่ให้ตัวเลขที่ตรวจสอบได้พร้อมจุดอ้างอิง |
+| การ deploy | Mac-only, 127.0.0.1, auto-stop เมื่อ idle 15 นาที | Cloudflare Tunnel; VPS; LAN server | attack surface เป็นศูนย์ ไม่มี infra ต้องดูแล; ตรงกับพฤติกรรมใช้งานจริงที่ใช้ไม่กี่ครั้งต่อวัน |
+| Ledger เงิน | Cash-flow ledger เต็มรูปแบบในแอป ย้ายมาจาก Obsidian | เก็บ ledger ไว้ใน Obsidian note ต่อไป | เป็นแหล่งข้อมูลเดียวสำหรับยื่นภาษีทั้ง USD และ THB ไม่ซ้ำซ้อน |
+
+## สิ่งที่จะทำต่างออกไป
+
+Schema ของเทรดแยก entry path ไว้ — `kuromes` (ภาษาธรรมชาติผ่านผู้ช่วย) กับ `web` — เพราะตั้งใจให้ทางภาษาธรรมชาติเป็นวิธีหลักในการบันทึกเทรดประจำวัน แต่ในทางปฏิบัติทุกเทรดจนถึงตอนนี้เข้ามาผ่านฟอร์มเว็บทั้งหมด ทาง assistant มีอยู่ใน API แต่ไม่เคยถูกใช้จริงเลย ควรจะเอามาใช้งานจริงหรือไม่ก็ตัดความแตกต่างนี้ทิ้ง แทนที่จะแบกรับ flow ที่ documented ไว้แต่ไม่มีใครใช้
+
+อีกจุดหนึ่งคือ `closedAt` ถูกตั้งค่าโดยสคริปต์ import ประวัติแบบครั้งเดียวเท่านั้น — flow ปกติของ `POST /api/trades` และ `/api/close` ตั้งค่า `exitTime` แต่ไม่เคยตั้ง `closedAt` เส้นกราฟกำไรสะสมของ tax export กรองด้วย `closedAt != null` จึงขาดข้อมูลของทุกเทรดที่บันทึกผ่านการใช้งานปกติแบบเงียบ ๆ ไม่ใช่แค่ตัว import เท่านั้น เรื่องนี้จะมีผลก็ต่อเมื่อมีการถอนเงิน เพราะภาษีคำนวณแบบ remittance-basis — แต่นั่นคือจังหวะที่ตัวเลขต้องถูกต้องที่สุด และวันนี้มันยังไม่ถูกสำหรับทุกเทรดที่บันทึกแบบปกติ
