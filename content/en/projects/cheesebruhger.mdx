@@ -1,0 +1,456 @@
+---
+title: "CHEESEBRUHGER: A Solo-Built Minecraft Server Platform"
+description: "A Minecraft server built end to end — Purpur core with Java/Bedrock cross-play, a Next.js web shop and staff admin panel sharing the in-game AuthMe account store, PromptPay top-ups verified through EasySlip, and a custom three-tier plugin stack, all running on Oracle Cloud behind Cloudflare."
+date: 2026-09-01
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, minecraft, rcon, mariadb, discord, oracle-cloud, cloudflare]
+techStack:
+  [
+    nextjs,
+    typescript,
+    tailwindcss,
+    shadcn-ui,
+    nextauth,
+    mariadb,
+    rcon,
+    purpur,
+    discordsrv,
+    easyslip,
+    oracle-cloud,
+    cloudflare,
+  ]
+role: "Solo Developer"
+duration: "2026 — Ongoing"
+projectStatus: "Private Beta / Active"
+metrics:
+  - { label: "Oracle Cloud VPS", value: "2" }
+  - { label: "Combined Compute", value: "4 OCPU / 24GB RAM" }
+  - { label: "Monthly Compute Cost", value: "$0 (Oracle Always Free)" }
+  - { label: "Plugin Engineering Tiers", value: "3" }
+---
+
+CHEESEBRUHGER is a Minecraft server I designed and built alone, from the Purpur server core up through a full Next.js web shop, a staff admin panel, and the Oracle Cloud infrastructure underneath it all. The domain `cheesebruhger.com` doubles as the Java server address and, via Geyser/Floodgate, the Bedrock address, so PC and console/mobile players join the same world. It's currently in private beta with a small friends-only test group — no whitelist is enforced, so technically anyone who finds the address could join, but the server isn't publicly announced. Public launch is planned for 2026.
+
+## About CHEESEBRUHGER
+
+CHEESEBRUHGER runs on [Purpur](https://purpurmc.org/), a high-performance fork of Paper, with Java on port 25565 and Bedrock (via Geyser/Floodgate) on port 19132 — both reachable at `cheesebruhger.com`. Players get two surfaces beyond the game itself: a public web shop at [shop.cheesebruhger.com](https://shop.cheesebruhger.com) for topping up and spending Credits, and a staff-only admin panel (never linked publicly) that I use to run the server day to day — RCON console, audit logs, ticket support, promotions, and more.
+
+I built and operate every layer solo: the Minecraft server and its plugin stack, the web shop and admin panel, and the Oracle Cloud + Cloudflare infrastructure they run on. The design target is 50–100 concurrent players — that's an architectural target, not a claim about current beta numbers, which aren't tracked here.
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/2026-09-09_20.17.08.png"
+    alt="In-game view on the CHEESEBRUHGER Purpur server"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    In-game on the CHEESEBRUHGER Purpur server
+  </figcaption>
+</figure>
+
+## The Web Shop & Account System
+
+The web shop is a Next.js (App Router, TypeScript) app styled with Tailwind and shadcn/ui, built as a pnpm/Turborepo monorepo — `apps/website` (the public shop) and `apps/admin` (the staff panel), sharing a `packages/lib` package between them.
+
+Authentication doesn't create a second account system. NextAuth.js (Auth.js v5) uses a Credentials provider that checks a player's password directly against the `authme` table — the same bcrypt-hashed account store the in-game AuthMe plugin already maintains. The website is effectively a second front door onto an account that already exists on the server; there's no separate "website account" to register. The admin panel builds further security on top of that same login: TOTP two-factor authentication, backup codes, and trusted-device tracking.
+
+From the shop, a player can browse and manage their inventory, top up their wallet, spend Credits, redeem codes, and manage their account and 2FA.
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/shop-landing-page.png"
+    alt="CHEESEBRUHGER web shop landing page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Shop landing page
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/profile-page.png"
+    alt="Player profile page on the web shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Profile — account details and settings
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/profile-2fa.png"
+    alt="Two-factor authentication setup on the profile page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    TOTP 2FA setup — backup codes and trusted devices
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/inventory-page.png"
+    alt="Player inventory page on the web shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Inventory — items purchased or redeemed through the shop
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/shop-items-page.png"
+    alt="Shop items listing page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Shop items — purchasable with Credits
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/shop-item-dialog-modal.png"
+    alt="Shop item purchase confirmation dialog"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Shop item detail and purchase confirmation
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/redeem-page.png"
+    alt="Redeem code page on the web shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Redeem — one-off and limited-use codes
+  </figcaption>
+</figure>
+
+## Topping Up with PromptPay
+
+CHEESEBRUHGER's economy has four separate currencies, and keeping them straight matters for understanding both the top-up flow and the admin tooling around it:
+
+| Term | What it is | Earned via | Spent on |
+|---|---|---|---|
+| **Credits** | Real-money wallet balance | PromptPay top-up (EasySlip-verified) | `shop.cheesebruhger.com` only |
+| **Burger** (Xshards) | In-game currency | Playtime | Amethyst cosmetics, via the Skript bridge to AmethystItems |
+| **$** (Vault balance) | General in-game economy | Jobs, in-game activity | EconomyShopGUI, Protection Stone Shop, etc. |
+| **Job Points** | Job-specific currency | Paid alongside $ for job actions (e.g. mining) | Job market via `/jobs` |
+
+Only Credits touch real money, and only an EasySlip-verified PromptPay top-up can create them.
+
+A player uploads a bank-transfer slip on the shop's top-up page. The backend calls [EasySlip](https://easyslip.com/) to verify the slip is genuine and matches the expected amount; on success it records a `TopupTransaction` and credits the player's `WalletBalance` — 1 baht in equals 1 Credit, before the 7% VAT that applies to in-game real-money sales. If EasySlip can't verify a slip, the case goes through an admin appeal/review flow instead of failing silently.
+
+Crediting the wallet and delivering in-game are two different problems, so I split them. A delivery-poller runs on a schedule and reconciles paid orders — top-ups, shop purchases — against what's actually happened in-game, delivering over RCON. It's a pull rather than a push: if delivery happened synchronously inside the top-up request, a slip could verify successfully and then silently fail to deliver anything if RCON happened to be briefly unreachable at that exact moment. Decoupling payment confirmation from in-game delivery means a brief RCON outage just delays delivery instead of losing it, and payment confirmation never blocks on the game server being reachable. The top-up endpoint itself is rate-limited.
+
+This is also where the word "order" gets overloaded, so it's worth being explicit: on the web and admin side, **Order** is the umbrella term for everything a player has bought — top-ups plus shop purchases — which is what the admin's order-payment page reviews and what disputed top-ups get appealed against. That's a completely different thing from the in-game **`/order`** command, which is the FoOrders marketplace plugin for player-to-player listings (covered below, under plugin engineering). The two never overlap in the code, but the shared word is worth flagging.
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/topup-page.png"
+    alt="PromptPay top-up page with slip upload"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Top-up — upload a PromptPay slip, verified via EasySlip
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/order-payment-page.png"
+    alt="Admin order and payment review page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Admin order review — top-ups and shop purchases, including disputed slips
+  </figcaption>
+</figure>
+
+## Inside the Admin Panel
+
+The admin panel (`admin.cheesebruhger.com`, staff-only, never publicly linked) is where I actually run the server day to day. It covers:
+
+- **RCON console + live terminal** — a console that sends RCON commands to the live Purpur server, plus a live terminal that streams the server's console output straight to the browser.
+- **Audit log** — every admin action is recorded, backed by the `AuditLog` table.
+- **Player search** — including hidden-player flags (`HiddenPlayer`), for players who shouldn't show up in public-facing player lists.
+- **Command watchlist** — `FlaggedCommandPattern` entries that flag suspicious or abusable commands for review.
+- **Support tickets** — the `Ticket`/`TicketMessage` system, which also bridges to Discord (more on that under plugin engineering).
+- **Promotions & redeem codes** — `TopupPromotion` for time-limited top-up bonuses, and `RedeemCode`/`RedeemCodeRedemption` for one-off or limited-use codes.
+- **Shop item management** — `ShopItem` records for whatever's purchasable on the web shop.
+- **Plugin-update tracking** — keeping tabs on Geyser/Floodgate versions, since those are what let Bedrock players connect at all.
+- **Emergency broadcast + announcer rotation** — `EmergencyBroadcast` for one-off urgent messages, and `AnnouncerRotationConfig`/`AnnouncerMessage` for the regular rotating in-game announcements.
+- **Discord announcements** — staff-authored announcements posted out to Discord via outgoing webhooks (`DiscordAnnouncement`), separate from the in-game DiscordSRV integration covered next.
+
+All of this sits behind the same AuthMe-backed login as the shop, hardened with TOTP 2FA, backup codes, and trusted-device tracking.
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/dashboard-page.png"
+    alt="Admin panel dashboard"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Admin dashboard
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/login-page.png"
+    alt="Admin panel login page backed by the shared AuthMe account store"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Admin login — same AuthMe-backed credentials, hardened with 2FA
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/live-terminal-page.png"
+    alt="Live terminal streaming server console output"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    RCON console + live terminal, streaming the server's console output
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/audit-log-page.png"
+    alt="Admin audit log"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Audit log — every admin action recorded
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/players-page.png"
+    alt="Player search page in the admin panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Player search, with hidden-player flags
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/command-watchlist-page.png"
+    alt="Command watchlist page in the admin panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Command watchlist — flagged command patterns
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/ticket-page.png"
+    alt="Support ticket management page in the admin panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Support tickets
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/promotions-page.png"
+    alt="Top-up promotions management page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Promotions — time-limited top-up bonuses
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/redeem-code-page.png"
+    alt="Redeem code management page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Redeem code management
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/shop-items-page.png"
+    alt="Shop item management page in the admin panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Shop item management
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/announcer-config-page.png"
+    alt="Announcer rotation configuration page"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Announcer rotation configuration
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/discord-announcement-with-bot.png"
+    alt="Discord announcement posted via webhook, shown alongside the bot"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Staff-authored announcement posted to Discord via webhook
+  </figcaption>
+</figure>
+
+## Plugin Engineering: Three Tiers Deep
+
+The plugin stack is where most of the actual engineering lives, and it splits cleanly into three tiers of depth.
+
+**Built from scratch.** `TeamsCraft` is a custom team system I wrote from nothing. `TradeUp` is a custom item trade-up mechanic — players combine items to upgrade them. TradeUp is **not** a marketplace; it's an item-upgrade system, easy to confuse with the marketplace plugins below by name association but architecturally unrelated to them.
+
+**Forked and modified.** `AmethystItems` started as an open-source cosmetic-item-shop plugin that I forked and customized — including patching the `Xshards` marketplace jar to fix a bug where purchase-message item names were coming out wrong.
+
+**Skript-level scripting.** Two pieces of glue logic live at the Skript level rather than as compiled plugins: the custom `/ticket` command that bridges the support-ticket system to Discord, and the bridge connecting the Xshards economy to AmethystItems — a Xshards shop purchase triggers a Skript script that grants the corresponding Amethyst item.
+
+On top of my own plugins, `DiscordSRV` (third-party) handles in-game chat sync and Discord account linking.
+
+The in-game marketplace situation needs its own disambiguation, since three separate systems all look like "a place to trade things": `/order` is FoOrders, a third-party plugin for player-to-player listings; `/ah` is AuctionHouse, a separate third-party auction system; and TradeUp, described above, isn't a marketplace at all — it's the custom item-upgrade mechanic. None of the three talk to each other.
+
+Two smaller bugs worth a footnote here: a silent payout bug in `MrUltimateJobs` that I found and fixed, and a rarity-weight math error in the crate system that was skewing drop odds until corrected.
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/discord-ticket-system.png"
+    alt="The /ticket Skript command bridging a support ticket to Discord"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    The /ticket Skript bridge posting a new ticket to Discord
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/ticket-details.png"
+    alt="Ticket details as bridged to Discord"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Ticket details, mirrored on the Discord side
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/ticket-close.png"
+    alt="A ticket being closed via the Discord bridge"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Closing a ticket from the Discord side
+  </figcaption>
+</figure>
+
+## Infrastructure: Oracle Cloud, Cloudflare, and a 3-Layer Firewall
+
+CHEESEBRUHGER runs on two Oracle Cloud VPS instances — one hosting the Minecraft server, one hosting the website and the shared MariaDB database — for 4 OCPU and 24GB RAM combined, on Oracle's Always Free tier. The compute costs nothing; the only recurring cost for the whole project is the domain name. Cloudflare sits in front for DNS and CDN.
+
+MariaDB is shared between the website and the Minecraft plugins that need persistent storage — AuthMe, LuckPerms, CoreProtect, and the Vault economy plugin all read and write the same database the website's Next.js Route Handlers talk to.
+
+The headline debugging story from deployment was a three-layer firewall problem. Oracle's Virtual Cloud Network doesn't ship with an internet gateway by default, and traffic wasn't reaching the server. Finding out why meant working across three independent layers that all had to agree before a packet got through: iptables on the box itself, Oracle's Network Security Groups, and OCI's security-list rules at the VCN level. Any one of the three silently dropping traffic looked identical from the outside — a connection that just never arrived — so the debugging was a process of checking each layer in turn until the actual blocker turned up.
+
+Separately, deploying the Auth.js (NextAuth v5) app surfaced an `AUTH_TRUST_HOST` issue — Auth.js refusing to trust the deployed host header until that variable was set, which broke the Credentials-provider login flow until it was tracked down.
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/cheesebruhger-mc-prod-server.png"
+    alt="Minecraft production server instance overview"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Oracle Cloud VPS running the Minecraft server
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/cheesebruhger-web-prod-server.png"
+    alt="Website production server instance overview"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Oracle Cloud VPS running the website and MariaDB
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/cloudflare-dns.png"
+    alt="Cloudflare DNS configuration for cheesebruhger.com"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Cloudflare DNS/CDN in front of both servers
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/mc-nsg.png"
+    alt="Network Security Group rules for the Minecraft server"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Network Security Group — one of the three firewall layers
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/web-nsg.png"
+    alt="Network Security Group rules for the web server"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Network Security Group for the website server
+  </figcaption>
+</figure>
+
+## Key Technical Decisions
+
+| Decision | Chosen | Rejected | Why |
+|----------|--------|----------|-----|
+| Website auth | Credentials provider against the shared `authme` table | A separate website user table | Avoids a second account system players would have to keep in sync with their in-game account |
+| Top-up delivery | Delivery-poller reconciling via RCON on a schedule | Deliver synchronously inside the top-up request | Decouples payment confirmation from in-game state changes; resilient to brief RCON outages |
+| AmethystItems | Fork of an existing open-source shop plugin | Build a cosmetic-shop plugin from scratch | Kept the existing GUI/economy plumbing, patched only what was actually broken (the Xshards jar naming bug) |
+| In-game marketplaces | FoOrders + AuctionHouse (third-party) alongside custom TradeUp | Build one custom marketplace to cover everything | Player-to-player listings and auctions are already solved problems; TradeUp's item-upgrade mechanic needed logic neither plugin provides |
+| Cross-platform play | Geyser/Floodgate on the same Purpur server | A separate Bedrock-only server | One world, one economy, one player base across Java and Bedrock |
+
+## What I'd Do Differently
+
+CHEESEBRUHGER is still in private beta — a small friends-only group, no whitelist enforced, so anyone with the address could technically join even though it isn't publicly announced. Public launch is targeted for 2026, aimed at a design target of 50–100 concurrent players; nothing about current usage, uptime, or revenue is tracked or claimed here — those numbers simply don't exist yet.
+
+If I were starting the plugin stack over, I'd think harder up front about which of the marketplace-shaped systems — FoOrders, AuctionHouse, TradeUp — actually needed to be separate before building three of them. In practice they ended up serving genuinely different purposes, but that wasn't obvious on day one, and it's the kind of thing worth deciding deliberately rather than discovering in hindsight.

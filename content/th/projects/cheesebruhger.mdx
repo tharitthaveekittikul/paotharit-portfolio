@@ -1,0 +1,456 @@
+---
+title: "CHEESEBRUHGER: Minecraft Server ที่สร้างคนเดียวทั้งระบบ"
+description: "Minecraft Server ที่สร้างเองตั้งแต่ต้นจนจบ — ใช้ Purpur เป็นแกนหลักพร้อม Cross-play ระหว่าง Java/Bedrock, มี Web Shop และ Admin Panel ที่ใช้ AuthMe Account เดียวกันกับในเกม, เติมเงินผ่าน PromptPay ที่ตรวจสอบด้วย EasySlip, และ Plugin ที่พัฒนาเองสามระดับความลึก ทั้งหมดรันบน Oracle Cloud หลัง Cloudflare"
+date: 2026-09-01
+type: project
+status: published
+featured: true
+tags: [nextjs, typescript, minecraft, rcon, mariadb, discord, oracle-cloud, cloudflare]
+techStack:
+  [
+    nextjs,
+    typescript,
+    tailwindcss,
+    shadcn-ui,
+    nextauth,
+    mariadb,
+    rcon,
+    purpur,
+    discordsrv,
+    easyslip,
+    oracle-cloud,
+    cloudflare,
+  ]
+role: "Solo Developer"
+duration: "2026 — Ongoing"
+projectStatus: "Private Beta / Active"
+metrics:
+  - { label: "Oracle Cloud VPS", value: "2" }
+  - { label: "Combined Compute", value: "4 OCPU / 24GB RAM" }
+  - { label: "Monthly Compute Cost", value: "$0 (Oracle Always Free)" }
+  - { label: "Plugin Engineering Tiers", value: "3" }
+---
+
+CHEESEBRUHGER คือ Minecraft Server ที่ผมออกแบบและสร้างขึ้นเองคนเดียว ตั้งแต่แกน Purpur ของ Server ไปจนถึง Web Shop ที่สร้างด้วย Next.js, Admin Panel สำหรับทีมงาน และโครงสร้าง Infrastructure บน Oracle Cloud ที่รองรับทั้งหมดนี้ Domain `cheesebruhger.com` ใช้เป็นทั้งที่อยู่ Server ฝั่ง Java และผ่าน Geyser/Floodgate ก็ใช้เป็นที่อยู่ฝั่ง Bedrock ด้วย ทำให้ผู้เล่นจาก PC และ Console/Mobile เข้ามาเล่นในโลกเดียวกันได้ ตอนนี้ Server อยู่ในช่วง Private Beta กับกลุ่มเพื่อนเล็กๆ — ไม่ได้เปิด Whitelist บังคับ ดังนั้นในทางเทคนิคใครก็ตามที่รู้ Address ก็เข้ามาเล่นได้ แต่ Server ยังไม่ได้ประกาศเปิดสาธารณะ แผนเปิดตัวสาธารณะคือภายในปี 2026
+
+## เกี่ยวกับ CHEESEBRUHGER
+
+CHEESEBRUHGER รันบน [Purpur](https://purpurmc.org/) ซึ่งเป็น Fork ประสิทธิภาพสูงของ Paper โดยฝั่ง Java ใช้ Port 25565 และฝั่ง Bedrock (ผ่าน Geyser/Floodgate) ใช้ Port 19132 — ทั้งสองเข้าถึงได้ผ่าน `cheesebruhger.com` ผู้เล่นมีสองช่องทางนอกเหนือจากตัวเกม คือ Web Shop สาธารณะที่ [shop.cheesebruhger.com](https://shop.cheesebruhger.com) สำหรับเติมเงินและใช้จ่าย Credits และ Admin Panel สำหรับทีมงานเท่านั้น (ไม่เคยลิงก์ให้สาธารณะเห็น) ที่ผมใช้บริหาร Server ในแต่ละวัน — RCON Console, Audit Log, ระบบ Support Ticket, โปรโมชัน และอื่นๆ
+
+ผมสร้างและดูแลทุกชั้นด้วยตัวเองคนเดียว ทั้ง Minecraft Server และ Plugin Stack, Web Shop และ Admin Panel, รวมถึง Infrastructure บน Oracle Cloud + Cloudflare ที่รองรับทั้งหมดนี้ เป้าหมายด้านการออกแบบคือรองรับผู้เล่นพร้อมกัน 50–100 คน — นี่คือเป้าหมายเชิงสถาปัตยกรรม ไม่ใช่ตัวเลขการใช้งานจริงในช่วง Beta ปัจจุบัน ซึ่งไม่ได้มีการเก็บสถิติไว้
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/2026-09-09_20.17.08.png"
+    alt="มุมมองในเกมบน CHEESEBRUHGER Purpur server"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ในเกมบน CHEESEBRUHGER Purpur server
+  </figcaption>
+</figure>
+
+## Web Shop และระบบ Account
+
+Web Shop เป็นแอป Next.js (App Router, TypeScript) ตกแต่งด้วย Tailwind และ shadcn/ui สร้างเป็น pnpm/Turborepo Monorepo — `apps/website` (Shop สาธารณะ) และ `apps/admin` (Panel ทีมงาน) ที่ใช้ Package `packages/lib` ร่วมกัน
+
+ระบบ Login ไม่ได้สร้าง Account อีกชุดแยกต่างหาก NextAuth.js (Auth.js v5) ใช้ Credentials Provider ที่ตรวจสอบรหัสผ่านของผู้เล่นโดยตรงกับตาราง `authme` — Account Store เดียวกันกับที่ Plugin AuthMe ในเกมดูแลอยู่แล้ว (Hash ด้วย bcrypt) พูดง่ายๆ คือ Website เป็นเหมือน "ประตูที่สอง" เข้าสู่ Account ที่มีอยู่แล้วบน Server ไม่มี "Website Account" แยกต่างหากให้ต้องสมัครใหม่ ส่วน Admin Panel เสริมความปลอดภัยเพิ่มเติมบน Login ชุดเดียวกันนี้ ด้วย TOTP Two-Factor Authentication, Backup Codes และการติดตาม Trusted Device
+
+จาก Shop ผู้เล่นสามารถดูและจัดการ Inventory, เติมเงินเข้ากระเป๋า, ใช้จ่าย Credits, Redeem Code และจัดการบัญชีพร้อม 2FA ของตัวเองได้
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/shop-landing-page.png"
+    alt="หน้า Landing ของ CHEESEBRUHGER web shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    หน้า Landing ของ Shop
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/profile-page.png"
+    alt="หน้า Profile ของผู้เล่นบน Web Shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Profile — รายละเอียดบัญชีและการตั้งค่า
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/profile-2fa.png"
+    alt="การตั้งค่า Two-factor authentication บนหน้า Profile"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ตั้งค่า TOTP 2FA — Backup Codes และ Trusted Devices
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/inventory-page.png"
+    alt="หน้า Inventory ของผู้เล่นบน Web Shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Inventory — ไอเทมที่ซื้อหรือ Redeem ผ่าน Shop
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/shop-items-page.png"
+    alt="หน้ารายการสินค้าใน Shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    รายการสินค้าใน Shop — ซื้อได้ด้วย Credits
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/shop-item-dialog-modal.png"
+    alt="Dialog ยืนยันการซื้อสินค้าใน Shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    รายละเอียดสินค้าและการยืนยันการซื้อ
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/redeem-page.png"
+    alt="หน้า Redeem Code บน Web Shop"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Redeem — Code แบบใช้ครั้งเดียวหรือจำกัดจำนวน
+  </figcaption>
+</figure>
+
+## เติมเงินผ่าน PromptPay
+
+ระบบเศรษฐกิจของ CHEESEBRUHGER มีสกุลเงินแยกกันสี่ประเภท และการแยกให้ชัดเจนเป็นเรื่องสำคัญทั้งต่อความเข้าใจ Flow การเติมเงินและเครื่องมือฝั่ง Admin ที่เกี่ยวข้อง:
+
+| ชื่อเรียก | คืออะไร | ได้มาจาก | ใช้จ่ายกับ |
+|---|---|---|---|
+| **Credits** | ยอดเงินในกระเป๋าที่ผูกกับเงินจริง | เติมผ่าน PromptPay (ตรวจสอบด้วย EasySlip) | `shop.cheesebruhger.com` เท่านั้น |
+| **Burger** (Xshards) | สกุลเงินในเกม | เวลาเล่น (Playtime) | ไอเทม Cosmetic ของ Amethyst ผ่าน Skript Bridge ไปยัง AmethystItems |
+| **$** (Vault balance) | ระบบเศรษฐกิจทั่วไปในเกม | Job และกิจกรรมในเกม | EconomyShopGUI, Protection Stone Shop และอื่นๆ |
+| **Job Points** | สกุลเงินเฉพาะของแต่ละ Job | ได้พร้อมกับ $ จากการทำงานของ Job (เช่น การขุดแร่) | ตลาด Job ผ่าน `/jobs` |
+
+มีเพียง Credits เท่านั้นที่เกี่ยวข้องกับเงินจริง และมีแค่การเติมเงินผ่าน PromptPay ที่ผ่านการตรวจสอบของ EasySlip เท่านั้นที่สร้าง Credits ได้
+
+ผู้เล่นอัปโหลดสลิปโอนเงินบนหน้าเติมเงินของ Shop ฝั่ง Backend จะเรียก [EasySlip](https://easyslip.com/) เพื่อตรวจสอบว่าสลิปเป็นของจริงและยอดตรงกับที่คาดไว้ เมื่อสำเร็จระบบจะบันทึก `TopupTransaction` และเติม `WalletBalance` ให้ผู้เล่น — อัตราพื้นฐานคือ 1 บาท เท่ากับ 1 Credit ก่อนหัก VAT 7% ที่ใช้กับการขายในเกมด้วยเงินจริง หากตรวจสอบสลิปด้วย EasySlip ไม่ผ่าน กรณีนั้นจะเข้าสู่ขั้นตอนอุทธรณ์/ตรวจสอบโดย Admin แทนที่จะล้มเหลวเงียบๆ
+
+การเติมยอดในกระเป๋ากับการส่งมอบในเกมเป็นคนละปัญหากัน ผมจึงแยกทั้งสองส่วนออกจากกัน `delivery-poller` ทำงานตามรอบเวลาและตรวจสอบ Order ที่จ่ายเงินแล้ว — ทั้งการเติมเงินและการซื้อสินค้าใน Shop — เทียบกับสิ่งที่เกิดขึ้นจริงในเกม แล้วส่งมอบผ่าน RCON ลักษณะการทำงานเป็นแบบ Pull ไม่ใช่ Push หากส่งมอบแบบ Synchronous ทันทีภายใน Request การเติมเงิน สลิปอาจตรวจสอบผ่านสำเร็จแต่ส่งมอบไม่สำเร็จเงียบๆ หาก RCON เกิด Unreachable ชั่วคราวพอดีในจังหวะนั้น การแยกการยืนยันการชำระเงินออกจากการส่งมอบในเกมทำให้ RCON ล่มชั่วคราวแค่ทำให้การส่งมอบล่าช้า ไม่ใช่สูญหาย และการยืนยันการชำระเงินก็ไม่ต้องรอให้ Game Server เชื่อมต่อได้ Endpoint สำหรับเติมเงินมีการทำ Rate Limit ด้วย
+
+ตรงนี้ยังเป็นจุดที่คำว่า "Order" มีความหมายซ้อนกันด้วย จึงควรอธิบายให้ชัด: ฝั่ง Web และ Admin คำว่า **Order** เป็นคำเรียกรวมสำหรับทุกอย่างที่ผู้เล่นซื้อ — ทั้งการเติมเงินและการซื้อสินค้าใน Shop — ซึ่งเป็นสิ่งที่หน้า Order Review ของ Admin ใช้ตรวจสอบ และเป็นสิ่งที่การเติมเงินที่มีข้อโต้แย้งจะถูกอุทธรณ์ นั่นคนละเรื่องกับคำสั่งในเกม **`/order`** ซึ่งเป็น Plugin FoOrders สำหรับการลงประกาศซื้อขายระหว่างผู้เล่นด้วยกันเอง (อธิบายเพิ่มเติมด้านล่างในหัวข้อ Plugin Engineering) ทั้งสองไม่เกี่ยวข้องกันในโค้ดเลย แต่คำที่ใช้ร่วมกันนี้ควรระวังสับสน
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/shop/topup-page.png"
+    alt="หน้าเติมเงินผ่าน PromptPay พร้อมอัปโหลดสลิป"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    เติมเงิน — อัปโหลดสลิป PromptPay ตรวจสอบผ่าน EasySlip
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/order-payment-page.png"
+    alt="หน้าตรวจสอบ Order และการชำระเงินฝั่ง Admin"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ตรวจสอบ Order ฝั่ง Admin — ทั้งการเติมเงินและการซื้อสินค้า รวมถึงสลิปที่มีข้อโต้แย้ง
+  </figcaption>
+</figure>
+
+## ภายใน Admin Panel
+
+Admin Panel (`admin.cheesebruhger.com` สำหรับทีมงานเท่านั้น ไม่เคยเปิดลิงก์สาธารณะ) คือที่ที่ผมใช้บริหาร Server จริงในแต่ละวัน ครอบคลุม:
+
+- **RCON Console + Live Terminal** — Console สำหรับส่งคำสั่ง RCON ไปยัง Purpur Server ที่รันอยู่จริง พร้อม Live Terminal ที่ Stream Console Output ของ Server มาแสดงบน Browser
+- **Audit Log** — บันทึกทุกการกระทำของ Admin ด้วยตาราง `AuditLog`
+- **Player Search** — รวมถึง Hidden-player Flag (`HiddenPlayer`) สำหรับผู้เล่นที่ไม่ควรปรากฏในรายชื่อผู้เล่นแบบสาธารณะ
+- **Command Watchlist** — `FlaggedCommandPattern` สำหรับ Flag คำสั่งที่น่าสงสัยหรืออาจถูกใช้ในทางที่ผิดเพื่อตรวจสอบ
+- **Support Ticket** — ระบบ `Ticket`/`TicketMessage` ที่เชื่อมต่อกับ Discord ด้วย (อธิบายเพิ่มเติมในหัวข้อ Plugin Engineering)
+- **โปรโมชันและ Redeem Code** — `TopupPromotion` สำหรับโบนัสเติมเงินแบบจำกัดเวลา และ `RedeemCode`/`RedeemCodeRedemption` สำหรับ Code แบบใช้ครั้งเดียวหรือจำกัดจำนวน
+- **จัดการสินค้าใน Shop** — บันทึก `ShopItem` สำหรับสิ่งที่ซื้อได้บน Web Shop
+- **ติดตามการอัปเดต Plugin** — ติดตามเวอร์ชันของ Geyser/Floodgate เพราะเป็นตัวที่ทำให้ผู้เล่นฝั่ง Bedrock เชื่อมต่อได้ตั้งแต่แรก
+- **Emergency Broadcast + Announcer Rotation** — `EmergencyBroadcast` สำหรับข้อความด่วนแบบครั้งเดียว และ `AnnouncerRotationConfig`/`AnnouncerMessage` สำหรับข้อความประกาศหมุนเวียนในเกมตามปกติ
+- **ประกาศบน Discord** — ประกาศที่ทีมงานเขียนเองแล้วส่งไปยัง Discord ผ่าน Outgoing Webhook (`DiscordAnnouncement`) แยกจากการเชื่อมต่อ DiscordSRV ในเกมที่จะอธิบายต่อไป
+
+ทั้งหมดนี้อยู่หลัง Login ชุดเดียวกันที่ผูกกับ AuthMe เหมือน Shop และเสริมความปลอดภัยด้วย TOTP 2FA, Backup Codes และการติดตาม Trusted Device
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/dashboard-page.png"
+    alt="Dashboard ของ Admin Panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Dashboard ของ Admin
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/login-page.png"
+    alt="หน้า Login ของ Admin Panel ที่ใช้ AuthMe Account Store ร่วมกัน"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Login ของ Admin — ใช้ Credential เดียวกับที่ผูกกับ AuthMe เสริมด้วย 2FA
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/live-terminal-page.png"
+    alt="Live Terminal ที่ Stream Console Output ของ Server"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    RCON Console + Live Terminal ที่ Stream Console Output ของ Server
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/audit-log-page.png"
+    alt="Audit Log ของ Admin"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Audit Log — บันทึกทุกการกระทำของ Admin
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/players-page.png"
+    alt="หน้า Player Search ใน Admin Panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Player Search พร้อม Hidden-player Flag
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/command-watchlist-page.png"
+    alt="หน้า Command Watchlist ใน Admin Panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Command Watchlist — Flagged Command Pattern
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/ticket-page.png"
+    alt="หน้าจัดการ Support Ticket ใน Admin Panel"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Support Ticket
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/promotions-page.png"
+    alt="หน้าจัดการโปรโมชันเติมเงิน"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    โปรโมชัน — โบนัสเติมเงินแบบจำกัดเวลา
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/redeem-code-page.png"
+    alt="หน้าจัดการ Redeem Code"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    การจัดการ Redeem Code
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/shop-items-page.png"
+    alt="หน้าจัดการสินค้าใน Shop ฝั่ง Admin"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    การจัดการสินค้าใน Shop
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/announcer-config-page.png"
+    alt="หน้าตั้งค่า Announcer Rotation"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    การตั้งค่า Announcer Rotation
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/website/admin/discord-announcement-with-bot.png"
+    alt="ประกาศที่ส่งไปยัง Discord ผ่าน Webhook แสดงคู่กับ Bot"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ประกาศที่ทีมงานเขียนเอง ส่งไปยัง Discord ผ่าน Webhook
+  </figcaption>
+</figure>
+
+## Plugin Engineering: สามระดับความลึก
+
+Plugin Stack คือส่วนที่มี Engineering จริงจังมากที่สุด และแบ่งได้ชัดเจนเป็นสามระดับความลึก
+
+**สร้างจากศูนย์ (Built from scratch)** `TeamsCraft` คือระบบทีมที่ผมเขียนขึ้นเองทั้งหมด `TradeUp` คือกลไก Trade-up ไอเทมที่สร้างเอง — ผู้เล่นนำไอเทมมารวมกันเพื่ออัปเกรด TradeUp **ไม่ใช่** Marketplace แต่เป็นระบบอัปเกรดไอเทม ซึ่งอาจสับสนกับกลุ่ม Plugin Marketplace ด้านล่างได้จากชื่อ แต่ในทางสถาปัตยกรรมไม่มีความเกี่ยวข้องกันเลย
+
+**Fork และปรับแก้ (Forked and modified)** `AmethystItems` เริ่มต้นจาก Plugin Cosmetic Item Shop แบบ Open-source ที่ผม Fork มาแล้วปรับแก้เอง — รวมถึงการแพตช์ Jar ของ `Xshards` Marketplace เพื่อแก้บั๊กที่ชื่อไอเทมในข้อความแจ้งการซื้อผิดพลาด
+
+**ระดับ Skript Scripting** มีส่วนเชื่อมต่อสองส่วนที่อยู่ในระดับ Skript แทนที่จะเป็น Plugin ที่ Compile แล้ว คือคำสั่ง `/ticket` ที่เขียนเองสำหรับเชื่อมระบบ Support Ticket เข้ากับ Discord และ Bridge ที่เชื่อมระบบเศรษฐกิจของ Xshards เข้ากับ AmethystItems — เมื่อมีการซื้อของใน Xshards Shop สคริปต์ Skript จะทำงานเพื่อมอบไอเทม Amethyst ที่สอดคล้องกัน
+
+นอกเหนือจาก Plugin ที่ผมเขียนเอง `DiscordSRV` (ของ Third-party) ทำหน้าที่ Sync Chat ในเกมและเชื่อมต่อบัญชี Discord
+
+สถานการณ์ Marketplace ในเกมต้องอธิบายแยกให้ชัด เพราะมีระบบแยกกันสามระบบที่ดูเหมือน "ที่สำหรับซื้อขายของ" ทั้งหมด: `/order` คือ FoOrders ซึ่งเป็น Plugin ของ Third-party สำหรับลงประกาศซื้อขายระหว่างผู้เล่น, `/ah` คือ AuctionHouse ระบบประมูลแยกต่างหากของ Third-party, และ TradeUp ตามที่อธิบายไปแล้วไม่ใช่ Marketplace เลย แต่เป็นกลไกอัปเกรดไอเทมที่สร้างเอง ทั้งสามระบบไม่เกี่ยวข้องกันเลย
+
+มีบั๊กเล็กๆ อีกสองอย่างที่ควรกล่าวถึงเป็น Footnote คือ บั๊ก Payout เงียบใน `MrUltimateJobs` ที่ผมพบและแก้ไข และข้อผิดพลาดในการคำนวณ Rarity-weight ของระบบ Crate ที่ทำให้อัตราการดรอปเพี้ยนไปก่อนจะถูกแก้ไข
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/discord-ticket-system.png"
+    alt="คำสั่ง /ticket แบบ Skript ที่เชื่อม Support Ticket เข้ากับ Discord"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Skript Bridge ของคำสั่ง /ticket ที่ส่ง Ticket ใหม่ไปยัง Discord
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/ticket-details.png"
+    alt="รายละเอียด Ticket ที่เชื่อมไปยัง Discord"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    รายละเอียด Ticket สะท้อนกลับไปฝั่ง Discord
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/minecraft-server/ticket-close.png"
+    alt="การปิด Ticket ผ่าน Discord Bridge"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    ปิด Ticket จากฝั่ง Discord
+  </figcaption>
+</figure>
+
+## Infrastructure: Oracle Cloud, Cloudflare และ Firewall สามชั้น
+
+CHEESEBRUHGER รันบน Oracle Cloud VPS สองเครื่อง — เครื่องหนึ่งรัน Minecraft Server อีกเครื่องรัน Website และ MariaDB ที่ใช้ร่วมกัน — รวมกันได้ 4 OCPU และ 24GB RAM บน Oracle Always Free Tier ค่า Compute ทั้งหมด $0 ค่าใช้จ่ายที่เกิดขึ้นจริงมีเพียงค่าโดเมนเท่านั้น มี Cloudflare อยู่ด้านหน้าเพื่อทำ DNS และ CDN
+
+MariaDB ถูกใช้ร่วมกันระหว่าง Website กับ Plugin ของ Minecraft ที่ต้องการที่เก็บข้อมูลถาวร — AuthMe, LuckPerms, CoreProtect และ Plugin เศรษฐกิจ Vault ต่างอ่านและเขียนฐานข้อมูลเดียวกันกับที่ Route Handler ของ Website (Next.js) ใช้งาน
+
+เรื่องราวการ Debug หลักจากช่วง Deploy คือปัญหา Firewall สามชั้น Virtual Cloud Network ของ Oracle ไม่มี Internet Gateway มาให้โดย Default และ Traffic ก็ไปไม่ถึง Server การหาสาเหตุต้องไล่ตรวจสอบสามชั้นที่เป็นอิสระจากกัน ซึ่งต้องผ่านทุกชั้นก่อนที่ Packet จะไปถึงปลายทางได้ ได้แก่ iptables บนตัวเครื่องเอง, Network Security Groups ของ Oracle และกฎ Security-list ของ OCI ในระดับ VCN แต่ละชั้นที่ Drop Traffic แบบเงียบๆ ล้วนแสดงผลออกมาเหมือนกันหมดจากภายนอก คือการเชื่อมต่อที่ไม่มีวันไปถึง ดังนั้นการ Debug จึงเป็นกระบวนการตรวจสอบทีละชั้นจนกว่าจะเจอตัวการจริง
+
+อีกเรื่องหนึ่งคือตอน Deploy แอปที่ใช้ Auth.js (NextAuth v5) พบปัญหา `AUTH_TRUST_HOST` — Auth.js ไม่ยอมเชื่อ Host Header ของ Deployment จนกว่าจะตั้งค่าตัวแปรนี้ ซึ่งทำให้ Flow การ Login ผ่าน Credentials Provider ใช้งานไม่ได้จนกว่าจะตามหาสาเหตุเจอ
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/cheesebruhger-mc-prod-server.png"
+    alt="ภาพรวม Instance ของ Server Production ฝั่ง Minecraft"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Oracle Cloud VPS ที่รัน Minecraft Server
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/cheesebruhger-web-prod-server.png"
+    alt="ภาพรวม Instance ของ Server Production ฝั่ง Website"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Oracle Cloud VPS ที่รัน Website และ MariaDB
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/cloudflare-dns.png"
+    alt="การตั้งค่า Cloudflare DNS สำหรับ cheesebruhger.com"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Cloudflare DNS/CDN อยู่หน้า Server ทั้งสองเครื่อง
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/mc-nsg.png"
+    alt="กฎ Network Security Group ของ Minecraft Server"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Network Security Group — หนึ่งในสามชั้นของ Firewall
+  </figcaption>
+</figure>
+
+<figure>
+  <ZoomableImage
+    src="/projects/cheesebruhger/infrastructure/web-nsg.png"
+    alt="กฎ Network Security Group ของ Web Server"
+    className="border border-zinc-200 dark:border-zinc-800"
+  />
+  <figcaption className="mt-1 text-center text-xs text-zinc-500">
+    Network Security Group ของ Website Server
+  </figcaption>
+</figure>
+
+## การตัดสินใจทางเทคนิคที่สำคัญ
+
+| การตัดสินใจ | เลือกใช้ | ปฏิเสธ | เหตุผล |
+|----------|--------|----------|-----|
+| Auth ของ Website | Credentials Provider เทียบกับตาราง `authme` ที่ใช้ร่วมกัน | สร้างตาราง User แยกสำหรับ Website | ไม่ต้องมีระบบ Account ซ้อนสองชุดที่ผู้เล่นต้องคอย Sync กับ Account ในเกม |
+| การส่งมอบหลังเติมเงิน | `delivery-poller` ตรวจสอบผ่าน RCON ตามรอบเวลา | ส่งมอบแบบ Synchronous ใน Request เดียวกับการเติมเงิน | แยกการยืนยันการชำระเงินออกจากการเปลี่ยนแปลงสถานะในเกม ทนทานต่อ RCON ที่ล่มชั่วคราว |
+| AmethystItems | Fork Plugin Shop แบบ Open-source ที่มีอยู่แล้ว | สร้าง Plugin Cosmetic Shop ขึ้นใหม่ทั้งหมด | เก็บระบบ GUI/เศรษฐกิจเดิมไว้ แก้เฉพาะส่วนที่เสียจริง (บั๊กชื่อไอเทมของ Xshards) |
+| Marketplace ในเกม | FoOrders + AuctionHouse (Third-party) ควบคู่กับ TradeUp ที่สร้างเอง | สร้าง Marketplace เองทั้งหมดเพียงระบบเดียว | การลงประกาศซื้อขายและการประมูลเป็นปัญหาที่มีคำตอบอยู่แล้ว ส่วนกลไกอัปเกรดไอเทมของ TradeUp ต้องใช้ Logic ที่ทั้งสอง Plugin ไม่มี |
+| การเล่นข้ามแพลตฟอร์ม | Geyser/Floodgate บน Purpur Server เดียวกัน | แยก Server สำหรับ Bedrock โดยเฉพาะ | โลกเดียว เศรษฐกิจเดียว กลุ่มผู้เล่นเดียวกันทั้งฝั่ง Java และ Bedrock |
+
+## สิ่งที่จะทำต่างออกไป
+
+CHEESEBRUHGER ยังอยู่ในช่วง Private Beta — กลุ่มเพื่อนเล็กๆ ไม่ได้บังคับ Whitelist ดังนั้นใครก็ตามที่รู้ Address ก็เข้ามาเล่นได้ในทางเทคนิค แม้จะยังไม่ได้ประกาศเปิดสาธารณะ เป้าหมายการเปิดตัวสาธารณะคือภายในปี 2026 โดยตั้งเป้าการออกแบบไว้ที่ผู้เล่นพร้อมกัน 50–100 คน ส่วนตัวเลขการใช้งานปัจจุบัน Uptime หรือรายได้นั้นไม่มีการเก็บสถิติหรือกล่าวอ้างไว้ที่นี่ — เพราะตัวเลขเหล่านั้นยังไม่มีอยู่จริง
+
+ถ้าให้เริ่ม Plugin Stack ใหม่อีกครั้ง ผมคงคิดให้รอบคอบกว่านี้ตั้งแต่แรกว่าระบบที่มีลักษณะคล้าย Marketplace อย่าง FoOrders, AuctionHouse และ TradeUp จำเป็นต้องแยกจากกันจริงๆ หรือไม่ ก่อนที่จะสร้างขึ้นมาถึงสามระบบ ในทางปฏิบัติแต่ละระบบก็ทำหน้าที่ต่างกันจริงๆ แต่นั่นไม่ใช่สิ่งที่ชัดเจนตั้งแต่วันแรก และเป็นเรื่องที่ควรตัดสินใจอย่างตั้งใจมากกว่าจะมาค้นพบทีหลัง

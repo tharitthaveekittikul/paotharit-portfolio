@@ -20,6 +20,10 @@ export const DOCS_META: Record<string, DocsMeta> = {
     title: 'LLM System Trading',
     description: 'Architecture and implementation notes for the LLM trading system.',
   },
+  cheesebruhger: {
+    title: 'Cheesebruhger',
+    description: 'Architecture, API, database, plugin, and DevOps documentation for the CHEESEBRUHGER Minecraft server.',
+  },
 }
 
 export function getDocsMeta(slug: string): DocsMeta {

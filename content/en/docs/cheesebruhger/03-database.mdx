@@ -1,0 +1,98 @@
+---
+title: "Database Schema"
+description: "MariaDB schema shared between the website and the Minecraft plugins — website-owned tables and the plugin-owned tables they sit alongside."
+type: doc
+---
+
+## Overview
+
+The website and the Minecraft server's plugins share one MariaDB instance. The website owns a set of tables for its own concerns (auth extras, tickets, economy-facing records, moderation). A larger set of tables is owned by Minecraft plugins — the website reads some of these (notably `authme`, for login) but never owns their schema or writes to them outside RCON-driven, plugin-defined behavior.
+
+No row data, credential values, or column-level secrets are documented here — table and column *names* only.
+
+## Website-Owned Tables
+
+### Auth & Account Security
+
+| Table | Purpose |
+|---|---|
+| `PasswordResetToken` | Password reset flow tokens |
+| `EmailChangeToken` | Email change confirmation tokens |
+| `BackupCode` | TOTP 2FA backup codes |
+| `TrustedDevice` | Devices exempted from repeat 2FA challenges |
+| `PendingTotpSetup` | In-progress TOTP enrollment state |
+
+### Auditing & Moderation
+
+| Table | Purpose |
+|---|---|
+| `AuditLog` | Every admin action, across all admin-panel features |
+| `FlaggedCommandPattern` | Command-watchlist patterns for review |
+| `HiddenPlayer` | Players flagged to be excluded from public-facing player lists |
+
+### Support & Communication
+
+| Table | Purpose |
+|---|---|
+| `Ticket` | Support tickets (in-game or admin-originated) |
+| `TicketMessage` | Messages within a ticket thread |
+| `DiscordAnnouncement` | Staff-authored announcements posted to Discord via webhook |
+| `Announcement` | In-game announcements |
+| `EmergencyBroadcast` | One-off urgent broadcast messages |
+| `AnnouncerRotationConfig` | Configuration for the rotating in-game announcer |
+| `AnnouncerMessage` | Individual messages in the announcer rotation |
+
+### Economy & Commerce
+
+| Table | Purpose |
+|---|---|
+| `WalletBalance` | Player Credits balance (real-money-backed) |
+| `TopupTransaction` | Recorded PromptPay top-ups, EasySlip-verified |
+| `TopupPromotion` | Time-limited top-up bonus rules |
+| `ShopItem` | Purchasable items on the web shop |
+| `Purchase` | A player's purchase of a `ShopItem` |
+| `RedeemCode` | Redeemable codes |
+| `RedeemCodeRedemption` | One row per player redemption of a `RedeemCode` |
+
+## Plugin-Owned Tables
+
+These tables are created and managed by their respective Minecraft plugins. The website's role with respect to them is read-only where noted (for login) — it does not own or migrate their schema.
+
+### AuthMe
+
+| Table | Notes |
+|---|---|
+| `authme` | Player account store (bcrypt password hashes). Introspected by the website's Credentials provider for login — not owned by the website. |
+
+### CoreProtect
+
+| Table prefix | Notes |
+|---|---|
+| `co_*` | 15 tables covering block/container/session/chat logging used for rollback and moderation lookups. |
+
+### LuckPerms
+
+| Table prefix | Notes |
+|---|---|
+| `luckperms_*` | Permissions and group data. |
+
+### Other Gameplay Plugins
+
+| Table | Owning plugin |
+|---|---|
+| `SetHomeGUI` | Player home locations |
+| `UltimateTeams` | Team data (distinct from the custom `TeamsCraft` plugin — see [Minecraft Plugins](/en/docs/cheesebruhger/minecraft-plugins)) |
+
+### Vault Economy
+
+| Table | Notes |
+|---|---|
+| `vault_balances` | Player `$` balances |
+| `player_shards` | Burger (Xshards) balances |
+| `vault_charge_requests` | Pending economy charge/transfer requests |
+| `vault_world_balances` | Per-world balance tracking |
+
+## Related
+
+- [Architecture](/en/docs/cheesebruhger/architecture)
+- [Minecraft Plugins](/en/docs/cheesebruhger/minecraft-plugins)
