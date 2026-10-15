@@ -94,10 +94,22 @@
     },
     "languages": {
       "title": "Languages",
-      "thai": { "name": "Thai", "level": "Native" },
-      "english": { "name": "English", "level": "Working proficiency" },
-      "japanese": { "name": "Japanese", "level": "Conversational — studied + 3 months solo in Japan" },
-      "mandarin": { "name": "Mandarin", "level": "Survival — childhood summers in China" }
+      "thai": {
+        "name": "Thai",
+        "level": "Native"
+      },
+      "english": {
+        "name": "English",
+        "level": "Working proficiency"
+      },
+      "japanese": {
+        "name": "Japanese",
+        "level": "Conversational — studied + 3 months solo in Japan"
+      },
+      "mandarin": {
+        "name": "Mandarin",
+        "level": "Survival — childhood summers in China"
+      }
     },
     "outside": {
       "title": "Outside the terminal",
@@ -113,5 +125,40 @@
     "heading": "Lost in the void",
     "body": "This page doesn't exist — but the rest of the site does.",
     "back": "Go back"
+  },
+  "ask": {
+    "button": "Ask AI",
+    "title": "Ask about Tharit",
+    "description": "Answers come only from information Tharit has published. Ask about his projects, experience, or fit for a role.",
+    "name": "Your name",
+    "role": "Your role (optional)",
+    "company": "Company",
+    "start": "Start",
+    "notice": "Your name, company and questions are sent to Tharit so he can follow up. Please do not include sensitive personal data.",
+    "placeholder": "Ask about Tharit",
+    "send": "Send",
+    "remaining": "{count} of {max} questions left",
+    "limitReached": "You have used all your questions for this session. Please contact Tharit directly.",
+    "unavailable": "The assistant is unavailable right now. You can email Tharit directly.",
+    "refuseOffTopic": "I can only answer questions about Tharit: his projects, experience, skills, or fit for a role. Please ask about one of those.",
+    "refuseInjection": "I can only answer questions about Tharit and cannot change how I work. Please ask about his projects, experience, or skills.",
+    "thinking": "Thinking...",
+    "close": "Close",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "callTitle": "Do you want to call Tharit now?",
+    "callNumber": "Phone",
+    "call": "Call",
+    "copyNumber": "Copy number",
+    "emailTitle": "Do you want to email Tharit?",
+    "openEmail": "Open email",
+    "copyEmail": "Copy address",
+    "copied": "Copied",
+    "emailSubject": "Hello Tharit",
+    "emailBody": "Hi Tharit,\n\nI am {name} from {company}. ",
+    "suggestions": [
+      "What has Tharit built with AI?",
+      "Which projects used Next.js?",
+      "Would he fit a backend role?"
+    ]
   }
 }

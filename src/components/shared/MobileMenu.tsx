@@ -8,7 +8,7 @@ import { ResumeLink } from "./ResumeLink";
 
 interface MobileMenuProps {
   locale: string;
-  labels: { docs: string; about: string; resume: string; moreLinks: string };
+  labels: { blog: string; docs: string; about: string; resume: string; moreLinks: string };
   resumeHref: string;
 }
 
@@ -83,6 +83,12 @@ export function MobileMenu({ locale, labels, resumeHref }: MobileMenuProps) {
             className="min-w-[120px] rounded-lg border border-white/10 bg-zinc-900 py-1 dark:border-zinc-900/10 dark:bg-white animate-in fade-in-0 slide-in-from-top-2 duration-150 mt-1"
             onClick={() => setOpen(false)}
           >
+            <Link
+              href={`/${locale}/blog`}
+              className="block px-4 py-3 text-sm text-zinc-400 hover:text-zinc-50 dark:text-zinc-500 dark:hover:text-zinc-900"
+            >
+              {labels.blog}
+            </Link>
             <Link
               href={`/${locale}/docs`}
               className="block px-4 py-3 text-sm text-zinc-400 hover:text-zinc-50 dark:text-zinc-500 dark:hover:text-zinc-900"

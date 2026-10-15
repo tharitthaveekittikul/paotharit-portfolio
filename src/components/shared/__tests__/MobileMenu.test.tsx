@@ -6,7 +6,7 @@ vi.mock('@next/third-parties/google', () => ({ sendGAEvent: vi.fn() }))
 
 const defaultProps = {
   locale: 'en',
-  labels: { docs: 'Docs', about: 'About', resume: 'Resume', moreLinks: 'More navigation links' },
+  labels: { blog: 'Blog', docs: 'Docs', about: 'About', resume: 'Resume', moreLinks: 'More navigation links' },
   resumeHref: '/en/resume',
 }
 

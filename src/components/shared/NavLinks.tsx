@@ -103,7 +103,7 @@ export function NavLinks({ locale, labels, resumeHref }: NavLinksProps) {
       )}
       <span
         data-navkey="blog"
-        className="inline-flex"
+        className="hidden sm:inline-flex"
         onMouseEnter={() => setHoveredKey("blog")}
       >
         <Link

@@ -14,11 +14,14 @@
     "sync:docs:zentri": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/Zentri\" --project zentri --output content/en/docs",
     "sync:docs:docrag": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/DocRAG\" --project docrag --output content/en/docs",
     "sync:docs:utiliship": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/Utiliship\" --project utiliship --output content/en/docs",
-    "sync:docs:llmsystemtrading": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/LLMSystemTrading\" --project llmsystemtrading --output content/en/docs"
+    "sync:docs:llmsystemtrading": "tsx scripts/obsidian-sync.ts --docs --source \"/Users/tharitthaveekittikul/Documents/04_Knowledge/paotharit-knowledge-base/10 - Projects/LLMSystemTrading\" --project llmsystemtrading --output content/en/docs",
+    "brief:draft": "tsx --env-file=.env.local scripts/draft-knowledge-brief.ts",
+    "eval:ask": "tsx --env-file=.env.local scripts/eval-ask.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@next/third-parties": "^16.2.6",
+    "@typesafe-ai/sdk": "^0.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

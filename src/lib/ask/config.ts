@@ -1,0 +1,12 @@
+export const ASK_COOKIE = 'ask_session'
+export const MAX_QUESTIONS = 8
+export const SESSION_TTL_SECONDS = 60 * 60 * 24
+export const MAX_MESSAGE_CHARS = 500
+export const MAX_ANSWER_TOKENS = 900
+export const MAX_HISTORY_ANSWER_CHARS = 1600
+export const CONTACT_EMAIL = 'tharit.thaveekittikul@gmail.com'
+export const GATE_OFF_TOPIC_BELOW = 0.35
+export const GATE_INJECTION_AT = 0.5
+export const PROJECT_RELEVANCE_AT = 0.4
+export const MAX_PROJECT_SLICES = 3
+export const FALLBACK_PROJECT_SLICES = 2

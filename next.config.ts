@@ -4,6 +4,9 @@ import type { NextConfig } from 'next'
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    '/api/ask': ['./src/lib/ask/knowledge-brief.md'],
+  },
   async headers() {
     return [
       {

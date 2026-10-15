@@ -6,6 +6,7 @@ vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn().mockResolvedValue((key: string) => key),
 }))
 
+vi.mock('@/components/ask/AskAI', () => ({ AskAI: () => <button>Ask AI</button> }))
 vi.mock('../SearchButton', () => ({ SearchButton: () => <button>Search</button> }))
 vi.mock('../LocaleSwitcher', () => ({ LocaleSwitcher: () => <button>Locale</button> }))
 vi.mock('../ThemeToggle', () => ({ ThemeToggle: () => <button>Theme</button> }))

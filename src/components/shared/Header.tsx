@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { ThemeToggle } from './ThemeToggle'
 import { LocaleSwitcher } from './LocaleSwitcher'
 import { SearchButton } from "./SearchButton"
+import { AskAI } from '@/components/ask/AskAI'
 import { SocialLinks } from './SocialLinks'
 import { EmailLink } from './EmailLink'
 import { MobileMenu } from './MobileMenu'
@@ -34,13 +35,14 @@ export async function Header() {
         />
         <MobileMenu
           locale={locale}
-          labels={{ docs: t('docs'), about: t('about'), resume: t('resume'), moreLinks: t('moreLinks') }}
+          labels={{ blog: t('blog'), docs: t('docs'), about: t('about'), resume: t('resume'), moreLinks: t('moreLinks') }}
           resumeHref={`/${locale}/resume`}
         />
         <div data-testid="social-links" className="hidden lg:flex items-center">
           <SocialLinks className="p-2 text-zinc-400 hover:text-zinc-50 dark:text-zinc-500 dark:hover:text-zinc-900" />
         </div>
         <div className="flex items-center gap-0.5 sm:gap-1">
+          <AskAI />
           <SearchButton />
           <LocaleSwitcher />
           <ThemeToggle />
