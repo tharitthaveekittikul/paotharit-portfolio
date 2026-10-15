@@ -37,6 +37,7 @@ export function parseBrief(markdown: string): KnowledgeBrief {
 let cached: KnowledgeBrief | null = null
 
 export function loadBrief(): KnowledgeBrief {
+  if (process.env.NODE_ENV !== 'production') return parseBrief(readFileSync(BRIEF_PATH, 'utf8'))
   cached ??= parseBrief(readFileSync(BRIEF_PATH, 'utf8'))
   return cached
 }
